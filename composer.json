@@ -17,6 +17,11 @@
     "sort-packages": true,
     "optimize-autoloader": true
   },
+  "autoload": {
+    "psr-4": {
+      "tiFy\\Plugins\\Shop\\": ""
+    }
+  },
   "minimum-stability": "dev",
   "prefer-stable": true
 }

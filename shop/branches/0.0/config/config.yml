@@ -1,0 +1,49 @@
+# @var array $products Déclaration des gammes de produits
+products:
+  product:
+    singular:               "<?php _e('Produit', 'tify'); ?>"
+    plural:                 "<?php _e('Produits', 'tify'); ?>"
+
+    category:
+      taxonomy:             'product_cat'
+
+# @var array $roles Liste des roles
+# @see \tiFy\Core\Roles\Roles
+roles:
+  # @var string $id Identifiant de qualification du rôle
+  shop_manager:
+      # @var string $display_name Nom d'affichage
+      display_name:         "<?php _e('Gestionnaire boutique', 'tify'); ?>"
+
+      # @var bool|array $admin_ui Interface dédiée
+      admin_ui:
+        global:
+          admin_menu:
+            menu_title:   "<?php _e('Gestionnaires', 'tify'); ?>"
+            icon_url:     'dashicons-businessman'
+            position:     71
+        list:
+          admin_menu:
+            menu_title:   "<?php _e('Tous les gestionnaires', 'tify'); ?>"
+
+  # @var string $id Identifiant de qualification du rôle
+  customer:
+    # @var string $display_name Nom d'affichage
+    display_name:           "<?php _e('Client', 'tify'); ?>"
+
+    # @var bool|array $admin_ui Interface dédiée
+    admin_ui:
+      global:
+        admin_menu:
+          menu_title:   "<?php _e('Clients', 'tify'); ?>"
+          icon_url:     'dashicons-cart'
+          position:     72
+      list:
+        admin_menu:
+          menu_title:   "<?php _e('Tous les clients', 'tify'); ?>"
+
+# @var array $login Déclarations attributs de configuration de l'interface d'authentification à la boutique
+# @see \tiFy\Components\Login\Login
+login:
+  cb :    '\tiFy\Plugins\Shop\App\Components\Login\Factory'
+  roles : ['customer', 'shop_manager']

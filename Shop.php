@@ -1,35 +1,35 @@
 <?php
-
 /*
  Plugin Name: Shop
- Plugin URI: https://presstify.com/plugins/shop
+ Plugin URI: http://presstify.com/plugins/shop
  Description: boutique
- Version: 1.0.0
+ Version: 1.528
  Author: Milkcreation
  Author URI: http://milkcreation.fr
  Text Domain: tify
 */
-
 namespace tiFy\Plugins\Shop;
 
-use League\Container\Exception\NotFoundException;
-use tiFy\App\Plugin;
-use tiFy\Core\User\Session\StoreInterface as tiFySession;
-use tiFy\Plugins\Shop\Addresses\Addresses;
-use tiFy\Plugins\Shop\Admin\Admin;
-use tiFy\Plugins\Shop\Cart\Cart;
-use tiFy\Plugins\Shop\Checkout\Checkout;
-use tiFy\Plugins\Shop\Gateways\Gateways;
-use tiFy\Plugins\Shop\Notices\Notices;
-use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
-use tiFy\Plugins\Shop\Products\Products;
-use tiFy\Plugins\Shop\Providers\Providers;
-use tiFy\Plugins\Shop\Session\Session;
-use tiFy\Plugins\Shop\Settings\Settings;
-use tiFy\Plugins\Shop\Users\Users;
-
-class Shop extends Plugin
+class Shop extends \tiFy\App\Plugin
 {
+    /**
+     * Liste des identifiants de qualification des classes de rappel des contrôleurs
+     * @var string[]
+     */
+    private static $FactoryIds  = [
+        'login',
+        'products',
+        'roles',
+        'session',
+        'users'
+    ];
+
+    /**
+     * Liste des classes de rappel des contrôleurs
+     * @var \tiFy\Plugins\Shop\Factory\Factory[]
+     */
+    private static $Factory = [];
+
     /**
      * CONSTRUCTEUR
      *
@@ -39,153 +39,74 @@ class Shop extends Plugin
     {
         parent::__construct();
 
-        // Déclaration des dépendances
-        $this->appShareContainer('tify.plugins.shop.addresses', Addresses::make($this));
-        $this->appShareContainer('tify.plugins.shop.admin', Admin::make($this));
-        $this->appShareContainer('tify.plugins.shop.cart', Cart::make($this));
-        $this->appShareContainer('tify.plugins.shop.checkout', Checkout::make($this));
-        $this->appShareContainer('tify.plugins.shop.custom-types', CustomTypes::make($this));
-        $this->appShareContainer('tify.plugins.shop.gateways', Gateways::make($this));
-        $this->appShareContainer('tify.plugins.shop.notices', Notices::make($this));
-        $this->appShareContainer('tify.plugins.shop.products', Products::make($this));
-        $this->appShareContainer('tify.plugins.shop.providers', Providers::make($this));
-        $this->appShareContainer('tify.plugins.shop.session', Session::make($this));
-        $this->appShareContainer('tify.plugins.shop.settings', Settings::make($this));
-        $this->appShareContainer('tify.plugins.shop.users', Users::make($this));
+        // Chargement des contrôleurs
+        if ($factory_ids = self::$FactoryIds) :
+            foreach ($factory_ids as $id) :
+                if (!self::tFyAppConfig($id)) :
+                    continue;
+                endif;
 
-        require_once($this->appDirname() . '/Helpers.php');
+                $ShortName = join('', array_map('ucfirst', preg_split('#_#', $id)));
+
+                $Factory = self::tFyAppNamespace() . "\\Factory\\" . $ShortName;
+                if (class_exists($Factory)) :
+                    self::$Factory[$id] = new $Factory($id, []);
+                endif;
+            endforeach;
+        endif;
     }
 
     /**
-     * Récupération de dépendance
-     *
-     * @param string $name Identifiant de qualification de la dépendance
-     *
-     * @return null|object|self|Addresses|Admin|Cart|Checkout|CustomTypes|Gateways|Notices|Products|Providers|Session|Settings|Users
+     * CONTROLEURS
      */
-    public static function get($name = null)
+    /**
+     * Récupération d'une classe de rappel de controleur
+     *
+     * @param string $id Identifiant de qualification d'un controleur
+     *
+     * @return \tiFy\Plugins\Shop\Factory\Factory
+     */
+    public static function get($id)
     {
-        try {
-            /** @var Shop $Shop */
-            $Shop = self::tFyAppGetContainer('tiFy\Plugins\Shop\Shop');
-        } catch(NotFoundException $e) {
-            wp_die($e->getMessage(), '', $e->getCode());
-        }
-        if (!$name) :
-            return $Shop;
-        else :
-            $name = $Shop->appLowerName($name);
-            if ($Shop->appHasContainer("tify.plugins.shop.{$name}")) :
-                /** @var \League\Container\Container $Factory */
-                $Factory = $Shop->appGetContainer("tify.plugins.shop.{$name}");
-
-                return $Factory;
-            endif;
+        if(!in_array($id, self::$FactoryIds)) :
+            return;
         endif;
 
-        return null;
+        if (!isset(self::$Factory[$id])) :
+            return;
+        endif;
+
+        return self::$Factory[$id];
     }
 
     /**
-     * Récupération de la classe de rappel de gestion des adresses : livraison|facturation
+     * Alias de récupération de la classe de rappel du controleur d'interface d'authentification
      *
-     * @return Addresses
+     * @return \tiFy\Plugins\Shop\Factory\Login::get()
      */
-    public function addresses()
+    final public static function login()
     {
-        return self::get('addresses');
+        $login = self::$Factory['login'];
+	    return $login::get();
     }
 
     /**
-     * Récupération de la dépendance panier
+     * Alias de récupération de la classe de rappel du controleur de session
      *
-     * @return Cart
+     * @return \tiFy\Plugins\Shop\Factory\Session
      */
-    public function cart()
+    final public static function session()
     {
-        return self::get('cart');
+        return self::$Factory['session'];
     }
 
     /**
-     * Récupération de la dépendance commande
+     * Alias de récupération de la classe de rappel du controleur de session
      *
-     * @return Checkout
+     * @return \tiFy\Plugins\Shop\Factory\Users
      */
-    public function checkout()
+    final public static function user()
     {
-        return self::get('checkout');
-    }
-
-    /**
-     * Récupération de la dépendance commande
-     *
-     * @return Gateways
-     */
-    public function gateways()
-    {
-        return self::get('gateways');
-    }
-
-    /**
-     * Récupération de la classe de rappel de gestion des produits
-     *
-     * @return Products
-     */
-    public function products()
-    {
-        return self::get('products');
-    }
-
-    /**
-     * Récupération de la dépendance des fournisseurs de service
-     *
-     * @return Providers
-     */
-    public function providers()
-    {
-        return self::get('providers');
-    }
-
-    /**
-     * Récupération de la dépendance des notices
-     *
-     * @return Notices
-     */
-    public function notices()
-    {
-        return self::get('notices');
-    }
-
-    /**
-     * Récupération de la classe de rappel de récupération de données de session
-     *
-     * @return tiFySession
-     */
-    public function session()
-    {
-        /** @var tiFySession $session */
-        $session = self::get('session');
-
-        return $session;
-    }
-
-    /**
-     * Récupération de la dépendance des réglages de la boutique
-     *
-     * @return Settings
-     */
-    public function settings()
-    {
-        return self::get('settings');
-    }
-
-    /**
-     * Récupération de la dépendance des utilisateurs de la boutique
-     *
-     * @return Users
-     */
-    public function users()
-    {
-        return self::get('users');
+        return self::$Factory['users'];
     }
 }

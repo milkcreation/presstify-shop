@@ -1,8 +1,10 @@
 {
   "name": "presstify-plugins/shop",
   "description": "PresstiFy Plugin Shop",
+  "type": "presstify-plugins",
   "keywords": ["presstify", "plugins", "wordpress", "commerce", "woocommerce"],
   "homepage": "http://svn.milkcreation.fr/presstify-plugins/shop",
+  "license": "proprietary",
   "authors": [
     {
       "name": "Jordy Manner",

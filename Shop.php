@@ -2,7 +2,7 @@
 
 /*
  Plugin Name: Shop
- Plugin URI: http://presstify.com/plugins/shop
+ Plugin URI: https://presstify.com/plugins/shop
  Description: boutique
  Version: 1.0.0
  Author: Milkcreation

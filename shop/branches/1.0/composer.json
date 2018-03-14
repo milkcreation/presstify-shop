@@ -1,0 +1,25 @@
+{
+  "name": "presstify-plugins/shop",
+  "description": "PresstiFy Plugin Shop",
+  "type": "presstify-plugins",
+  "keywords": ["presstify", "plugins", "wordpress", "commerce", "woocommerce"],
+  "homepage": "http://svn.milkcreation.fr/presstify-plugins/shop",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Jordy Manner",
+      "email": "jordy.manner@milkcreation.fr",
+      "role": "Developper"
+    }
+  ],
+  "require": {
+    "presstify/framework": "^1.3"
+  },
+  "config" : {
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "optimize-autoloader": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

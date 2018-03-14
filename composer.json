@@ -12,13 +12,15 @@
       "role": "Developper"
     }
   ],
-  "require": {
-    "presstify/framework": "^1.3"
-  },
   "config" : {
     "preferred-install": "dist",
     "sort-packages": true,
     "optimize-autoloader": true
+  },
+  "autoload": {
+    "psr-4": {
+      "tiFy\\Plugins\\Shop\\": ""
+    }
   },
   "minimum-stability": "dev",
   "prefer-stable": true

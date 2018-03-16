@@ -22,9 +22,11 @@ use tiFy\Plugins\Shop\Checkout\Checkout;
 use tiFy\Plugins\Shop\Gateways\Gateways;
 use tiFy\Plugins\Shop\Notices\Notices;
 use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
+use tiFy\Plugins\Shop\Orders\Orders;
 use tiFy\Plugins\Shop\Products\Products;
 use tiFy\Plugins\Shop\Providers\Providers;
 use tiFy\Plugins\Shop\Session\Session;
+use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
 use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Users\Users;
 
@@ -40,18 +42,7 @@ class Shop extends Plugin
         parent::__construct();
 
         // Déclaration des dépendances
-        $this->appShareContainer('tify.plugins.shop.addresses', Addresses::make($this));
-        $this->appShareContainer('tify.plugins.shop.admin', Admin::make($this));
-        $this->appShareContainer('tify.plugins.shop.cart', Cart::make($this));
-        $this->appShareContainer('tify.plugins.shop.checkout', Checkout::make($this));
-        $this->appShareContainer('tify.plugins.shop.custom-types', CustomTypes::make($this));
-        $this->appShareContainer('tify.plugins.shop.gateways', Gateways::make($this));
-        $this->appShareContainer('tify.plugins.shop.notices', Notices::make($this));
-        $this->appShareContainer('tify.plugins.shop.products', Products::make($this));
-        $this->appShareContainer('tify.plugins.shop.providers', Providers::make($this));
-        $this->appShareContainer('tify.plugins.shop.session', Session::make($this));
-        $this->appShareContainer('tify.plugins.shop.settings', Settings::make($this));
-        $this->appShareContainer('tify.plugins.shop.users', Users::make($this));
+        $this->appContainer()->addServiceProvider(new ServiceProvider($this));
 
         require_once($this->appDirname() . '/Helpers.php');
     }
@@ -61,7 +52,7 @@ class Shop extends Plugin
      *
      * @param string $name Identifiant de qualification de la dépendance
      *
-     * @return null|object|self|Addresses|Admin|Cart|Checkout|CustomTypes|Gateways|Notices|Products|Providers|Session|Settings|Users
+     * @return null|object|self|Addresses|Admin|Cart|Checkout|CustomTypes|Gateways|Notices|Orders|Products|Providers|Session|Settings|Users
      */
     public static function get($name = null)
     {
@@ -124,6 +115,16 @@ class Shop extends Plugin
     public function gateways()
     {
         return self::get('gateways');
+    }
+
+    /**
+     * Récupération de la classe de rappel de gestion des commandes
+     *
+     * @return Orders
+     */
+    public function orders()
+    {
+        return self::get('orders');
     }
 
     /**

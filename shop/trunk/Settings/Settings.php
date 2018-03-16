@@ -41,6 +41,14 @@ class Settings extends Fluent implements SettingsInterface
         'is_manage_stock', // @todo
         // Produits - Produits téléchargeable
         // @todo
+        // TVA - Options TVA
+        'prices_include_tax',
+        // TVA - Taux standards
+        // @todo
+        // TVA - Taux réduit
+        // @todo
+        // TVA - Taux zéro
+        // @todo
         // Expédition
         // @todo
         // Commande - Options de commande > Processus de commande
@@ -269,6 +277,15 @@ class Settings extends Fluent implements SettingsInterface
     public function isManageStock()
     {
         return (bool)$this->get('is_manage_stock', false);
+    }
+
+    /**
+     * Vérifie si les tarifs des produits saisie inclus la TVA (prix TTC ou HT)
+     * @return bool
+     */
+    public function isPricesIncludeTax()
+    {
+        return (bool)$this->get('prices_include_tax', false);
     }
 
     /**

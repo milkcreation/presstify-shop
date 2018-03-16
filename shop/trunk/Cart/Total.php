@@ -256,4 +256,14 @@ class Total extends Fluent implements TotalInterface
     {
         return [];
     }
+
+    /**
+     * Récupération du montant total global
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string) $this->getGlobal();
+    }
 }

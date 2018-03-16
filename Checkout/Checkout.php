@@ -244,6 +244,27 @@ class Checkout
             endif;
         endif;
 
+        $order = ($order_id = $this->shop->session()->get('order_awaiting_payment', 0))
+            ? $this->shop->orders()->get($order_id)
+            : $this->shop->orders()->create();
+
+        if (! $this->shop->orders()->is($order)) :
+            $this->shop->notices()->add(__('Désolé, impossible de procéder à votre commande, veuillez réessayer.', 'tify'), 'error');
+
+            \wp_redirect($redirect);
+            exit;
+        endif;
+
+        $created_via = 'checkout';
+        $cart_hash = md5(json_encode($this->shop->cart()->getList()) . $this->shop->cart()->getTotals());
+        $customer_id = $this->shop->users()->get()->getId();
+        $currency = $this->shop->settings()->currency();
+        $prices_include_tax = $this->shop->settings()->isPricesIncludeTax();
+        $customer_ip_address = $request->getClientIp();
+        $customer_user_agent = $request->headers->get('User-Agent');
+
+        var_dump($order);
+        exit;
 
         \wp_redirect($redirect);
         exit;

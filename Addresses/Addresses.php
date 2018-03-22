@@ -14,6 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
+use LogicException;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Core\Forms\Addons;
 use tiFy\Plugins\Shop\Shop;
@@ -58,9 +59,6 @@ class Addresses implements AddressesInterface
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Initialisation
-        $this->billing();
-
         // Déclaration des événements
         $this->appAddAction('tify_form_register_addon');
     }
@@ -92,7 +90,7 @@ class Addresses implements AddressesInterface
      *
      * @return Addresses
      */
-    public static function make(Shop $shop)
+    public static function boot(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
@@ -108,13 +106,23 @@ class Addresses implements AddressesInterface
      */
     final public function tify_form_register_addon()
     {
-        $form_handler = $this->shop->appConfig('addresses.form_handler', 'tiFy\Plugins\Shop\Addresses\FormHandler');
+        $this->billing();
+        $this->shipping();
+
+        $form_handler_class = $this->shop->provider()->getMapController('addresses.form_handler');
+        if(! in_array(FormHandlerInterface::class, class_implements($form_handler_class))) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    FormHandlerInterface::class
+                ),
+                500
+            );
+        endif;
 
         Addons::register(
             'tify_shop_address_form_handler',
-            in_array('tiFy\Plugins\Shop\Addresses\FormHandlerInterface', class_implements($form_handler))
-                ? $form_handler
-                : 'tiFy\Plugins\Shop\Addresses\FormHandler',
+            $form_handler_class,
             $this->shop
         );
     }
@@ -123,6 +131,8 @@ class Addresses implements AddressesInterface
      * Récupération du controleur de gestion de l'adresse de facturation
      *
      * @return BillingInterface
+     *
+     * @throw LogicException
      */
     final public function billing()
     {
@@ -130,17 +140,18 @@ class Addresses implements AddressesInterface
             return $this->billing;
         endif;
 
-        if (
-            ($controller = $this->shop->appConfig('addresses.billing_controller', '')) &&
-            in_array(
-                'tiFy\Plugins\Shop\Addresses\BillingInterface',
-                class_implements($controller)
-            )
-        ) :
-            return $this->billing = new $controller($this->shop, $this);
-        else :
-            return $this->billing = new Billing($this->shop, $this);
+        $this->billing = $this->shop->provide('addresses.billing');
+        if(! $this->billing instanceof BillingInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    BillingInterface::class
+                ),
+                500
+            );
         endif;
+
+        return $this->billing;
     }
 
     /**
@@ -154,17 +165,18 @@ class Addresses implements AddressesInterface
             return $this->shipping;
         endif;
 
-        if (
-            ($controller = $this->shop->appConfig('addresses.shipping_controller', '')) &&
-            in_array(
-                'tiFy\Plugins\Shop\Addresses\ShippingInterface',
-                class_implements($controller)
-            )
-        ) :
-            return $this->shipping = new $controller($this->shop, $this);
-        else :
-            return $this->shipping = new Shipping($this->shop, $this);
+        $this->shipping = $this->shop->provide('addresses.shipping');
+        if(! $this->shipping instanceof ShippingInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    ShippingInterface::class
+                ),
+                500
+            );
         endif;
+
+        return $this->shipping;
     }
 
     /**

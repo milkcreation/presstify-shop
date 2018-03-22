@@ -14,6 +14,8 @@
 
 namespace tiFy\Plugins\Shop\Providers;
 
+use Illuminate\Support\Arr;
+use LogicException;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Shop;
 
@@ -34,20 +36,10 @@ class Providers
     protected $shop;
 
     /**
-     * Liste des fournisseurs de service par défaut
+     * Liste des services
      * @var array
      */
-    private $defaults = [
-        'page'  => 'tiFy\Plugins\Shop\Providers\PageProvider',
-        'price' => 'tiFy\Plugins\Shop\Providers\PriceProvider',
-        'url'   => 'tiFy\Plugins\Shop\Providers\UrlProvider'
-    ];
-
-    /**
-     * Liste des fournisseurs de service à utiliser
-     * @var array
-     */
-    private $providers = [];
+    protected $providers;
 
     /**
      * CONSTRUCTEUR
@@ -60,9 +52,6 @@ class Providers
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-
-        // Définition des fournisseurs de service
-        $this->providers = $this->shop->appConfig('providers', $this->defaults);
     }
 
     /**
@@ -102,65 +91,77 @@ class Providers
     }
 
     /**
-     * Récupération du fournisseur de service
-     *
-     * @param string $name Nom du fournisseur de service déclaré. price|url.
-     *
-     * @return object|PageProviderInterface|PriceProviderInterface|UrlProviderInterface
-     *
-     * @throws
-     */
-    private function get($name)
-    {
-        $alias = "tiFy\\Plugins\\Shop\\Providers\\" . $this->appUpperName($name) . "ProviderInterface";
-
-        if (!$this->appHasContainer($alias)) :
-            $providerClass = isset($this->providers[$name]) ? $this->providers[$name] : $this->defaults[$name];
-
-            if (!in_array($alias, class_implements($providerClass))) :
-                throw new \InvalidArgumentException(
-                    sprintf(
-                        __('Le fournisseur de service doit implémenter l\'interface %s', 'tify'),
-                        $alias
-                    ),
-                    500
-                );
-            endif;
-
-            $this->appAddContainer($alias, $providerClass)
-                ->withArgument($this->shop);
-        endif;
-
-        return $this->appGetContainer($alias);
-    }
-
-    /**
      * Alias de récupération du fournisseur de gestion des contextes d'affichage
      *
-     * @return PageProviderInterface
+     * @return object|PageProviderInterface
      */
-    public function page()
+    final public function page()
     {
-        return $this->get('page');
+        if ($page = Arr::get($this->providers, 'page', null)) :
+            return $page;
+        endif;
+
+        $page = $this->shop->provide('providers.page');
+        if(! $page instanceof PageProviderInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    PageProviderInterface::class
+                ),
+                500
+            );
+        endif;
+
+        return $page;
     }
 
     /**
      * Alias de récupération du fournisseur de gestion des tarifs de la boutique
      *
-     * @return PriceProviderInterface
+     * @return object|PriceProviderInterface
      */
-    public function price()
+    final public function price()
     {
-        return $this->get('price');
+        if ($price = Arr::get($this->providers, 'price', null)) :
+            return $price;
+        endif;
+
+        $price = $this->shop->provide('providers.price');
+        if(! $price instanceof PriceProviderInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    PriceProviderInterface::class
+                ),
+                500
+            );
+        endif;
+
+        return $price;
     }
 
     /**
      * Alias de récupération du fournisseur de gestion des urls de la boutique
      *
-     * @return UrlProviderInterface
+     * @return object|UrlProviderInterface
      */
-    public function url()
+    final public function url()
     {
-        return $this->get('url');
+        if ($url = Arr::get($this->providers, 'url', null)) :
+            return $url;
+        endif;
+
+        $url = $this->shop->provide('providers.url');
+        if(! $url instanceof UrlProviderInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    UrlProviderInterface::class
+                ),
+                500
+            );
+        endif;
+
+        return $url;
     }
 }

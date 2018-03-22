@@ -49,8 +49,13 @@ class Settings extends Fluent implements SettingsInterface
         // @todo
         // TVA - Taux zéro
         // @todo
-        // Expédition
+        // Expédition - Zone d'expédition
         // @todo
+        // Expédition - Options de livraison
+        'enable_shipping_calc', 'shipping_cost_requires_address', 'ship_to_destination', 'shipping_debug_mode',
+        // Expédition - Classes de livraison
+        // @todo
+
         // Commande - Options de commande > Processus de commande
         // @todo
         // Commande - Options de commande > Page de commande
@@ -100,7 +105,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Adresse de la boutique - ligne 1
+     * Adresse de la boutique - ligne 1.
+     *
      * @return string
      */
     public function storeAddress()
@@ -109,7 +115,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Adresse de la boutique - ligne 2
+     * Adresse de la boutique - ligne 2.
+     *
      * @return string
      */
     public function storeAddressAdditionnal()
@@ -118,7 +125,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Ville de la boutique
+     * Ville de la boutique.
+     *
      * @return string
      */
     public function storeCity()
@@ -127,7 +135,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Code postal de la boutique
+     * Code postal de la boutique.
+     *
      * @return string
      */
     public function storePostcode()
@@ -136,7 +145,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Pays de la boutique
+     * Pays de la boutique.
+     *
      * @return string
      */
     public function storeCountry()
@@ -145,7 +155,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Liste des pays de vente
+     * Liste des pays de vente.
+     *
      * @return string|array
      */
     public function allowedCountries()
@@ -154,7 +165,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Liste des pays de livraison
+     * Liste des pays de livraison.
+     *
      * @return string|array
      */
     public function shippingCountries()
@@ -163,7 +175,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Adresse par défaut du client
+     * Adresse par défaut du client.
+     *
      * @return string
      */
     public function defaultCustomerAddress()
@@ -172,7 +185,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Activation et calcul de la TVA
+     * Activation et calcul de la TVA.
+     *
      * @return bool
      */
     public function isCalcTaxes()
@@ -181,7 +195,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Devise monétaire des tarifs
+     * Devise monétaire des tarifs.
+     *
      * @return string
      */
     public function currency()
@@ -190,7 +205,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Position de la devise pour l'affichage des tarifs
+     * Position de la devise pour l'affichage des tarifs.
+     *
      * @return string left|right|left_space|right_space
      */
     public function currencyPosition()
@@ -199,7 +215,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Séparateur des milliers
+     * Séparateur des milliers.
+     *
      * @return string
      */
     public function thousandSeparator()
@@ -208,7 +225,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Séparateur des décimales
+     * Séparateur des décimales.
+     *
      * @return string
      */
     public function decimalSeparator()
@@ -217,7 +235,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Nombre de décimales
+     * Nombre de décimales.
+     *
      * @return int
      */
     public function decimalNumber()
@@ -226,7 +245,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Identifiant de qualification de la page d'affichage de l'accueil de la boutique
+     * Identifiant de qualification de la page d'affichage de l'accueil de la boutique.
+     *
      * @return int
      */
     public function shopPageId()
@@ -235,61 +255,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Redirection vers le panier après l'ajout d'un article
-     * @return bool
-     */
-    public function cartRedirectAfterAdd()
-    {
-        return $this->get('cart_redirect_after_add', false);
-    }
-
-    /**
-     * Activation du bouton d'ajout au panier depuis les pages listes
-     * @return bool
-     */
-    public function cartEnableListAdd()
-    {
-        return $this->get('cart_enabled_list_add', false);
-    }
-
-    /**
-     * Unité de poids
-     * @return string
-     */
-    public function weightUnit()
-    {
-        return $this->get('weight_unit', 'kg');
-    }
-
-    /**
-     * Unité de dimension
-     * @return string
-     */
-    public function dimensionUnit()
-    {
-        return $this->get('dimension_unit', 'cm');
-    }
-
-    /**
-     * Activation de la gestion des stocks
-     * @return bool
-     */
-    public function isManageStock()
-    {
-        return (bool)$this->get('is_manage_stock', false);
-    }
-
-    /**
-     * Vérifie si les tarifs des produits saisie inclus la TVA (prix TTC ou HT)
-     * @return bool
-     */
-    public function isPricesIncludeTax()
-    {
-        return (bool)$this->get('prices_include_tax', false);
-    }
-
-    /**
-     * Identifiant de qualification de la page d'affichage du panier
+     * Identifiant de qualification de la page d'affichage du panier.
+     *
      * @return int
      */
     public function cartPageId()
@@ -298,7 +265,8 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Identifiant de qualification de la page de commande
+     * Identifiant de qualification de la page de commande.
+     *
      * @return int
      */
     public function checkoutPageId()
@@ -307,11 +275,112 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Identifiant de qualification de la page des conditions générales de vente
+     * Identifiant de qualification de la page des conditions générales de vente.
+     *
      * @return int
      */
     public function termsPageId()
     {
         return (int)$this->get('terms_page_id', 0);
+    }
+
+    /**
+     * Redirection vers le panier après l'ajout d'un article.
+     *
+     * @return bool
+     */
+    public function cartRedirectAfterAdd()
+    {
+        return $this->get('cart_redirect_after_add', false);
+    }
+
+    /**
+     * Activation du bouton d'ajout au panier depuis les pages listes.
+     *
+     * @return bool
+     */
+    public function cartEnableListAdd()
+    {
+        return $this->get('cart_enabled_list_add', false);
+    }
+
+    /**
+     * Unité de poids.
+     *
+     * @return string
+     */
+    public function weightUnit()
+    {
+        return $this->get('weight_unit', 'kg');
+    }
+
+    /**
+     * Unité de dimension.
+     *
+     * @return string
+     */
+    public function dimensionUnit()
+    {
+        return $this->get('dimension_unit', 'cm');
+    }
+
+    /**
+     * Activation de la gestion des stocks.
+     *
+     * @return bool
+     */
+    public function isManageStock()
+    {
+        return (bool)$this->get('is_manage_stock', false);
+    }
+
+    /**
+     * Vérifie si les tarifs des produits saisie inclus la TVA (prix TTC ou HT).
+     *
+     * @return bool
+     */
+    public function isPricesIncludeTax()
+    {
+        return (bool)$this->get('prices_include_tax', false);
+    }
+
+    /**
+     * Vérifie si le calculateur de frais du panier est actif.
+     *
+     * @return bool
+     */
+    public function isShippingCalcEnabled()
+    {
+        return (bool)$this->get('enable_shipping_calc', false);
+    }
+
+    /**
+     * Vérifie s'il faut masquer les frais de livraison tant qu'aucune adresse de livraison n'est renseignée.
+     *
+     * @return bool
+     */
+    public function isShippingCostRequiresAddress()
+    {
+        return (bool)$this->get('shipping_cost_requires_address', false);
+    }
+
+    /**
+     * Destination de livraison.
+     *
+     * @return string shipping|billing|billing_only
+     */
+    public function shipToDestination()
+    {
+        return (string)$this->get('ship_to_destination', 'billing_only');
+    }
+
+    /**
+     * Activation du mode de débogage de la livraison.
+     *
+     * @return bool
+     */
+    public function isShippingDebugMode()
+    {
+        return (bool)$this->get('shipping_debug_mode', false);
     }
 }

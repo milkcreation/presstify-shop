@@ -101,6 +101,16 @@ class Products extends AbstractPostQuery
     }
 
     /**
+     * Récupération du controleur de données d'une liste d'éléments
+     *
+     * @return string
+     */
+    final public function getListController()
+    {
+        return $this->shop->provider()->getMapController('products.list');
+    }
+
+    /**
      * Récupération des données d'un client existant
      *
      * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
@@ -204,7 +214,7 @@ class Products extends AbstractPostQuery
             $items = [];
         endif;
 
-        $controller = $this->shop->appConfig('product_list_controller', '') ? : 'tiFy\Plugins\Shop\Products\ProductList';
+        $controller = $this->getListController();
 
         return new $controller($items);
     }

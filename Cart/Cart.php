@@ -15,6 +15,7 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
+use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
@@ -39,12 +40,6 @@ class Cart implements CartInterface
     protected $shop;
 
     /**
-     * Classe de rappel de gestion d'une ligne du panier
-     * @var LineInterface
-     */
-    protected $lineController;
-
-    /**
      * Classe de rappel de collection de la liste des lignes du panier
      * @var LineList
      */
@@ -57,7 +52,7 @@ class Cart implements CartInterface
     protected $session;
 
     /**
-     * Classe de rapel de calcul des totaux
+     * Classe de rappel de calcul des totaux
      * @var Total
      */
     protected $totals;
@@ -81,17 +76,9 @@ class Cart implements CartInterface
         $this->shop = $shop;
 
         // Déclaration des événements
+        $this->appAddAction('after_setup_tify');
         $this->appAddAction('tify_route_register', null, 0);
         $this->appAddAction('wp_loaded', null);
-
-        //Initialisation du controleur de gestion d'une ligne d'article du panier
-        $this->initLineController();
-
-        // Initialisation de la gestion des données de panier d'achat portées par la session
-        $this->initSession();
-
-        // Initialisation des messages de notification
-        $this->initNotices();
     }
 
     /**
@@ -119,25 +106,41 @@ class Cart implements CartInterface
      *
      * @param Shop $shop
      *
-     * @return Cart
+     * @return CartInterface
      */
-    final public static function make(Shop $shop)
+    final public static function boot(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
         endif;
 
-        if (
-            ($controller = $shop->appConfig('cart.controller', '')) &&
-            in_array(
-                'tiFy\Plugins\Shop\Cart\CartInterface',
-                class_implements($controller)
-            )
-        ) :
-            return self::$instance = new $controller($shop);
-        else :
-            return self::$instance = new self($shop);
+        self::$instance = new static($shop);
+
+        if(! self::$instance instanceof Cart) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
+                    Cart::class
+                ),
+                500
+            );
         endif;
+
+        return self::$instance;
+    }
+
+    /**
+     * A l'issue de l'initialisation complète de presstiFy
+     *
+     * @return void
+     */
+    final public function after_setup_tify()
+    {
+        // Initialisation de la gestion des données de panier d'achat portées par la session
+        $this->initSession();
+
+        // Initialisation des messages de notification
+        $this->initNotices();
     }
 
     /**
@@ -225,43 +228,28 @@ class Cart implements CartInterface
     }
 
     /**
-     * Initialisation du controleur de gestion d'une ligne d'article du panier
-     *
-     * @return void
-     */
-    private function initLineController()
-    {
-        if (
-            ($lineController = $this->shop->appConfig('cart.line_controller', '')) &&
-            in_array(
-                'tiFy\Plugins\Shop\Cart\LineInterface',
-                class_implements($lineController)
-            )
-        ) :
-            $this->lineController = $lineController;
-        else :
-            $this->lineController = 'tiFy\Plugins\Shop\Cart\Line';
-        endif;
-    }
-
-    /**
      * Initialisation de la session de gestion des données du panier d'achat
      *
-     * @return void
+     * @return SessionInterface
      */
     private function initSession()
     {
-        if (
-            ($sessionController = $this->shop->appConfig('cart.session_controller', '')) &&
-            in_array(
-                'tiFy\Plugins\Shop\Cart\SessionInterface',
-                class_implements($sessionController)
-            )
-        ) :
-            $this->session = new $sessionController($this->shop, $this);
-        else :
-            $this->session = new Session($this->shop, $this);
+        if ($this->session) :
+            return $this->session;
         endif;
+
+        $this->session = $this->shop->provide('cart.session');
+        if(! $this->session instanceof SessionInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
+                    SessionInterface::class
+                ),
+                500
+            );
+        endif;
+
+        return $this->session;
     }
 
     /**
@@ -344,7 +332,7 @@ class Cart implements CartInterface
     /**
      * Récupération de la classe de rappel de gestion des lignes du panier
      *
-     * @return LineList
+     * @return LineList|LineInterface[]
      */
     public function lines()
     {
@@ -375,7 +363,7 @@ class Cart implements CartInterface
      */
     public function add($key, $attributes)
     {
-        return $this->lines()->put($key, new $this->lineController($this->shop, $this, $attributes));
+        return $this->lines()->put($key, $this->shop->provide('cart.line', [$this->shop, $this, $attributes]));
     }
 
     /**
@@ -414,7 +402,7 @@ class Cart implements CartInterface
     /**
      * Récupération de la liste des lignes du panier
      *
-     * @return array|Line[]
+     * @return array|LineInterface[]
      */
     public function getList()
     {
@@ -426,7 +414,7 @@ class Cart implements CartInterface
      *
      * @param string $key Identifiant de qualification de la ligne
      *
-     * @return array|Line
+     * @return array|LineInterface
      */
     public function get($key)
     {
@@ -492,7 +480,7 @@ class Cart implements CartInterface
     {
         return $this->lines()->sum(
             function ($item) {
-                /** @var Line $item */
+                /** @var LineInterface $item */
                 return $result = (float)$item->getProduct()->getWeight() * $item->getQuantity();
             }
         );

@@ -14,10 +14,28 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\App\Traits\App as TraitsApp;
 use Illuminate\Support\Collection;
+use tiFy\App\Traits\App as TraitsApp;
 
 class LineList extends Collection
 {
     use TraitsApp;
+
+    /**
+     * Liste des élements.
+     *
+     * @var LineInterface[]
+     */
+    protected $items = [];
+
+    /**
+     * Get an item at a given offset.
+     *
+     * @param  mixed  $key
+     * @return LineInterface
+     */
+    public function offsetGet($key)
+    {
+        return $this->items[$key];
+    }
 }

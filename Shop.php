@@ -1,14 +1,13 @@
 <?php
 
-/*
- Plugin Name: Shop
- Plugin URI: https://presstify.com/plugins/shop
- Description: boutique
- Version: 1.0.1
- Author: Milkcreation
- Author URI: http://milkcreation.fr
- Text Domain: tify
-*/
+/**
+ * @name Shop
+ * @desc Extension PresstiFy de gestion de boutique ecommerce
+ * @author Jordy Manner <jordy@milkcreation.fr>
+ * @package presstiFy
+ * @namespace \tiFy\Plugins\Shop\Shop
+ * @version 1.0.2
+ */
 
 namespace tiFy\Plugins\Shop;
 
@@ -33,6 +32,12 @@ use tiFy\Plugins\Shop\Users\Users;
 class Shop extends Plugin
 {
     /**
+     * Fournisseur de service
+     * @var ServiceProvider
+     */
+    protected $provider;
+
+    /**
      * CONSTRUCTEUR
      *
      * @return void
@@ -41,10 +46,13 @@ class Shop extends Plugin
     {
         parent::__construct();
 
-        // Déclaration des dépendances
-        $this->appContainer()->addServiceProvider(new ServiceProvider($this));
+        // Déclaration du fournisseur de services.
+        $this->provider = new ServiceProvider($this);
+        $this->appContainer()->addServiceProvider($this->provider);
 
         require_once($this->appDirname() . '/Helpers.php');
+
+        $this->cart();
     }
 
     /**
@@ -52,120 +60,131 @@ class Shop extends Plugin
      *
      * @param string $name Identifiant de qualification de la dépendance
      *
-     * @return null|object|self|Addresses|Admin|Cart|Checkout|CustomTypes|Gateways|Notices|Orders|Products|Providers|Session|Settings|Users
+     * @return object|self
      */
     public static function get($name = null)
     {
         try {
             /** @var Shop $Shop */
-            $Shop = self::tFyAppGetContainer('tiFy\Plugins\Shop\Shop');
+            return self::tFyAppGetContainer('tiFy\Plugins\Shop\Shop');
         } catch(NotFoundException $e) {
             wp_die($e->getMessage(), '', $e->getCode());
+            exit;
         }
-        if (!$name) :
-            return $Shop;
-        else :
-            $name = $Shop->appLowerName($name);
-            if ($Shop->appHasContainer("tify.plugins.shop.{$name}")) :
-                /** @var \League\Container\Container $Factory */
-                $Factory = $Shop->appGetContainer("tify.plugins.shop.{$name}");
+    }
 
-                return $Factory;
-            endif;
-        endif;
+    /**
+     * Récupération du fournisseur de service
+     *
+     * @return ServiceProvider
+     */
+    public function provider()
+    {
+        return $this->provider;
+    }
 
-        return null;
+    /**
+     * Récupération d'un service
+     *
+     * @param string $name Identifiant de qualification du service
+     * @param array $args Liste des variables passées en argument au service
+     *
+     * @return object
+     */
+    public function provide($name, $args = [])
+    {
+        return $this->provider()->get($name, $args);
     }
 
     /**
      * Récupération de la classe de rappel de gestion des adresses : livraison|facturation
      *
-     * @return Addresses
+     * @return object|Addresses
      */
     public function addresses()
     {
-        return self::get('addresses');
+        return $this->provide('addresses.controller');
     }
 
     /**
      * Récupération de la dépendance panier
      *
-     * @return Cart
+     * @return object|Cart
      */
     public function cart()
     {
-        return self::get('cart');
+        return $this->provide('cart.controller');
     }
 
     /**
      * Récupération de la dépendance commande
      *
-     * @return Checkout
+     * @return object|Checkout
      */
     public function checkout()
     {
-        return self::get('checkout');
+        return $this->provide('checkout.controller');
     }
 
     /**
      * Récupération de la dépendance commande
      *
-     * @return Gateways
+     * @return object|Gateways
      */
     public function gateways()
     {
-        return self::get('gateways');
+        return $this->provide('gateways.controller');
     }
 
     /**
      * Récupération de la classe de rappel de gestion des commandes
      *
-     * @return Orders
+     * @return object|Orders
      */
     public function orders()
     {
-        return self::get('orders');
+        return $this->provide('orders.controller');
     }
 
     /**
      * Récupération de la classe de rappel de gestion des produits
      *
-     * @return Products
+     * @return object|Products
      */
     public function products()
     {
-        return self::get('products');
+        return $this->provide('products.controller');
     }
 
     /**
      * Récupération de la dépendance des fournisseurs de service
      *
-     * @return Providers
+     * @return object|Providers
      */
     public function providers()
     {
-        return self::get('providers');
+        return $this->provide('providers.controller');
     }
 
     /**
      * Récupération de la dépendance des notices
      *
-     * @return Notices
+     * @return object|Notices
      */
     public function notices()
     {
-        return self::get('notices');
+        return $this->provide('notices.controller');
     }
 
     /**
      * Récupération de la classe de rappel de récupération de données de session
      *
-     * @return tiFySession
+     * @return object|tiFySession
      */
     public function session()
     {
         /** @var tiFySession $session */
-        $session = self::get('session');
+        $session = $this->provide('session.controller');
 
         return $session;
     }
@@ -173,20 +192,20 @@ class Shop extends Plugin
     /**
      * Récupération de la dépendance des réglages de la boutique
      *
-     * @return Settings
+     * @return object|Settings
      */
     public function settings()
     {
-        return self::get('settings');
+        return $this->provide('settings.controller');
     }
 
     /**
      * Récupération de la dépendance des utilisateurs de la boutique
      *
-     * @return Users
+     * @return object|Users
      */
     public function users()
     {
-        return self::get('users');
+        return $this->provide('users.controller');
     }
 }

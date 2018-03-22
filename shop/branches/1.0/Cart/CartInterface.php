@@ -4,9 +4,17 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use tiFy\Plugins\Shop\Shop;
 
 interface CartInterface
 {
+    /**
+     * Instanciation de la classe
+     * @param Shop $shop
+     * @return CartInterface
+     */
+    public static function boot(Shop $shop);
+
     /**
      * Initialisation des messages de notification
      * @return void

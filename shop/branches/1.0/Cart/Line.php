@@ -76,7 +76,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getQuantity()
     {
-        return $this->get('quantity', 0);
+        return (int)$this->get('quantity', 0);
     }
 
     /**
@@ -86,7 +86,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getProductId()
     {
-        return $this->getProduct()->getId();
+        return (int)$this->getProduct()->getId();
     }
 
     /**
@@ -106,7 +106,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getTotal()
     {
-        return $this->get('line_total', 0);
+        return (float)$this->get('line_total', 0);
     }
 
     /**
@@ -116,7 +116,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getTax()
     {
-        return $this->get('line_tax', 0);
+        return (float)$this->get('line_tax', 0);
     }
 
     /**
@@ -126,7 +126,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getSubtotal()
     {
-        return $this->get('line_subtotal', 0);
+        return (float)$this->get('line_subtotal', 0);
     }
 
     /**
@@ -136,7 +136,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getSubtotalTax()
     {
-        return $this->get('line_subtotal_tax', 0);
+        return (float)$this->get('line_subtotal_tax', 0);
     }
 
     /**
@@ -145,7 +145,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getTaxes()
     {
-        return $this->get('line_tax_data', ['subtotal' => 0, 'total' => 0]);
+        return (array)$this->get('line_tax_data', ['subtotal' => 0, 'total' => 0]);
     }
 
     /**
@@ -155,7 +155,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getTaxClass()
     {
-        return $this->get('tax_class', '');
+        return (string)$this->get('tax_class', '');
     }
 
     /**

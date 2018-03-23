@@ -44,7 +44,7 @@ class Order extends AbstractPostItem implements OrderInterface
      *
      * @var array
      */
-    protected $defaults = array(
+    protected $defaults = [
         // Abstract order props
         'parent_id'            => 0,
         'status'               => '',
@@ -64,30 +64,30 @@ class Order extends AbstractPostItem implements OrderInterface
         // Order props
         'customer_id'          => 0,
         'order_key'            => '',
-        'billing'              => array(
-            'first_name'       => '',
-            'last_name'        => '',
-            'company'          => '',
-            'address_1'        => '',
-            'address_2'        => '',
-            'city'             => '',
-            'state'            => '',
-            'postcode'         => '',
-            'country'          => '',
-            'email'            => '',
-            'phone'            => '',
-        ),
-        'shipping'             => array(
-            'first_name'       => '',
-            'last_name'        => '',
-            'company'          => '',
-            'address_1'        => '',
-            'address_2'        => '',
-            'city'             => '',
-            'state'            => '',
-            'postcode'         => '',
-            'country'          => '',
-        ),
+        'billing'              => [
+            'first_name' => '',
+            'last_name'  => '',
+            'company'    => '',
+            'address_1'  => '',
+            'address_2'  => '',
+            'city'       => '',
+            'state'      => '',
+            'postcode'   => '',
+            'country'    => '',
+            'email'      => '',
+            'phone'      => '',
+        ],
+        'shipping'             => [
+            'first_name' => '',
+            'last_name'  => '',
+            'company'    => '',
+            'address_1'  => '',
+            'address_2'  => '',
+            'city'       => '',
+            'state'      => '',
+            'postcode'   => '',
+            'country'    => '',
+        ],
         'payment_method'       => '',
         'payment_method_title' => '',
         'transaction_id'       => '',
@@ -97,8 +97,35 @@ class Order extends AbstractPostItem implements OrderInterface
         'customer_note'        => '',
         'date_completed'       => null,
         'date_paid'            => null,
-        'cart_hash'            => ''
-    );
+        'cart_hash'            => '',
+    ];
+
+    /**
+     * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
+     * @var array
+     */
+    protected $metas_map = [
+        'order_key'            => '_order_key',
+        'customer_id'          => '_customer_user',
+        'payment_method'       => '_payment_method',
+        'payment_method_title' => '_payment_method_title',
+        'transaction_id'       => '_transaction_id',
+        'customer_ip_address'  => '_customer_ip_address',
+        'customer_user_agent'  => '_customer_user_agent',
+        'created_via'          => '_created_via',
+        'date_completed'       => '_date_completed',
+        'date_paid'            => '_date_paid',
+        'cart_hash'            => '_cart_hash',
+        'currency'             => '_order_currency',
+        'discount_total'       => '_cart_discount',
+        'discount_tax'         => '_cart_discount_tax',
+        'shipping_total'       => '_order_shipping',
+        'shipping_tax'         => '_order_shipping_tax',
+        'cart_tax'             => '_order_tax',
+        'total'                => '_order_total',
+        'version'              => '_order_version',
+        'prices_include_tax'   => '_prices_include_tax',
+    ];
 
     /**
      * CONSTRUCTEUR
@@ -176,6 +203,34 @@ class Order extends AbstractPostItem implements OrderInterface
     public function setShippingAttr($key, $value)
     {
         return $this->set('shipping', array_merge($this->get('shipping', []), [$key => $value]));
+    }
+
+    /**
+     * Récupération du statut de publication
+     *
+     * @return string
+     */
+    public function getStatus()
+    {
+        return (string)$this->get('status', $this->shop->orders()->getDefaultStatus());
+    }
+
+    /**
+     * Récupération de la valeur brute ou formatée de l'extrait
+     *
+     * @param bool $raw Formatage de la valeur
+     *
+     * @return string
+     */
+    public function getExcerpt($raw = false)
+    {
+        $excerpt = (string)$this->get('customer_note', '');
+
+        if ($raw) :
+            return $excerpt;
+        else :
+            return \apply_filters('get_the_excerpt', $excerpt, $this->getPost());
+        endif;
     }
 
     /**
@@ -262,12 +317,82 @@ class Order extends AbstractPostItem implements OrderInterface
     {
         // Mise à jour des données de post
         // @todo
+        $post_data = [
+            'ID'                => $this->getId(),
+            'post_date'         => $this->shop->functions()->date()->utc(),
+            'post_date_gmt'     => $this->shop->functions()->date()->get(),
+            'post_status'       => $this->getStatus(),
+            'post_parent'       => $this->getParentId(),
+            'post_excerpt'      => $this->getExcerpt(true),
+            'post_modified'     => $this->shop->functions()->date()->utc(),
+            'post_modified_gmt' => $this->shop->functions()->date()->get(),
+        ];
+        \wp_update_post($post_data);
 
         // Sauvegarde des métadonnées
-        // @todo
+        $this->saveMetas();
 
         // Sauvegarde des éléments
         $this->saveItems();
+    }
+
+    /**
+     * Enregistrement de la liste des métadonnées déclarées.
+     *
+     * @return void
+     */
+    public function saveMetas()
+    {
+        if (!$this->metas_map || ! $this->getId()) :
+            return;
+        endif;
+
+        foreach ($this->metas_map as $attr_key => $meta_key) :
+            $meta_value = $this->get($attr_key, '');
+
+            switch($attr_key) :
+                case 'date_paid' :
+                    \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value->getTimestamp() : '');
+                    break;
+                case 'date_completed' :
+                    \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value->getTimestamp() : '');
+                    break;
+                default :
+                    \update_post_meta($this->getId(), $meta_key, $meta_value);
+                    break;
+            endswitch;
+        endforeach;
+
+        foreach(['billing', 'shipping'] as $address_type) :
+            if (!$address_data = $this->get($address_type, [])) :
+                continue;
+            endif;
+            foreach($address_data as $key => $value) :
+                \update_post_meta($this->getId(), "_{$address_type}_{$key}", $value);
+            endforeach;
+
+            \update_post_meta($this->getId(), "_{$address_type}_address_index", implode(' ', $address_data));
+        endforeach;
+    }
+
+    /**
+     * Sauvegarde d'une métadonnée
+     *
+     * @param string $meta_key Clé d'identification de la métadonnée.
+     * @param mixed $meta_value Valeur de la métadonnée
+     * @param bool $unique Enregistrement unique d'une valeur pour la clé d'identification fournie.
+     *
+     * @return int Valeur de la clé primaire sauvegardée
+     */
+    public function addMeta($meta_key, $meta_value, $unique = true)
+    {
+        if (!$this->id) :
+            return 0;
+        endif;
+
+        $db = $this->shop->orders()->getDb();
+
+        return $db->meta()->add($this->id, $meta_key, $meta_value);
     }
 
     /**

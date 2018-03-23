@@ -396,29 +396,6 @@ class Checkout
         $order->save();
         var_dump($this->shop->cart()->needPayment());
         exit;
-        $order_datas = compact(
-            'created_via', 'cart_hash', 'customer_id', 'currency', 'prices_include_tax', 'customer_ip_address',
-            'customer_user_agent', 'customer_note', 'payment_method', 'payment_method_title', 'shipping_total',
-            'shipping_tax',
-            'discount_total', 'discount_tax', 'cart_tax', 'total'
-        );
-        foreach ($data as $key => $value) :
-            if (preg_match('#^billing_(.*)#', $key, $match)) :
-                $order->setBillingAttr($match[1], $value);
-            elseif (preg_match('#^shipping_(.*)#', $key, $match)) :
-                $order->setShippingAttr($match[1], $value);
-            else :
-                $order->set($key, $value);
-            endif;
-        endforeach;
-
-        foreach ($order_datas as $key => $value) :
-            $order->set($key, $value);
-        endforeach;
-        $order->create();
-
-        var_dump($order->toArray());
-        exit;
 
         \wp_redirect($redirect);
         exit;

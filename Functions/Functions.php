@@ -15,11 +15,13 @@ namespace tiFy\Plugins\Shop\Functions;
 
 use LogicException;
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Functions
+class Functions implements ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe.
@@ -100,10 +102,10 @@ class Functions
     private function call($name, $args = [], $instanceof = null)
     {
         if (in_array($name, $this->available)) :
-            return $this->shop->provide('functions.' . $name);
+            return $this->provide('functions.' . $name, $args);
         endif;
 
-        $new = $this->shop->provide('functions.' . $name);
+        $new = $this->provide('functions.' . $name, $args);
         if ($instanceof) :
             if(! $new instanceof $instanceof) :
                 throw new LogicException(

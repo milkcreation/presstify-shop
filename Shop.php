@@ -71,7 +71,7 @@ class Shop extends Plugin
     }
 
     /**
-     * Récupération du fournisseur de service
+     * Récupération du fournisseur de service.
      *
      * @return ServiceProvider
      */
@@ -81,7 +81,7 @@ class Shop extends Plugin
     }
 
     /**
-     * Récupération d'un service
+     * Récupération d'un service fournit par la boutique.
      *
      * @param string $name Identifiant de qualification du service
      * @param array $args Liste des variables passées en argument au service

@@ -2,6 +2,8 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
+use tiFy\Plugins\Shop\Orders\OrderInterface;
+
 interface GatewayInterface
 {
     /**
@@ -79,4 +81,27 @@ interface GatewayInterface
      * @return bool
      */
     public function isChoosen();
+
+    /**
+     * Url de retour (Page de remerciement).
+     *
+     * @param OrderInterface $order
+     *
+     * @return string
+     */
+    public function getReturnUrl($order = null);
+
+    /**
+     * Procède au paiement de la commande.
+     *
+     * @param OrderInterface $order Classe de rappel de la commande à régler.
+     *
+     * @return array {
+     *      Liste des attributs de retour.
+     *
+     *      @var string $result Résultat de paiement success|error.
+     *      @var string $redirect Url de retour
+     * }
+     */
+    public function processPayment($order);
 }

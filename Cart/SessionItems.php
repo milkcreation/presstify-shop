@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @name Session
- * @desc Gestion des données de panier d'achat portées par la session
+ * @name SessionItems
+ * @desc Gestion des données des éléments du panier d'achat portées par la session
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Cart
  * @version 1.1
@@ -17,11 +17,13 @@ namespace tiFy\Plugins\Shop\Cart;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Fluent;
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Session extends Fluent implements SessionInterface
+class SessionItems extends Fluent implements SessionItemsInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique
@@ -66,7 +68,7 @@ class Session extends Fluent implements SessionInterface
     }
 
     /**
-     * Récupération des articles du panier portés par la session
+     * Récupération des articles du panier portés par la session.
      *
      * @return void
      */
@@ -81,7 +83,7 @@ class Session extends Fluent implements SessionInterface
          * @var array $removed_cart_contents
          */
         foreach($this->defaults as $key => $default) :
-            ${$key} = $this->shop->session()->get($key, $default);
+            ${$key} = $this->session()->get($key, $default);
         endforeach;
 
         $stored_cart = get_user_option('_tify_shop_cart') ? : ['cart' => []];
@@ -92,7 +94,7 @@ class Session extends Fluent implements SessionInterface
 
         if ($cart) :
             foreach ($cart as $key => $line) :
-                $product = $this->shop->products()->get($line['product_id']);
+                $product = $this->products()->get($line['product_id']);
                 $quantity = $line['quantity'];
 
                 if (!$product || ($quantity < 0)) :
@@ -111,7 +113,26 @@ class Session extends Fluent implements SessionInterface
     }
 
     /**
-     * Mise à jour des données de session
+     * Détruit les données de session associées au panier.
+     *
+     * @param bool $persistent Active la suppression des données de panier relatives aux options utilisateur
+     *
+     * @return void
+     */
+    public function destroy($persistent = true)
+    {
+        foreach($this->defaults as $key => $default) :
+            $this->session()->put($key, $default);
+        endforeach;
+        $this->session()->save();
+
+        if ($persistent) :
+            \delete_user_option($this->users()->get()->getId(), '_tify_shop_cart');
+        endif;
+    }
+
+    /**
+     * Mise à jour des données des éléments du panier portées par la session.
      *
      * @return void
      */
@@ -138,10 +159,10 @@ class Session extends Fluent implements SessionInterface
         );
 
         foreach($attributes as $key => $value) :
-            $this->shop->session()->put($key, $value);
+            $this->session()->put($key, $value);
         endforeach;
 
-        $this->shop->session()->save();
+        $this->session()->save();
 
         if ($user_id = get_current_user_id()) :
             update_user_option(

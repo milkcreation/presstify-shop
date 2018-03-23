@@ -20,7 +20,7 @@ use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Cart\CartInterface;
 use tiFy\Plugins\Shop\Cart\Line as CartLine;
 use tiFy\Plugins\Shop\Cart\LineList as CartLineList;
-use tiFy\Plugins\Shop\Cart\Session as CartSession;
+use tiFy\Plugins\Shop\Cart\SessionItems as CartSessionItems;
 use tiFy\Plugins\Shop\Cart\Total as CartTotal;
 use tiFy\Plugins\Shop\Checkout\Checkout;
 use tiFy\Plugins\Shop\Functions\Functions;
@@ -68,7 +68,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         Cart::class,
         CartLine::class,
         CartLineList::class,
-        CartSession::class,
+        CartSessionItems::class,
         CartTotal::class,
         Checkout::class,
         Functions::class,
@@ -112,11 +112,11 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             'controller' => Admin::class
         ],
         'cart'         => [
-            'controller' => Cart::class,
-            'line'       => CartLine::class,
-            'line_list'  => CartLineList::class,
-            'session'    => CartSession::class,
-            'total'      => CartTotal::class,
+            'controller'    => Cart::class,
+            'line'          => CartLine::class,
+            'line_list'     => CartLineList::class,
+            'session_items' => CartSessionItems::class,
+            'total'         => CartTotal::class,
         ],
         'checkout'     => [
             'controller' => Checkout::class
@@ -202,7 +202,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
      */
     protected $deferred = [
         'addresses' => ['billing', 'form_handler', 'shipping'],
-        'cart'      => ['line', 'session'],
+        'cart'      => ['line', 'session_items'],
         'functions' => ['date', 'page', 'price', 'url'],
         'orders'    => ['item_product']
     ];
@@ -218,8 +218,8 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             'shipping'     => AddressesShipping::class
         ],
         'cart'      => [
-            'line'    => CartLine::class,
-            'session' => CartSession::class
+            'line'          => CartLine::class,
+            'session_items' => CartSessionItems::class
         ],
         'functions' => [
             'date'  => FunctionsDate::class,
@@ -334,7 +334,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
                 $this->shop->appConfig('service_provider.cart.controller', Cart::class)
             ])
             ->addMapArgs('cart.line', [$this->shop, Cart::class, []])
-            ->addMapArgs('cart.session', [$this->shop, Cart::class])
+            ->addMapArgs('cart.session_items', [$this->shop, Cart::class])
             ->addMapArgs('checkout.controller', [$this->shop])
             ->addMapArgs('functions.controller', [$this->shop])
             ->addMapArgs('functions.date', ['now', $this->shop])

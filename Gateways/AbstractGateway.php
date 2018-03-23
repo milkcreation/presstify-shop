@@ -4,11 +4,14 @@ namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Fluent;
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\Orders\OrderInterface;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-abstract class AbstractGateway extends Fluent implements GatewayInterface
+abstract class AbstractGateway extends Fluent implements GatewayInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique
@@ -187,5 +190,34 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface
     public function isChoosen()
     {
         return $this->get('choosen', true);
+    }
+
+    /**
+     * Url de retour (Page de remerciement).
+     *
+     * @param OrderInterface $order
+     *
+     * @return string
+     */
+    public function getReturnUrl($order = null)
+    {
+        return $order->getCheckoutOrderReceivedUrl();
+    }
+
+    /**
+     * Procède au paiement de la commande.
+     *
+     * @param OrderInterface $order Classe de rappel de la commande à régler.
+     *
+     * @return array {
+     *      Liste des attributs de retour.
+     *
+     *      @var string $result Résultat de paiement success|error.
+     *      @var string $redirect Url de retour
+     * }
+     */
+    public function processPayment($order)
+    {
+        return [];
     }
 }

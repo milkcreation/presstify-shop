@@ -14,16 +14,19 @@
 
 namespace tiFy\Plugins\Shop\Checkout;
 
+use Illuminate\Support\Arr;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Core\Route\Route;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Checkout
+class Checkout implements ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -145,14 +148,14 @@ class Checkout
 
         // Définition de l'url de redirection
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->shop->functions()->url()->checkoutPage()) :
+        elseif ($redirect = $this->functions()->url()->checkoutPage()) :
         elseif (!$redirect = \wp_get_referer()) :
             $redirect = get_home_url();
         endif;
 
         // Vérification de la validité de la requête
         if (!\wp_verify_nonce($request->request->get('_wpnonce', ''), 'tify_shop-process_checkout')) :
-            $this->shop->notices()->add(__('Impossible de procéder à votre commande, merci de réessayer.', 'tify'),
+            $this->notices()->add(__('Impossible de procéder à votre commande, merci de réessayer.', 'tify'),
                 'error');
 
             \wp_redirect($redirect);
@@ -160,8 +163,8 @@ class Checkout
         endif;
 
         // Vérification du contenu du panier
-        if ($this->shop->cart()->isEmpty()) :
-            $this->shop->notices()->add(__('Désolé, il semblerait votre session ait expirée.', 'tify'), 'error');
+        if ($this->cart()->isEmpty()) :
+            $this->notices()->add(__('Désolé, il semblerait votre session ait expirée.', 'tify'), 'error');
 
             \wp_redirect($redirect);
             exit;
@@ -179,8 +182,8 @@ class Checkout
 
         // Données de champ
         $fieldsets = [
-            'billing'  => $this->shop->addresses()->billing()->fields(),
-            'shipping' => $this->shop->addresses()->shipping()->fields(),
+            'billing'  => $this->addresses()->billing()->fields(),
+            'shipping' => $this->addresses()->shipping()->fields(),
             'order'    => [
                 'comments' => [
                     'type'        => 'textarea',
@@ -205,7 +208,7 @@ class Checkout
             foreach ($fields as $slug => $attrs) :
                 $data["{$key}_{$slug}"] = $request->request->get(
                     "{$key}_{$slug}",
-                    $this->shop->session()->get("{$key}.{$slug}", '')
+                    $this->session()->get("{$key}.{$slug}", '')
                 );
             endforeach;
         endforeach;
@@ -221,19 +224,19 @@ class Checkout
         // @todo enregistrer les données de session + utilisateur billing & shipping
 
         // Livraison
-        $chosen_shipping_methods = $this->shop->session()->get('chosen_shipping_methods', []);
+        $chosen_shipping_methods = $this->session()->get('chosen_shipping_methods', []);
         if (is_array($data['shipping_method'])) :
             foreach ($data['shipping_method'] as $i => $value) :
                 $chosen_shipping_methods[$i] = $value;
             endforeach;
         endif;
-        $this->shop->session()->put('chosen_shipping_methods', $chosen_shipping_methods);
+        $this->session()->put('chosen_shipping_methods', $chosen_shipping_methods);
 
         // Méthode de paiement
-        $this->shop->session()->put('chosen_payment_method', $data['payment_method']);
+        $this->session()->put('chosen_payment_method', $data['payment_method']);
 
         // DEBUG - données de session
-        // var_dump($this->shop->session()->all());
+        // var_dump($this->session()->all());
 
         // Vérification de l'intégrité des données soumises par le formulaire de paiement
         // Données de facturation
@@ -268,7 +271,7 @@ class Checkout
 
         if ($fieldset_errors) :
             foreach($fieldset_errors as $error) :
-                $this->shop->notices()->add($error, 'error');
+                $this->notices()->add($error, 'error');
             endforeach;
 
             \wp_redirect($redirect);
@@ -279,7 +282,7 @@ class Checkout
 
         // Conditions générales validées
         if (empty($data['terms'])) :
-            $this->shop->notices()->add(__('Veuillez prendre connaissance et accepter les conditions générales de vente.',
+            $this->notices()->add(__('Veuillez prendre connaissance et accepter les conditions générales de vente.',
                 'tify'), 'error');
 
             \wp_redirect($redirect);
@@ -287,22 +290,22 @@ class Checkout
         endif;
 
         // Adresse de livraison
-        if ($this->shop->cart()->needShipping()) :
-            $this->shop->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
+        if ($this->cart()->needShipping()) :
+            $this->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
 
             \wp_redirect($redirect);
             exit;
         endif;
 
-        if ($this->shop->cart()->needPayment()) :
+        if ($this->cart()->needPayment()) :
             if (empty($data['payment_method'])) :
-                $this->shop->notices()->add(__('Merci de bien vouloir sélectionner votre mode de paiement.',
+                $this->notices()->add(__('Merci de bien vouloir sélectionner votre mode de paiement.',
                     'tify'), 'error');
 
                 \wp_redirect($redirect);
                 exit;
-            elseif (!$gateway = $this->shop->gateways()->get($data['payment_method'])) :
-                $this->shop->notices()->add(__('Désolé, le mode de paiement choisie n\'est pas valide dans cette boutique.',
+            elseif (!$gateway = $this->gateways()->get($data['payment_method'])) :
+                $this->notices()->add(__('Désolé, le mode de paiement choisie n\'est pas valide dans cette boutique.',
                     'tify'), 'error');
 
                 \wp_redirect($redirect);
@@ -311,12 +314,12 @@ class Checkout
         endif;
 
         /** @var  $order */
-        $order = ($order_id = $this->shop->session()->get('order_awaiting_payment', 0))
-            ? $this->shop->orders()->get($order_id)
-            : $this->shop->orders()->create();
+        $order = ($order_id = $this->session()->get('order_awaiting_payment', 0))
+            ? $this->orders()->get($order_id)
+            : $this->orders()->create();
 
-        if (!$this->shop->orders()->is($order)) :
-            $this->shop->notices()->add(__('Désolé, impossible de procéder à votre commande, veuillez réessayer.',
+        if (!$this->orders()->is($order)) :
+            $this->notices()->add(__('Désolé, impossible de procéder à votre commande, veuillez réessayer.',
                 'tify'), 'error');
 
             \wp_redirect($redirect);
@@ -324,23 +327,23 @@ class Checkout
         endif;
 
         $created_via = 'checkout';
-        $cart_hash = md5(json_encode($this->shop->cart()->getList()) . $this->shop->cart()->getTotals());
-        $customer_id = $this->shop->users()->get()->getId();
-        $currency = $this->shop->settings()->currency();
-        $prices_include_tax = $this->shop->settings()->isPricesIncludeTax();
+        $cart_hash = md5(json_encode($this->cart()->getList()) . $this->cart()->getTotals());
+        $customer_id = $this->users()->get()->getId();
+        $currency = $this->settings()->currency();
+        $prices_include_tax = $this->settings()->isPricesIncludeTax();
         $customer_ip_address = $request->getClientIp();
         $customer_user_agent = $request->headers->get('User-Agent');
         $customer_note = isset($data['order_comments']) ? $data['order_comments'] : '';
         $payment_method_title = $gateway->getTitle();
-        $shipping_total = $this->shop->cart()->getTotals()->getShippingTotal();
-        $shipping_tax = $this->shop->cart()->getTotals()->getShippingTax();
-        $discount_total = $this->shop->cart()->getTotals()->getDiscountTotal();
-        $discount_tax = $this->shop->cart()->getTotals()->getDiscountTax();
-        $cart_tax = $this->shop->cart()->getTotals()->getGlobalTax() + $this->shop->cart()->getTotals()->getFeeTax();
-        $total = $this->shop->cart()->getTotals()->getGlobal();
+        $shipping_total = $this->cart()->getTotals()->getShippingTotal();
+        $shipping_tax = $this->cart()->getTotals()->getShippingTax();
+        $discount_total = $this->cart()->getTotals()->getDiscountTotal();
+        $discount_tax = $this->cart()->getTotals()->getDiscountTax();
+        $cart_tax = $this->cart()->getTotals()->getGlobalTax() + $this->cart()->getTotals()->getFeeTax();
+        $total = $this->cart()->getTotals()->getGlobal();
 
         // Liste des articles du panier associés à la commande
-        if ($lines = $this->shop->cart()->lines()) :
+        if ($lines = $this->cart()->lines()) :
             foreach($lines as $line) :
                 $product = $line->getProduct();
                 $item = $order->createItemProduct($product);
@@ -394,19 +397,16 @@ class Checkout
         $order->create();
 
         $order->save();
-        var_dump($this->shop->cart()->needPayment());
-        exit;
 
-        \wp_redirect($redirect);
-        exit;
+        if ($this->cart()->needPayment()) :
+            $this->session()
+                ->put('order_awaiting_payment', $order->getId())
+                ->save();
 
-        /*
-        $user = $this->shop->users()->get();
-        if (!$user->isCustomer()) :
-            return;
+            $result = $gateway->processPayment($order);
         endif;
 
-        var_dump($this->shop->users()->get()->isCustomer());
-        */
+        \wp_redirect(Arr::get($result, 'redirect', $redirect));
+        exit;
     }
 }

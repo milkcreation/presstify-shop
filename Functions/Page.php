@@ -13,10 +13,14 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Page implements PageInterface
+class Page implements PageInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -60,7 +64,7 @@ class Page implements PageInterface
      */
     public function isShop()
     {
-        return \is_single($this->shop->settings()->shopPageId());
+        return \is_single($this->settings()->shopPageId());
     }
 
     /**
@@ -70,7 +74,7 @@ class Page implements PageInterface
      */
     public function isCart()
     {
-        return \is_single($this->shop->settings()->cartPageId());
+        return \is_single($this->settings()->cartPageId());
     }
 
     /**
@@ -80,7 +84,7 @@ class Page implements PageInterface
      */
     public function isCheckout()
     {
-        return \is_single($this->shop->settings()->checkoutPageId());
+        return \is_single($this->settings()->checkoutPageId());
     }
 
     /**
@@ -90,6 +94,6 @@ class Page implements PageInterface
      */
     public function isTerms()
     {
-        return \is_single($this->shop->settings()->termsPageId());
+        return \is_single($this->settings()->termsPageId());
     }
 }

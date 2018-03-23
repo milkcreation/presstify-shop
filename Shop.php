@@ -6,7 +6,7 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Shop
- * @version 1.0.2
+ * @version 1.0.3
  */
 
 namespace tiFy\Plugins\Shop;
@@ -15,16 +15,13 @@ use League\Container\Exception\NotFoundException;
 use tiFy\App\Plugin;
 use tiFy\Core\User\Session\StoreInterface as tiFySession;
 use tiFy\Plugins\Shop\Addresses\Addresses;
-use tiFy\Plugins\Shop\Admin\Admin;
 use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Checkout\Checkout;
+use tiFy\Plugins\Shop\Functions\Functions;
 use tiFy\Plugins\Shop\Gateways\Gateways;
 use tiFy\Plugins\Shop\Notices\Notices;
-use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
 use tiFy\Plugins\Shop\Orders\Orders;
 use tiFy\Plugins\Shop\Products\Products;
-use tiFy\Plugins\Shop\Providers\Providers;
-use tiFy\Plugins\Shop\Session\Session;
 use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
 use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Users\Users;
@@ -127,6 +124,16 @@ class Shop extends Plugin
     }
 
     /**
+     * Récupération de la dépendance des fournisseurs de service
+     *
+     * @return object|Functions
+     */
+    public function functions()
+    {
+        return $this->provide('functions.controller');
+    }
+
+    /**
      * Récupération de la dépendance commande
      *
      * @return object|Gateways
@@ -154,16 +161,6 @@ class Shop extends Plugin
     public function products()
     {
         return $this->provide('products.controller');
-    }
-
-    /**
-     * Récupération de la dépendance des fournisseurs de service
-     *
-     * @return object|Providers
-     */
-    public function providers()
-    {
-        return $this->provide('providers.controller');
     }
 
     /**

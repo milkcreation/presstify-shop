@@ -23,6 +23,11 @@ use tiFy\Plugins\Shop\Cart\LineList as CartLineList;
 use tiFy\Plugins\Shop\Cart\Session as CartSession;
 use tiFy\Plugins\Shop\Cart\Total as CartTotal;
 use tiFy\Plugins\Shop\Checkout\Checkout;
+use tiFy\Plugins\Shop\Functions\Functions;
+use tiFy\Plugins\Shop\Functions\Date as FunctionsDate;
+use tiFy\Plugins\Shop\Functions\Page as FunctionsPage;
+use tiFy\Plugins\Shop\Functions\Price as FunctionsPrice;
+use tiFy\Plugins\Shop\Functions\Url as FunctionsUrl;
 use tiFy\Plugins\Shop\Gateways\Gateways;
 use tiFy\Plugins\Shop\Gateways\GatewayList as GatewaysList;
 use tiFy\Plugins\Shop\Notices\Notices;
@@ -37,10 +42,10 @@ use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemProduct as OrdersItemProduct;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemShipping as OrdersItemShipping;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemTax as OrdersItemTax;
 use tiFy\Plugins\Shop\Products\Products;
+use tiFy\Plugins\Shop\Products\ProductsInterface;
 use tiFy\Plugins\Shop\Products\ProductItem as ProductsItem;
 use tiFy\Plugins\Shop\Products\ProductItemInterface as ProductsItemInterface;
 use tiFy\Plugins\Shop\Products\ProductList as ProductsList;
-use tiFy\Plugins\Shop\Providers\Providers;
 use tiFy\Plugins\Shop\Providers\PageProvider as ProvidersPage;
 use tiFy\Plugins\Shop\Providers\PriceProvider as ProvidersPrice;
 use tiFy\Plugins\Shop\Providers\UrlProvider as ProvidersUrl;
@@ -69,6 +74,11 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         CartSession::class,
         CartTotal::class,
         Checkout::class,
+        Functions::class,
+        FunctionsDate::class,
+        FunctionsPage::class,
+        FunctionsPrice::class,
+        FunctionsUrl::class,
         Gateways::class,
         GatewaysList::class,
         Notices::class,
@@ -84,10 +94,6 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         Products::class,
         ProductsItem::class,
         ProductsList::class,
-        Providers::class,
-        ProvidersPage::class,
-        ProvidersPrice::class,
-        ProvidersUrl::class,
         Session::class,
         Settings::class,
         Users::class
@@ -118,6 +124,13 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         'checkout'     => [
             'controller' => Checkout::class
         ],
+        'functions'    => [
+            'controller' => Functions::class,
+            'date'       => FunctionsDate::class,
+            'page'       => FunctionsPage::class,
+            'price'      => FunctionsPrice::class,
+            'url'        => FunctionsUrl::class
+        ],
         'gateways'     => [
             'controller' => Gateways::class,
             'list'       => GatewaysList::class
@@ -142,12 +155,6 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             'controller'   => Products::class,
             'product_item' => ProductsItem::class,
             'product_list' => ProductsList::class,
-        ],
-        'providers'    => [
-            'controller' => Providers::class,
-            'page'       => ProvidersPage::class,
-            'price'      => ProvidersPrice::class,
-            'url'        => ProvidersUrl::class
         ],
         'session'      => [
             'controller' => Session::class
@@ -181,12 +188,12 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         'admin'        => ['controller'],
         'cart'         => ['controller'],
         'checkout'     => ['controller'],
+        'functions'    => ['controller'],
         'gateways'     => ['controller'],
         'notices'      => ['controller'],
         'custom_types' => ['controller'],
         'orders'       => ['controller'],
         'products'     => ['controller'],
-        'providers'    => ['controller'],
         'session'      => ['controller'],
         'settings'     => ['controller'],
         'users'        => ['controller']
@@ -199,8 +206,8 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
     protected $deferred = [
         'addresses' => ['billing', 'form_handler', 'shipping'],
         'cart'      => ['line', 'session'],
-        'orders'    => ['item_product'],
-        'providers' => ['page', 'price', 'url']
+        'functions' => ['date', 'page', 'price', 'url'],
+        'orders'    => ['item_product']
     ];
 
     /**
@@ -217,6 +224,12 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             'line'    => CartLine::class,
             'session' => CartSession::class
         ],
+        'functions' => [
+            'date'  => FunctionsDate::class,
+            'page'  => FunctionsPage::class,
+            'price' => FunctionsPrice::class,
+            'url'   => FunctionsUrl::class
+        ],
         'orders'    => [
             'item'         => OrdersItem::class,
             'list'         => OrdersList::class,
@@ -224,11 +237,6 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         ],
         'products'  => [
             'list' => ProductsList::class
-        ],
-        'providers' => [
-            'page'  => ProvidersPage::class,
-            'price' => ProvidersPrice::class,
-            'url'   => ProvidersUrl::class
         ]
     ];
 
@@ -265,6 +273,9 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             ->addMapController('checkout.controller', function ($shop) {
                 return Checkout::make($shop);
             })
+            ->addMapController('functions.controller', function ($shop) {
+                return Functions::boot($shop);
+            })
             ->addMapController('gateways.controller', function ($shop) {
                 return Gateways::make($shop);
             })
@@ -278,11 +289,9 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
                 /** @var OrdersInterface $controller */
                 return $controller::boot($shop);
             })
-            ->addMapController('products.controller', function ($shop) {
-                return Products::make($shop);
-            })
-            ->addMapController('providers.controller', function ($shop) {
-                return Providers::make($shop);
+            ->addMapController('products.controller', function ($shop, $controller) {
+                /** @var ProductsInterface $controller */
+                return $controller::boot($shop);
             })
             ->addMapController('session.controller', function ($shop) {
                 return Session::make($shop);
@@ -330,6 +339,11 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             ->addMapArgs('cart.line', [$this->shop, Cart::class, []])
             ->addMapArgs('cart.session', [$this->shop, Cart::class])
             ->addMapArgs('checkout.controller', [$this->shop])
+            ->addMapArgs('functions.controller', [$this->shop])
+            ->addMapArgs('functions.date', ['now', $this->shop])
+            ->addMapArgs('functions.page', [$this->shop])
+            ->addMapArgs('functions.price', [$this->shop])
+            ->addMapArgs('functions.url', [$this->shop])
             ->addMapArgs('gateways.controller', [$this->shop])
             ->addMapArgs('notices.controller', [$this->shop])
             ->addMapArgs('custom_types.controller', [$this->shop])
@@ -342,11 +356,10 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
                 $this->shop,
                 OrdersItem::class
             ])
-            ->addMapArgs('products.controller', [$this->shop])
-            ->addMapArgs('providers.controller', [$this->shop])
-            ->addMapArgs('providers.page', [$this->shop])
-            ->addMapArgs('providers.price', [$this->shop])
-            ->addMapArgs('providers.url', [$this->shop])
+            ->addMapArgs('products.controller', [
+                $this->shop,
+                $this->shop->appConfig('service_provider.products.controller', Products::class)
+            ])
             ->addMapArgs('session.controller', [$this->shop])
             ->addMapArgs('settings.controller', [$this->shop])
             ->addMapArgs('users.controller', [$this->shop]);

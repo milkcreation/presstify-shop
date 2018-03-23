@@ -109,7 +109,7 @@ class CustomTypes
                 'rewrite'           => false,
                 'public'            => false,
 
-                'object_type'       => $product_object_types
+                'object_type' => $product_object_types,
             ]
         );
 
@@ -125,7 +125,7 @@ class CustomTypes
                 'rewrite'           => false,
                 'public'            => false,
 
-                'object_type'       => array_merge($product_object_types, ['product_variation'])
+                'object_type' => array_merge($product_object_types, ['product_variation']),
             ]
         );
 
@@ -160,7 +160,7 @@ class CustomTypes
                 'hierarchical'    => false,
                 'supports'        => false,
                 'capability_type' => 'product',
-                'rewrite'         => false
+                'rewrite'         => false,
             ]
         );
 
@@ -183,7 +183,7 @@ class CustomTypes
                 'rewrite'             => false,
                 'query_var'           => false,
                 'supports'            => ['title'],
-                'has_archive'         => false
+                'has_archive'         => false,
             ]
         );
 
@@ -191,13 +191,13 @@ class CustomTypes
         CustomType::registerPostType(
             'shop_order_refund',
             [
-                'plural'                           => __('remboursements', 'tify'),
-                'singular'                         => __('remboursement', 'tify'),
-                'capability_type'                  => 'shop_order',
-                'public'                           => false,
-                'hierarchical'                     => false,
-                'supports'                         => false,
-                'rewrite'                          => false,
+                'plural'          => __('remboursements', 'tify'),
+                'singular'        => __('remboursement', 'tify'),
+                'capability_type' => 'shop_order',
+                'public'          => false,
+                'hierarchical'    => false,
+                'supports'        => false,
+                'rewrite'         => false,
             ]
         );
 

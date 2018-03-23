@@ -1,22 +1,21 @@
 <?php
 
 /**
- * @name PriceProvider
- * @desc Controleur de récupération des url de la boutique
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Providers
- * @version 1.1
- * @since 1.2.596
+ * @name Price
+ * @desc Controleur de gestion des tarifs de la boutique
+ * @namespace \tiFy\Plugins\Shop\Functions
+ * @package presstify-plugins/shop
+ * @version 1.0.2
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Providers;
+namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\Shop;
 
-class PriceProvider implements PriceProviderInterface
+class Price implements PriceInterface
 {
     /**
      * Classe de rappel de la boutique

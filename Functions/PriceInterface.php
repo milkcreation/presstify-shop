@@ -1,8 +1,8 @@
 <?php
 
-namespace tiFy\Plugins\Shop\Providers;
+namespace tiFy\Plugins\Shop\Functions;
 
-interface PriceProviderInterface
+interface PriceInterface
 {
     /**
      * Prix d'affichage des pages HTML

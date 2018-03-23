@@ -1,8 +1,8 @@
 <?php
 
-namespace tiFy\Plugins\Shop\Providers;
+namespace tiFy\Plugins\Shop\Functions;
 
-interface UrlProviderInterface
+interface UrlInterface
 {
     /**
      * Url vers une page de la boutique

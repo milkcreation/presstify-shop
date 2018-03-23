@@ -1,22 +1,21 @@
 <?php
 
 /**
- * @name UrlProvider
+ * @name Url
  * @desc Controleur de récupération des url de la boutique
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Providers
- * @version 1.1
- * @since 1.2.596
+ * @namespace \tiFy\Plugins\Shop\Functions
+ * @package presstify-plugins/shop
+ * @version 1.0.2
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Providers;
+namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\Shop;
 
-class UrlProvider implements UrlProviderInterface
+class Url implements UrlInterface
 {
     /**
      * Classe de rappel de la boutique
@@ -55,7 +54,7 @@ class UrlProvider implements UrlProviderInterface
     }
 
     /**
-     * Url vers la page d'accueil de la boutique
+     * Url vers la page d'accueil de la boutique.
      *
      * @return string
      */
@@ -65,7 +64,7 @@ class UrlProvider implements UrlProviderInterface
     }
 
     /**
-     * Url vers la page d'affichage du panier
+     * Url vers la page d'affichage du panier.
      *
      * @return string
      */
@@ -75,7 +74,7 @@ class UrlProvider implements UrlProviderInterface
     }
 
     /**
-     * Url vers la page de commande
+     * Url vers la page de commande.
      *
      * @return string
      */
@@ -85,7 +84,57 @@ class UrlProvider implements UrlProviderInterface
     }
 
     /**
-     * Url vers la page des conditions générales de vente
+     * Url vers la page de demande de paiement de la commande.
+     *
+     * @return string
+     */
+    public function checkoutPayPage()
+    {
+        return '';
+    }
+
+    /**
+     * Url vers la page de commande reçue.
+     *
+     * @return string
+     */
+    public function checkoutOrderReceivedPage()
+    {
+        return '';
+    }
+
+    /**
+     * Url vers la page d'ajout de moyen de paiement.
+     *
+     * @return string
+     */
+    public function checkoutAddPaymentMethodPage()
+    {
+        return '';
+    }
+
+    /**
+     * Url vers la page de suppression de moyen de paiement.
+     *
+     * @return string
+     */
+    public function checkoutDeletePaymentMethodPage()
+    {
+        return '';
+    }
+
+    /**
+     * Url vers la page de définition du moyen de paiement par défaut.
+     *
+     * @return string
+     */
+    public function checkoutSetDefaultPaymentMethodPage()
+    {
+        return '';
+    }
+
+    /**
+     * Url vers la page des conditions générales de vente.
      *
      * @return string
      */

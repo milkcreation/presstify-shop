@@ -14,6 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
+use Illuminate\Support\Collection;
 use LogicException;
 use tiFy\Core\Db\Db;
 use tiFy\Core\Db\Factory as DbFactory;
@@ -41,6 +42,12 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     protected $db;
 
     /**
+     * Liste des statuts de commande.
+     * @var array
+     */
+    protected $statuses = [];
+
+    /**
      * Type de post Wordpress du controleur
      * @var string|array
      */
@@ -60,6 +67,9 @@ class Orders extends AbstractPostQuery implements OrdersInterface
 
         // Intialisation de la base de données
         $this->initDb();
+
+        // Déclaration des événments
+        $this->appAddAction('init');
     }
 
     /**
@@ -156,6 +166,19 @@ class Orders extends AbstractPostQuery implements OrdersInterface
         $this->db->install();
 
         return $this->db;
+    }
+
+    /**
+     * Initialisation globale de wordpress
+     *
+     * @return void
+     */
+    final public function init()
+    {
+        // Déclaration de la liste des statuts de commande
+        foreach ($this->getRegisteredStatus() as $order_status => $values) :
+            \register_post_status($order_status, $values);
+        endforeach;
     }
 
     /**
@@ -275,10 +298,135 @@ class Orders extends AbstractPostQuery implements OrdersInterface
      *
      * @param OrderInterface $order
      *
-     * @param bool
+     * @return bool
      */
     public function is($order)
     {
         return $order instanceof OrderInterface;
+    }
+
+    /**
+     * Récupération de la liste déclaration de statut de commande.
+     *
+     * @return array
+     */
+    public function getRegisteredStatus()
+    {
+        return [
+            'order-pending'    => [
+                'label'                     => _x('En attente de paiement', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'En attente de paiement <span class="count">(%s)</span>',
+                    'En attente de paiement <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+            'order-processing' => [
+                'label'                     => _x('En cours', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'En cours <span class="count">(%s)</span>',
+                    'En cours <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+            'order-on-hold'    => [
+                'label'                     => _x('En attente', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'En attente <span class="count">(%s)</span>',
+                    'En attente <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+            'order-completed'  => [
+                'label'                     => _x('Terminée', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'Terminée <span class="count">(%s)</span>',
+                    'Terminée <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+            'order-cancelled'  => [
+                'label'                     => _x('Annulée', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'Annulée <span class="count">(%s)</span>',
+                    'Annulée <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+            'order-refunded'   => [
+                'label'                     => _x('Remboursée', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'Remboursée <span class="count">(%s)</span>',
+                    'Remboursée <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+            'order-failed'     => [
+                'label'                     => _x('Echouée', 'tify_shop_order_status', 'tify'),
+                'public'                    => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop(
+                    'Echouée <span class="count">(%s)</span>',
+                    'Echouée <span class="count">(%s)</span>',
+                    'tify'
+                ),
+            ],
+        ];
+    }
+
+    /**
+     * Récupération de la liste des status.
+     *
+     * @return array
+     */
+    public function getStatuses()
+    {
+        if ($this->statuses) :
+            return $this->statuses;
+        endif;
+
+        $collect = new Collection($this->getRegisteredStatus());
+
+        return $this->statuses = $collect->mapWithKeys(
+            function($item, $key) {
+                return [$key => $item['label']];
+            })
+                ->all();
+    }
+
+    /**
+     * Récupération de la liste des status.
+     *
+     * @return string
+     */
+    public function getDefaultStatus()
+    {
+        return 'order-pending';
     }
 }

@@ -14,10 +14,11 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
+use LogicException;
 use tiFy\Core\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\Shop;
 
-class Products extends AbstractPostQuery
+class Products extends AbstractPostQuery implements ProductsInterface
 {
     /**
      * Instance de la classe
@@ -91,13 +92,25 @@ class Products extends AbstractPostQuery
      *
      * @return Products
      */
-    public static function make(Shop $shop)
+    final public static function boot(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
         endif;
 
-        return self::$instance = new self($shop);
+        self::$instance = new static($shop);
+
+        if(! self::$instance instanceof Products) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
+                    Products::class
+                ),
+                500
+            );
+        endif;
+
+        return self::$instance;
     }
 
     /**
@@ -120,7 +133,7 @@ class Products extends AbstractPostQuery
     public function get($product = null)
     {
         if (is_string($product)) :
-            return self::getBy('name', $product);
+            return $this->getBy(null, $product);
         elseif (!$product) :
             $post = get_the_ID();
         else :

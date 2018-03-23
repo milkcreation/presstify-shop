@@ -195,7 +195,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getPriceHtml()
     {
-        return $this->shop->providers()->price()->html($this->getPrice());
+        return $this->shop->functions()->price()->html($this->getPrice());
     }
 
     /**

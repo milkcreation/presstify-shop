@@ -92,7 +92,7 @@ function tify_shop_setting($key, $default = '')
  */
 function tify_shop_page_is($name)
 {
-    return Shop::get()->providers()->page()->is($name);
+    return Shop::get()->functions()->page()->is($name);
 }
 
 /**
@@ -105,7 +105,7 @@ function tify_shop_page_is($name)
  */
 function tify_shop_price_html($price, $format = '')
 {
-    return Shop::get()->providers()->price()->html($price, $format);
+    return Shop::get()->functions()->price()->html($price, $format);
 }
 
 /**
@@ -117,7 +117,7 @@ function tify_shop_price_html($price, $format = '')
  */
 function tify_shop_url($name)
 {
-    return Shop::get()->providers()->url()->page($name);
+    return Shop::get()->functions()->url()->page($name);
 }
 
 /**

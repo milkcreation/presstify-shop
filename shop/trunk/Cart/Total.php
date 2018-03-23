@@ -134,7 +134,7 @@ class Total extends Fluent implements TotalInterface
      */
     public function getLinesTotalHtml()
     {
-        return $this->shop->providers()->price()->html($this->getLinesTotal());
+        return $this->shop->functions()->price()->html($this->getLinesTotal());
     }
 
     /**

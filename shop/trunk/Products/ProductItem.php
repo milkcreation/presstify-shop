@@ -119,7 +119,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
      */
     public function salePriceDisplay()
     {
-        return $this->shop->providers()->price()->html($this->getRegularPrice());
+        return $this->shop->functions()->price()->html($this->getRegularPrice());
     }
 
     /**

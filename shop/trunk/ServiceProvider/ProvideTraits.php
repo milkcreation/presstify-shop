@@ -1,6 +1,6 @@
 <?php
 
-namespace tiFy\Plugins\Shop\Interop;
+namespace tiFy\Plugins\Shop\ServiceProvider;
 
 use tiFy\Core\User\Session\StoreInterface as tiFySession;
 use tiFy\Plugins\Shop\Addresses\Addresses;
@@ -15,7 +15,7 @@ use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Users\Users;
 
-trait ShopTraits
+trait ProvideTraits
 {
     /**
      * Classe de rappel de la boutique
@@ -24,13 +24,41 @@ trait ShopTraits
     protected $shop;
 
     /**
+     * Récupération des données de configuration de la boutique.
+     *
+     * @param null|string $key  Attribut de configuration. Syntaxe à point autorisée pour accéder
+     *                          aux sous niveau d'un tableau.
+     *                          Renvoie la liste complète des attributs de configuration si null.
+     * @param mixed $default Valeur de retour par défaut.
+     *
+     * @return mixed
+     */
+    public function config($key = null, $default = '')
+    {
+        return $this->shop->appConfig($key, $default);
+    }
+
+    /**
+     * Récupération d'un service fournit par la boutique.
+     *
+     * @param string $name Identifiant de qualification du service
+     * @param array $args Liste des variables passées en argument au service
+     *
+     * @return object
+     */
+    public function provide($name, $args = [])
+    {
+        return $this->shop->provider()->get($name, $args);
+    }
+
+    /**
      * Récupération de la classe de rappel de gestion des adresses : livraison|facturation
      *
      * @return object|Addresses
      */
     public function addresses()
     {
-        return $this->shop->provide('addresses.controller');
+        return $this->provide('addresses.controller');
     }
 
     /**
@@ -40,7 +68,7 @@ trait ShopTraits
      */
     public function cart()
     {
-        return $this->shop->provide('cart.controller');
+        return $this->provide('cart.controller');
     }
 
     /**
@@ -50,7 +78,7 @@ trait ShopTraits
      */
     public function checkout()
     {
-        return $this->shop->provide('checkout.controller');
+        return $this->provide('checkout.controller');
     }
 
     /**
@@ -60,7 +88,7 @@ trait ShopTraits
      */
     public function functions()
     {
-        return $this->shop->provide('functions.controller');
+        return $this->provide('functions.controller');
     }
 
     /**
@@ -70,7 +98,7 @@ trait ShopTraits
      */
     public function gateways()
     {
-        return $this->shop->provide('gateways.controller');
+        return $this->provide('gateways.controller');
     }
 
     /**
@@ -80,7 +108,7 @@ trait ShopTraits
      */
     public function orders()
     {
-        return $this->shop->provide('orders.controller');
+        return $this->provide('orders.controller');
     }
 
     /**
@@ -90,7 +118,7 @@ trait ShopTraits
      */
     public function products()
     {
-        return $this->shop->provide('products.controller');
+        return $this->provide('products.controller');
     }
 
     /**
@@ -100,7 +128,7 @@ trait ShopTraits
      */
     public function notices()
     {
-        return $this->shop->provide('notices.controller');
+        return $this->provide('notices.controller');
     }
 
     /**
@@ -111,7 +139,7 @@ trait ShopTraits
     public function session()
     {
         /** @var tiFySession $session */
-        $session = $this->shop->provide('session.controller');
+        $session = $this->provide('session.controller');
 
         return $session;
     }
@@ -123,7 +151,7 @@ trait ShopTraits
      */
     public function settings()
     {
-        return $this->shop->provide('settings.controller');
+        return $this->provide('settings.controller');
     }
 
     /**
@@ -133,6 +161,6 @@ trait ShopTraits
      */
     public function users()
     {
-        return $this->shop->provide('users.controller');
+        return $this->provide('users.controller');
     }
 }

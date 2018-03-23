@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @name Cart
- * @desc Gestion du panier d'achat
+ * @name Total
+ * @desc Gestion du calcul des totaux du panier d'achat.
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Cart
  * @version 1.1
@@ -16,26 +16,28 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Total extends Fluent implements TotalInterface
+class Total extends Fluent implements TotalInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
-     * Classe de rappel de la boutique
+     * Classe de rappel de la boutique.
      * @var Shop
      */
     protected $shop;
 
     /**
-     * Classe de rappel de gestion des données des élements contenu dans le panier
+     * Classe de rappel de gestion des données des élements contenu dans le panier.
      * @var Cart
      */
     private $cart;
 
     /**
-     * Stockage des totaux
+     * Stockage des totaux.
      *
      * @var array
      */
@@ -56,7 +58,7 @@ class Total extends Fluent implements TotalInterface
     ];
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
      * @return void
      */
@@ -98,57 +100,57 @@ class Total extends Fluent implements TotalInterface
     }
 
     /**
-     * Récupération du prix du sous-total cumulé des lignes du panier
+     * Récupération du prix du sous-total cumulé des lignes du panier.
      *
      * @return float
      */
     public function getLinesSubtotal()
     {
-        return $this->get('lines_subtotal', 0);
+        return (float)$this->get('lines_subtotal', 0);
     }
 
     /**
-     * Récupération de la taxe du sous-total cumulé des lignes du panier
+     * Récupération de la taxe du sous-total cumulé des lignes du panier.
      *
      * @return float
      */
     public function getLinesSubtotalTax()
     {
-        return $this->get('lines_subtotal_tax', 0);
+        return (float)$this->get('lines_subtotal_tax', 0);
     }
 
     /**
-     * Récupération du prix total cumulé des lignes du panier
+     * Récupération du prix total cumulé des lignes du panier.
      *
      * @return float
      */
     public function getLinesTotal()
     {
-        return $this->get('lines_total', 0);
+        return (float)$this->get('lines_total', 0);
     }
 
     /**
-     * Récupération du prix total cumulé des lignes du panier au format HTML
+     * Récupération du prix total cumulé des lignes du panier au format HTML.
      *
-     * @return float
+     * @return string
      */
     public function getLinesTotalHtml()
     {
-        return $this->shop->functions()->price()->html($this->getLinesTotal());
+        return (string)$this->functions()->price()->html($this->getLinesTotal());
     }
 
     /**
-     * Récupération de la taxe totale cumulée des lignes du panier
+     * Récupération de la taxe totale cumulée des lignes du panier.
      *
      * @return float
      */
     public function getLinesTotalTax()
     {
-        return $this->get('lines_total_tax', 0);
+        return (float)$this->get('lines_total_tax', 0);
     }
 
     /**
-     * Récupération de la liste des taxes appliquées aux lignes du panier
+     * Récupération de la liste des taxes appliquées aux lignes du panier.
      *
      * @return array
      */
@@ -158,47 +160,47 @@ class Total extends Fluent implements TotalInterface
     }
 
     /**
-     * Récupération du montant total global
+     * Récupération du montant total global.
      *
      * @return float
      */
     public function getGlobal()
     {
-        return $this->get('total', 0);
+        return (float)$this->get('total', 0);
     }
 
     /**
-     * Récupération de la taxe globale
+     * Récupération de la taxe globale.
      *
      * @return float
      */
     public function getGlobalTax()
     {
-        return $this->get('total_tax', 0);
+        return (float)$this->get('total_tax', 0);
     }
 
     /**
-     * Récupération du montant total de la livraison
+     * Récupération du montant total de la livraison.
      *
      * @return float
      */
     public function getShippingTotal()
     {
-        return $this->get('shipping_total', 0);
+        return (float)$this->get('shipping_total', 0);
     }
 
     /**
-     * Récupération de la taxe appliquée au montant de la livraison
+     * Récupération de la taxe appliquée au montant de la livraison.
      *
      * @return float
      */
     public function getShippingTax()
     {
-        return $this->get('shipping_tax_total', 0);
+        return (float)$this->get('shipping_tax_total', 0);
     }
 
     /**
-     * Récupération de la liste des taxes appliquées à la livraison
+     * Récupération de la liste des taxes appliquées à la livraison.
      *
      * @return array
      */
@@ -208,47 +210,47 @@ class Total extends Fluent implements TotalInterface
     }
 
     /**
-     * Récupération du montant total de la remise
+     * Récupération du montant total de la remise.
      *
      * @return float
      */
     public function getDiscountTotal()
     {
-        return $this->get('discount_total', 0);
+        return (float)$this->get('discount_total', 0);
     }
 
     /**
-     * Récupération de la taxe appliquée au montant de la remise
+     * Récupération de la taxe appliquée au montant de la remise.
      *
      * @return float
      */
     public function getDiscountTax()
     {
-        return $this->get('discount_tax', 0);
+        return (float)$this->get('discount_tax', 0);
     }
 
     /**
-     * Récupération du montant total des frais
+     * Récupération du montant total des frais.
      *
      * @return float
      */
     public function getFeeTotal()
     {
-        return $this->get('fee_total', 0);
+        return (float)$this->get('fee_total', 0);
     }
 
     /**
-     * Récupération de la taxe appliquée au montant des frais
+     * Récupération de la taxe appliquée au montant des frais.
      *
      * @return float
      */
     public function getFeeTax()
     {
-        return $this->get('fee_total_tax', 0);
+        return (float)$this->get('fee_total_tax', 0);
     }
 
     /**
-     * Récupération de la liste des taxes appliquées aux frais
+     * Récupération de la liste des taxes appliquées aux frais.
      *
      * @return array
      */
@@ -258,7 +260,7 @@ class Total extends Fluent implements TotalInterface
     }
 
     /**
-     * Récupération du montant total global
+     * Récupération du montant total global.
      *
      * @return string
      */

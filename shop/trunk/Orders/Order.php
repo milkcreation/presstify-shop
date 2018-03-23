@@ -23,10 +23,14 @@ use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemFeeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemProductInterface;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemShippingInterface;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemTaxInterface;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Order extends AbstractPostItem implements OrderInterface
+class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -206,13 +210,23 @@ class Order extends AbstractPostItem implements OrderInterface
     }
 
     /**
+     * Récupération de la clé d'identification de la commande
+     *
+     * @return string
+     */
+    public function getOrderKey()
+    {
+        return (string)$this->get('order_key', '');
+    }
+
+    /**
      * Récupération du statut de publication
      *
      * @return string
      */
     public function getStatus()
     {
-        return (string)$this->get('status', $this->shop->orders()->getDefaultStatus());
+        return (string)$this->get('status', $this->orders()->getDefaultStatus());
     }
 
     /**
@@ -240,7 +254,7 @@ class Order extends AbstractPostItem implements OrderInterface
      */
     public function createItemCoupon()
     {
-
+        // @todo
     }
 
     /**
@@ -250,7 +264,7 @@ class Order extends AbstractPostItem implements OrderInterface
      */
     public function createItemFee()
     {
-
+        // @todo
     }
 
     /**
@@ -260,7 +274,7 @@ class Order extends AbstractPostItem implements OrderInterface
      */
     public function createItemProduct(ProductItemInterface $product)
     {
-        return $this->shop->provide('orders.item_product', [$product, $this->shop, $this]);
+        return $this->provide('orders.item_product', [$product, $this->shop, $this]);
     }
 
     /**
@@ -270,7 +284,7 @@ class Order extends AbstractPostItem implements OrderInterface
      */
     public function createItemShipping()
     {
-
+        // @todo
     }
 
     /**
@@ -280,7 +294,7 @@ class Order extends AbstractPostItem implements OrderInterface
      */
     public function createItemTax()
     {
-
+        // @todo
     }
 
     /**
@@ -319,13 +333,13 @@ class Order extends AbstractPostItem implements OrderInterface
         // @todo
         $post_data = [
             'ID'                => $this->getId(),
-            'post_date'         => $this->shop->functions()->date()->utc(),
-            'post_date_gmt'     => $this->shop->functions()->date()->get(),
+            'post_date'         => $this->functions()->date()->utc(),
+            'post_date_gmt'     => $this->functions()->date()->get(),
             'post_status'       => $this->getStatus(),
             'post_parent'       => $this->getParentId(),
             'post_excerpt'      => $this->getExcerpt(true),
-            'post_modified'     => $this->shop->functions()->date()->utc(),
-            'post_modified_gmt' => $this->shop->functions()->date()->get(),
+            'post_modified'     => $this->functions()->date()->utc(),
+            'post_modified_gmt' => $this->functions()->date()->get(),
         ];
         \wp_update_post($post_data);
 
@@ -376,26 +390,6 @@ class Order extends AbstractPostItem implements OrderInterface
     }
 
     /**
-     * Sauvegarde d'une métadonnée
-     *
-     * @param string $meta_key Clé d'identification de la métadonnée.
-     * @param mixed $meta_value Valeur de la métadonnée
-     * @param bool $unique Enregistrement unique d'une valeur pour la clé d'identification fournie.
-     *
-     * @return int Valeur de la clé primaire sauvegardée
-     */
-    public function addMeta($meta_key, $meta_value, $unique = true)
-    {
-        if (!$this->id) :
-            return 0;
-        endif;
-
-        $db = $this->shop->orders()->getDb();
-
-        return $db->meta()->add($this->id, $meta_key, $meta_value);
-    }
-
-    /**
      * Sauvegarde de la liste des éléments
      *
      * @return void
@@ -412,5 +406,19 @@ class Order extends AbstractPostItem implements OrderInterface
                 $item->save();
             endforeach;
         endforeach;
+    }
+
+    /**
+     * Récupération de l'url vers la page de remerciement.
+     * @internal Lorsque le paiement a été accepté.
+     *
+     * @return string
+     */
+    public function getCheckoutOrderReceivedUrl()
+    {
+        return $this->functions()->url()->checkoutOrderReceivedPage([
+            'order-received' => $this->getId(),
+            'key'            => $this->getOrderKey()
+        ]);
     }
 }

@@ -15,10 +15,14 @@ namespace tiFy\Plugins\Shop\Functions;
 
 use DateTime;
 use DateTimeZone;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Date extends DateTime implements DateInterface
+class Date extends DateTime implements DateInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -35,7 +39,7 @@ class Date extends DateTime implements DateInterface
      * CONSTRUCTEUR
      *
      * @param string $time
-     * @param \tiFy\Plugins\Shop\Shop $shop
+     * @param Shop $shop
      *
      * @return void
      */

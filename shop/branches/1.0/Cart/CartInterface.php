@@ -94,6 +94,7 @@ interface CartInterface
      * @return array|Line[]
      */
     public function getList();
+
     /**
      * Récupération d'une ligne du panier
      * @param string $key Identifiant de qualification de la ligne
@@ -108,16 +109,23 @@ interface CartInterface
     public function count();
 
     /**
+     * Compte le nombre de produits contenus dans le panier
+     * @return int
+     */
+    public function countProducts();
+
+    /**
      * Vérifie si le panier est vide
      * @return bool
      */
     public function isEmpty();
 
     /**
-     * Compte le nombre de produits contenus dans le panier
-     * @return int
+     * Vide complétement le panier.
+     *
+     * @return void
      */
-    public function countProducts();
+    public function destroy();
 
     /**
      * Vérifie si le panier nécessite une livraison

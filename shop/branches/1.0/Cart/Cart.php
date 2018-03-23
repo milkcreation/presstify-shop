@@ -21,11 +21,13 @@ use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Core\Route\Route;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Cart implements CartInterface
+class Cart implements CartInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -46,10 +48,10 @@ class Cart implements CartInterface
     protected $lines;
 
     /**
-     * Classe de rappel de gestion des données du panier enregistré dans la session
-     * @var Session
+     * Classe de rappel de gestion des données du panier enregistré en session.
+     * @var SessionItemsInterface
      */
-    protected $session;
+    protected $sessionItems;
 
     /**
      * Classe de rappel de calcul des totaux
@@ -137,7 +139,7 @@ class Cart implements CartInterface
     final public function after_setup_tify()
     {
         // Initialisation de la gestion des données de panier d'achat portées par la session
-        $this->initSession();
+        $this->initSessionItems();
 
         // Initialisation des messages de notification
         $this->initNotices();
@@ -215,13 +217,13 @@ class Cart implements CartInterface
      *
      * @return void
      */
-    public function wp_loaded()
+    final public function wp_loaded()
     {
-        $this->session->getCart();
+        $this->sessionItems()->getCart();
 
-        if ($this->shop->functions()->page()->isCart() && !$this->getList() && ($message = $this->getNotice('is_empty'))) :
-            $this->shop->notices()->add(
-                __('Votre panier ne contient actuellement aucun article.', 'tify'),
+        if ($this->functions()->page()->isCart() && ! $this->getList() && ($message = $this->getNotice('is_empty'))) :
+            $this->notices()->add(
+                $message,
                 'info'
             );
         endif;
@@ -230,26 +232,36 @@ class Cart implements CartInterface
     /**
      * Initialisation de la session de gestion des données du panier d'achat
      *
-     * @return SessionInterface
+     * @return SessionItemsInterface
      */
-    private function initSession()
+    private function initSessionItems()
     {
-        if ($this->session) :
-            return $this->session;
+        if ($this->sessionItems) :
+            return $this->sessionItems;
         endif;
 
-        $this->session = $this->shop->provide('cart.session');
-        if(! $this->session instanceof SessionInterface) :
+        $this->sessionItems = $this->provide('cart.session_items');
+        if(! $this->sessionItems instanceof SessionItemsInterface) :
             throw new LogicException(
                 sprintf(
                     __('Le controleur de surcharge doit implémenter %s', 'tify'),
-                    SessionInterface::class
+                    SessionItemsInterface::class
                 ),
                 500
             );
         endif;
 
-        return $this->session;
+        return $this->sessionItems;
+    }
+
+    /**
+     * Récupération de la classe de rappel de gestion des éléments du panier d'achat stocké en session.
+     *
+     * @return SessionItemsInterface
+     */
+    public function sessionItems()
+    {
+        return $this->sessionItems;
     }
 
     /**
@@ -266,7 +278,7 @@ class Cart implements CartInterface
                 'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
                 'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify')
             ],
-            $this->shop->appConfig('cart.notices', [])
+            $this->config('cart.notices', [])
         );
     }
 
@@ -294,7 +306,7 @@ class Cart implements CartInterface
     public function addUrl($product)
     {
         if (!$product instanceof \tiFy\Plugins\Shop\Products\ProductItemInterface) :
-            $product = $this->shop->products()->get($product);
+            $product = $this->products()->get($product);
         endif;
 
         if ($product instanceof \tiFy\Plugins\Shop\Products\ProductItemInterface) :
@@ -363,7 +375,7 @@ class Cart implements CartInterface
      */
     public function add($key, $attributes)
     {
-        return $this->lines()->put($key, $this->shop->provide('cart.line', [$this->shop, $this, $attributes]));
+        return $this->lines()->put($key, $this->provide('cart.line', [$this->shop, $this, $attributes]));
     }
 
     /**
@@ -432,6 +444,16 @@ class Cart implements CartInterface
     }
 
     /**
+     * Compte le nombre de produits contenus dans le panier
+     *
+     * @return int
+     */
+    public function countProducts()
+    {
+        return $this->lines()->sum('quantity');
+    }
+
+    /**
      * Vérifie si le panier est vide
      *
      * @return bool
@@ -442,13 +464,15 @@ class Cart implements CartInterface
     }
 
     /**
-     * Compte le nombre de produits contenus dans le panier
+     * Détruit complétement le panier.
      *
-     * @return int
+     * @return void
      */
-    public function countProducts()
+    public function destroy()
     {
-        return $this->lines()->sum('quantity');
+        $this->flush();
+        $this->calculate();
+        $this->sessionItems()->destroy();
     }
 
     /**
@@ -521,7 +545,7 @@ class Cart implements CartInterface
          * Vérification d'existance du produit et récupération
          * @var \tiFy\Plugins\Shop\Products\ProductItemInterface $product
          */
-        if (!$product = $this->shop->products()->get($product_name)) :
+        if (!$product = $this->products()->get($product_name)) :
             return;
         endif;
 
@@ -550,11 +574,11 @@ class Cart implements CartInterface
         $this->add($key, compact('key', 'quantity', 'product'));
 
         // Mise à jour des données de session
-        $this->session->update();
+        $this->sessionItems()->update();
 
         // Message de notification
         if ($message = $this->getNotice('successfully_added')) :
-            $this->shop->notices()->add($message);
+            $this->notices()->add($message);
         endif;
 
         // Définition de l'url de redirection
@@ -591,17 +615,17 @@ class Cart implements CartInterface
             endforeach;
 
             // Mise à jour des données de session
-            $this->session->update();
+            $this->sessionItems()->update();
 
             // Message de notification
             if ($message = $this->getNotice('successfully_updated')) :
-                $this->shop->notices()->add($message);
+                $this->notices()->add($message);
             endif;
         endif;
 
         // Définition de l'url de redirection
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->shop->functions()->url()->cartPage()) :
+        elseif ($redirect = $this->functions()->url()->cartPage()) :
         else :
             $redirect = \wp_get_referer();
         endif;
@@ -630,17 +654,17 @@ class Cart implements CartInterface
 
         if ($this->remove($key)) :
             // Mise à jour des données de session
-            $this->session->update();
+            $this->sessionItems()->update();
 
             // Message de notification
             if ($message = $this->getNotice('successfully_removed')) :
-                $this->shop->notices()->add($message);
+                $this->notices()->add($message);
             endif;
         endif;
 
         // Définition de l'url de redirection
         if ($redirect = $request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->shop->functions()->url()->cartPage()) :
+        elseif ($redirect = $this->functions()->url()->cartPage()) :
         else :
             $redirect = \wp_get_referer();
         endif;

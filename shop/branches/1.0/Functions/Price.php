@@ -13,10 +13,14 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Price implements PriceInterface
+class Price implements PriceInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -46,11 +50,11 @@ class Price implements PriceInterface
      */
     public function html($price, $format = '')
     {
-        $currency = $this->shop->settings()->get('currency', '');
-        $currency_position = $this->shop->settings()->get('currency_position');
-        $decimals = $this->shop->settings()->decimalNumber();
-        $dec_point = $this->shop->settings()->decimalSeparator();
-        $thousands_sep = $this->shop->settings()->thousandSeparator();
+        $currency = $this->settings()->get('currency', '');
+        $currency_position = $this->settings()->get('currency_position');
+        $decimals = $this->settings()->decimalNumber();
+        $dec_point = $this->settings()->decimalSeparator();
+        $thousands_sep = $this->settings()->thousandSeparator();
 
         if (!$format) :
             $format = '%1$s';

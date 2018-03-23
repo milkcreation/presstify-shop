@@ -1,8 +1,8 @@
 <?php
 
-namespace tiFy\Plugins\Shop\Providers;
+namespace tiFy\Plugins\Shop\Functions;
 
-interface PageProviderInterface
+interface PageInterface
 {
     /**
      * Vérifie si la page d'affichage courante correspond à un contexte défini

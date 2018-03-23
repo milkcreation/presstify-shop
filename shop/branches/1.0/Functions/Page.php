@@ -1,22 +1,21 @@
 <?php
 
 /**
- * @name PageProvider
+ * @name Page
  * @desc Controleur de récupération des contextes d'affichage des pages de la boutique
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Providers
- * @version 1.1
- * @since 1.2.596
+ * @namespace \tiFy\Plugins\Shop\Functions
+ * @package presstify-plugins/shop
+ * @version 1.0.2
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Providers;
+namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\Shop;
 
-class PageProvider implements PageProviderInterface
+class Page implements PageInterface
 {
     /**
      * Classe de rappel de la boutique

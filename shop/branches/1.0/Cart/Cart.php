@@ -219,7 +219,7 @@ class Cart implements CartInterface
     {
         $this->session->getCart();
 
-        if ($this->shop->providers()->page()->isCart() && !$this->getList() && ($message = $this->getNotice('is_empty'))) :
+        if ($this->shop->functions()->page()->isCart() && !$this->getList() && ($message = $this->getNotice('is_empty'))) :
             $this->shop->notices()->add(
                 __('Votre panier ne contient actuellement aucun article.', 'tify'),
                 'info'
@@ -601,7 +601,7 @@ class Cart implements CartInterface
 
         // Définition de l'url de redirection
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->shop->providers()->url()->cartPage()) :
+        elseif ($redirect = $this->shop->functions()->url()->cartPage()) :
         else :
             $redirect = \wp_get_referer();
         endif;
@@ -640,7 +640,7 @@ class Cart implements CartInterface
 
         // Définition de l'url de redirection
         if ($redirect = $request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->shop->providers()->url()->cartPage()) :
+        elseif ($redirect = $this->shop->functions()->url()->cartPage()) :
         else :
             $redirect = \wp_get_referer();
         endif;

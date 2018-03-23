@@ -16,11 +16,13 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Line extends Fluent implements LineInterface
+class Line extends Fluent implements LineInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique
@@ -66,7 +68,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getKey()
     {
-        return $this->get('key', '');
+        return (string)$this->get('key', '');
     }
 
     /**
@@ -195,7 +197,7 @@ class Line extends Fluent implements LineInterface
      */
     public function getPriceHtml()
     {
-        return $this->shop->functions()->price()->html($this->getPrice());
+        return $this->functions()->price()->html($this->getPrice());
     }
 
     /**

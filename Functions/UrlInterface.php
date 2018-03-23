@@ -31,6 +31,33 @@ interface UrlInterface
     public function checkoutPage();
 
     /**
+     * Url vers la page de commande reçue.
+     * @param array $args Liste des arguments de requête
+     * @return string
+     */
+    public function checkoutOrderReceivedPage($args = []);
+
+    /**
+     * Url vers la page d'ajout de moyen de paiement.
+     * @return string
+     */
+    public function checkoutAddPaymentMethodPage();
+
+    /**
+     * Url vers la page de suppression de moyen de paiement.
+     *
+     * @return string
+     */
+    public function checkoutDeletePaymentMethodPage();
+
+    /**
+     * Url vers la page de définition du moyen de paiement par défaut.
+     *
+     * @return string
+     */
+    public function checkoutSetDefaultPaymentMethodPage();
+
+    /**
      * Url vers la page des conditions générales de vente
      * @return string
      */

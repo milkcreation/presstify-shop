@@ -5,106 +5,97 @@ namespace tiFy\Plugins\Shop\Cart;
 interface TotalInterface
 {
     /**
-     * Récupération du prix du sous-total cumulé des lignes du panier
-     *
+     * Récupération du prix du sous-total cumulé des lignes du panier.
      * @return float
      */
     public function getLinesSubtotal();
 
     /**
-     * Récupération de la taxe du sous-total cumulée des lignes du panier
-     *
+     * Récupération de la taxe du sous-total cumulée des lignes du panier.
      * @return float
      */
     public function getLinesSubtotalTax();
 
     /**
-     * Récupération du prix total cumulé des lignes du panier
-     *
+     * Récupération du prix total cumulé des lignes du panier.
      * @return float
      */
     public function getLinesTotal();
 
     /**
-     * Récupération de la taxe totale cumulée des lignes du panier
-     *
+     * Récupération du prix total cumulé des lignes du panier au format HTML.
+     * @return string
+     */
+    public function getLinesTotalHtml();
+
+    /**
+     * Récupération de la taxe totale cumulée des lignes du panier.
      * @return float
      */
     public function getLinesTotalTax();
 
     /**
-     * Récupération de la liste des taxes appliquées aux lignes du panier
-     *
+     * Récupération de la liste des taxes appliquées aux lignes du panier.
      * @return array
      */
     public function getLinesTaxes();
 
     /**
-     * Récupération du montant total global
-     *
+     * Récupération du montant total global.
      * @return float
      */
     public function getGlobal();
 
     /**
-     * Récupération de la taxe globale
-     *
+     * Récupération de la taxe globale.
      * @return float
      */
     public function getGlobalTax();
 
     /**
-     * Récupération du montant total de la livraison
-     *
+     * Récupération du montant total de la livraison.
      * @return float
      */
     public function getShippingTotal();
 
     /**
-     * Récupération de la taxe appliquée au montant de la livraison
-     *
+     * Récupération de la taxe appliquée au montant de la livraison.
      * @return float
      */
     public function getShippingTax();
 
     /**
-     * Récupération de la liste des taxes appliquées à la livraison
-     *
+     * Récupération de la liste des taxes appliquées à la livraison.
      * @return array
      */
     public function getShippingTaxes();
 
     /**
-     * Récupération du montant total de la remise
-     *
+     * Récupération du montant total de la remise.
      * @return float
      */
     public function getDiscountTotal();
 
     /**
-     * Récupération de la taxe appliquée au montant de la remise
-     *
+     * Récupération de la taxe appliquée au montant de la remise.
      * @return float
      */
     public function getDiscountTax();
 
     /**
      * Récupération du montant total des frais
-     *
      * @return float
      */
     public function getFeeTotal();
 
     /**
-     * Récupération de la taxe appliquée au montant des frais
-     *
+     * Récupération de la taxe appliquée au montant des frais.
      * @return float
      */
     public function getFeeTax();
 
     /**
-     * Récupération de la liste des taxes appliquées aux frais
-     *
+     * Récupération de la liste des taxes appliquées aux frais.
      * @return array
      */
     public function getFeeTaxes();

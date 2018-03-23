@@ -55,6 +55,19 @@ interface OrderInterface extends PostItemInterface
     public function setShippingAttr($key, $value);
 
     /**
+     * Récupération du statut de publication
+     * @return string
+     */
+    public function getStatus();
+
+    /**
+     * Récupération de la valeur brute ou formatée de l'extrait
+     * @param bool $raw Formatage de la valeur
+     * @return string
+     */
+    public function getExcerpt($raw = false);
+
+    /**
      * Création d'une ligne de coupon de réduction.
      * @return object|OrderItemCouponInterface
      */
@@ -104,8 +117,21 @@ interface OrderInterface extends PostItemInterface
     public function save();
 
     /**
+     * Enregistrement de la liste des métadonnées déclarées.
+     * @return void
+     */
+    public function saveMetas();
+
+    /**
      * Sauvegarde de la liste des éléments.
      * @return void
      */
     public function saveItems();
+
+    /**
+     * Récupération de l'url ver la page de remerciement.
+     * @internal Lorsque le paiement a été accepté.
+     * @return string
+     */
+    public function getCheckoutOrderReceivedUrl();
 }

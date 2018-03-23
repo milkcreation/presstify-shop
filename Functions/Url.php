@@ -13,10 +13,15 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
+use League\Uri;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Url implements UrlInterface
+class Url implements UrlInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -60,7 +65,7 @@ class Url implements UrlInterface
      */
     public function shopPage()
     {
-        return ($page_id = $this->shop->settings()->shopPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->settings()->shopPageId()) ? \get_permalink($page_id) : \get_home_url();
     }
 
     /**
@@ -70,7 +75,7 @@ class Url implements UrlInterface
      */
     public function cartPage()
     {
-        return ($page_id = $this->shop->settings()->cartPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->settings()->cartPageId()) ? \get_permalink($page_id) : \get_home_url();
     }
 
     /**
@@ -80,7 +85,7 @@ class Url implements UrlInterface
      */
     public function checkoutPage()
     {
-        return ($page_id = $this->shop->settings()->checkoutPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->settings()->checkoutPageId()) ? \get_permalink($page_id) : \get_home_url();
     }
 
     /**
@@ -98,9 +103,11 @@ class Url implements UrlInterface
      *
      * @return string
      */
-    public function checkoutOrderReceivedPage()
+    public function checkoutOrderReceivedPage($args = [])
     {
-        return '';
+        $base_uri = Uri\create($this->checkoutPage());
+
+        return (string)Uri\append_query($base_uri, http_build_query($args));
     }
 
     /**
@@ -140,6 +147,6 @@ class Url implements UrlInterface
      */
     public function termsPage()
     {
-        return ($page_id = $this->shop->settings()->termsPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->settings()->termsPageId()) ? \get_permalink($page_id) : \get_home_url();
     }
 }

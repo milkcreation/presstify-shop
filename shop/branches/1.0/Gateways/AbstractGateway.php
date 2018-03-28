@@ -14,6 +14,12 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     use TraitsApp, ProvideTraits;
 
     /**
+     * Identifiant de qualification de la plateforme
+     * @var string
+     */
+    protected $id = '';
+
+    /**
      * Classe de rappel de la boutique
      * @var Shop
      */
@@ -46,13 +52,16 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     /**
      * CONSTRUCTEUR
      *
-     * @param Shop $shop Classe de rappel de la boutique
-     * @param array Liste des attributs de l'article dans le panier
+     * @param int $id Identifiant de qualification de la plateforme.
+     * @param array $attributes Liste des attributs de configuration de la plateforme.
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, $attributes = [])
+    public function __construct($id, $attributes = [], Shop $shop)
     {
+        $this->id = $id;
+
         parent::__construct(
             array_merge(
                 $this->getDefaults(),
@@ -71,7 +80,7 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
      */
     public function getId()
     {
-        return $this->get('id', $this->appLowerName());
+        return $this->id ? : $this->appLowerName();
     }
 
     /**
@@ -219,5 +228,15 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     public function processPayment($order)
     {
         return [];
+    }
+
+    /**
+     * Formulaire de paiement de la commande.
+     *
+     * @return void
+     */
+    public function checkoutPaymentForm()
+    {
+        echo '';
     }
 }

@@ -3,6 +3,7 @@
 namespace tiFy\Plugins\Shop\ServiceProvider;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use League\Container\ServiceProvider\BootableServiceProviderInterface;
 use League\Container\Exception\NotFoundException;
@@ -50,12 +51,12 @@ use tiFy\Plugins\Shop\Session\Session;
 use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Users\Users;
 
-class ServiceProvider extends AbstractServiceProvider implements BootableServiceProviderInterface
+class ServiceProvider extends AbstractServiceProvider implements BootableServiceProviderInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
-     * Liste des services fournis.
+     * Liste des identifiant de qualification de services fournis.
      * @internal requis. Tous les alias de services à traiter doivent être renseignés.
      * @var string[]
      */
@@ -200,7 +201,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
      * Liste des services différés.
      * @var array
      */
-    protected $deferred = [
+    protected $registered = [
         'addresses' => ['billing', 'form_handler', 'shipping'],
         'cart'      => ['line', 'session_items'],
         'functions' => ['date', 'page', 'price', 'url'],
@@ -304,7 +305,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         foreach ($this->customs as $category => $controllers) :
             foreach ($controllers as $name => $default_controller) :
                 $key = "{$category}.{$name}";
-                $controller = $this->shop->appConfig("service_provider.{$key}", $default_controller);
+                $controller = $this->config("service_provider.{$key}", $default_controller);
 
                 switch ($key) :
                     default :
@@ -331,7 +332,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             ->addMapArgs('admin.controller', [$this->shop])
             ->addMapArgs('cart.controller', [
                 $this->shop,
-                $this->shop->appConfig('service_provider.cart.controller', Cart::class)
+                $this->config('service_provider.cart.controller', Cart::class)
             ])
             ->addMapArgs('cart.line', [$this->shop, Cart::class, []])
             ->addMapArgs('cart.session_items', [$this->shop, Cart::class])
@@ -346,7 +347,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             ->addMapArgs('custom_types.controller', [$this->shop])
             ->addMapArgs('orders.controller', [
                 $this->shop,
-                $this->shop->appConfig('service_provider.orders.controller', Orders::class)
+                $this->config('service_provider.orders.controller', Orders::class)
             ])
             ->addMapArgs('orders.item_product', [
                 ProductsItemInterface::class,
@@ -355,7 +356,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             ])
             ->addMapArgs('products.controller', [
                 $this->shop,
-                $this->shop->appConfig('service_provider.products.controller', Products::class)
+                $this->config('service_provider.products.controller', Products::class)
             ])
             ->addMapArgs('session.controller', [$this->shop])
             ->addMapArgs('settings.controller', [$this->shop])
@@ -372,7 +373,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         if ($this->bootable) :
             foreach ($this->bootable as $category => $controllers) :
                 foreach ($controllers as $name) :
-                    $this->add("{$category}.{$name}");
+                    $this->addContainer("{$category}.{$name}");
                 endforeach;
             endforeach;
         endif;
@@ -385,53 +386,45 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
      */
     public function register()
     {
-        if ($this->deferred) :
-            foreach ($this->deferred as $category => $controllers) :
+        if ($this->registered) :
+            foreach ($this->registered as $category => $controllers) :
                 foreach ($controllers as $name) :
-                    $this->add("{$category}.{$name}");
+                    $this->addContainer("{$category}.{$name}");
                 endforeach;
             endforeach;
         endif;
     }
 
     /**
-     * Déclaration d'un service
      *
-     * @param string $key Identifiant de qualification du service.
-     *
-     * @return void
      */
-    public function add($key)
+    public function add($category, $name, $provide_controller, $args = [])
     {
-        if (!$controller = $this->getMapController($key)) :
+        $key = "{$category}.{$name}";
+        if (Arr::get($this->aliases_map, $key, '')) :
             return;
         endif;
 
-        try {
-            $alias = $this->getAlias($key);
-        } catch (LogicException $e) {
-            wp_die($e->getMessage(), __('Alias de fournisseur de service introuvable', 'tify'), $e->getCode());
-            exit;
-        }
+        array_push($this->provides, $provide_controller);
 
-        $args = $this->getMapArgs($key);
+        $this->aliases_map = Arr::add($this->aliases_map, $key, $provide_controller);
 
-        if ($this->isClosure($controller)) :
-            $this->getContainer()->add(
-                $alias,
-                call_user_func_array($controller, $args)
-            );
-        else :
-            $this->getContainer()->add(
-                $alias,
-                $controller
-            )
-                ->withArguments($args);
+        if (!isset($this->registered[$category])) :
+            $this->registered[$category] = [];
         endif;
+        array_push($this->registered[$category], $name);
+
+        $this->addMapController($key, $this->config("service_provider.{$key}", $provide_controller));
+
+        if ($args) :
+            $this->addMapArgs($key, $args);
+        endif;
+
+        $this->addContainer($key);
     }
 
     /**
-     * Récupération d'un service déclaré
+     * Récupération d'un service déclaré.
      *
      * @param string $key
      *
@@ -537,7 +530,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
     }
 
     /**
-     * Vérifie si un controleur est une function anonyme
+     * Vérifie si un controleur est une function anonyme.
      *
      * @return bool
      */
@@ -549,5 +542,41 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         } catch (ReflectionException $e) {
             return false;
         }
+    }
+
+    /**
+     * Déclaration d'un conteneur d'injection de service selon ses attributs enregistrés.
+     *
+     * @param string $key Identifiant de qualification du service.
+     *
+     * @return void
+     */
+    public function addContainer($key)
+    {
+        if (!$controller = $this->getMapController($key)) :
+            return;
+        endif;
+
+        try {
+            $alias = $this->getAlias($key);
+        } catch (LogicException $e) {
+            wp_die($e->getMessage(), __('Alias de fournisseur de service introuvable', 'tify'), $e->getCode());
+            exit;
+        }
+
+        $args = $this->getMapArgs($key);
+
+        if ($this->isClosure($controller)) :
+            $this->getContainer()->add(
+                $alias,
+                call_user_func_array($controller, $args)
+            );
+        else :
+            $this->getContainer()->add(
+                $alias,
+                $controller
+            )
+                ->withArguments($args);
+        endif;
     }
 }

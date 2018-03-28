@@ -14,12 +14,18 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
+use Illuminate\Support\Arr;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
+use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
 
-class Gateways
+class Gateways implements GatewaysInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -40,16 +46,22 @@ class Gateways
     protected $list_controller;
 
     /**
-     * Liste des plateformes déclarées par defaut.
+     * Liste des plateformes par défaut.
      * @var array
      */
     protected $defaults = [
-        'cash_on_delivery' => 'tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway',
-        'cheque'           => 'tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway'
+        'cash_on_delivery' => CashOnDeliveryGateway::class,
+        'cheque'           => ChequeGateway::class
     ];
 
     /**
-     * CONSTRUCTEUR
+     * Liste des plateformes déclarées.
+     * @var array
+     */
+    protected $registered = [];
+
+    /**
+     * CONSTRUCTEUR.
      *
      * @param Shop $shop Classe de rappel de la boutique
      *
@@ -60,12 +72,12 @@ class Gateways
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Définition de la liste des plateformes déclarées
-        $this->register();
+        // Définition de la liste des événement
+        $this->appAddAction('after_setup_tify');
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -75,7 +87,7 @@ class Gateways
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -85,7 +97,7 @@ class Gateways
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
      * @param Shop $shop
      *
@@ -101,6 +113,17 @@ class Gateways
     }
 
     /**
+     * A l'issue de l'initialisation de PresstiFy.
+     *
+     * @return void
+     */
+    final public function after_setup_tify()
+    {
+        // Définition de la liste des plateformes déclarées
+        $this->register();
+    }
+
+    /**
      * Définition de la liste des plateformes de paiement déclarées.
      *
      * @return GatewayListInterface
@@ -111,43 +134,57 @@ class Gateways
             return $this->list_controller;
         endif;
 
-        $gateways = array_merge(
-            $this->defaults,
-            $this->shop->appConfig('gateways')
-        );
-
-        $items = [];
-        foreach($gateways as $id => $attrs) :
-            if ($attrs === false) :
-                continue;
-            elseif (($attrs === true) && isset($this->defaults[$id])) :
-                $controller = $this->defaults[$id];
-                $attrs = [];
-            elseif (is_string($attrs)) :
-                $controller = $attrs;
-                $attrs = [];
-            else :
-                $controller = isset($attrs['controller']) ? $attrs['controller'] : '';
-                unset($attrs['controller']);
-            endif;
-
-            if (!$controller || !in_array('tiFy\Plugins\Shop\Gateways\GatewayInterface', class_implements($controller))) :
-                continue;
-            endif;
-
-            /** @var GatewayInterface $gateway */
-            $gateway = new $controller(
-                $this->shop,
-                array_merge(
-                    ['id' => $id],
-                    $attrs
-                )
-            );
-
-            $items[$gateway->getId()] = $gateway;
+        foreach($this->defaults as $id => $controller) :
+            $this->add($id, $controller);
         endforeach;
 
-        return $this->list_controller = new GatewayList($this->shop, $items);
+        $this->appEmit('tify.plugins.shop.gateways.register', $this);
+
+        $items = [];
+        if ($this->registered) :
+            $gateways = $this->config('gateways', []);
+
+            foreach($this->registered as $id => $class_name) :
+                $config = Arr::get($gateways, $id, []);
+                if ($config === false) :
+                    $attrs = ['enabled' => false];
+                elseif ($attrs = (array)Arr::get($gateways, $id, [])) :
+                    $attrs['enabled'] = isset($attrs['enabled']) ? (bool) $attrs['enabled'] : true;
+                elseif (in_array($id, $gateways)) :
+                    $attrs = ['enabled' => true];
+                else :
+                    $attrs = ['enabled' => false];
+                endif;
+
+                $items[$id] = $this->provide(
+                    "gateways.{$id}",
+                    [
+                        $id,
+                        $attrs,
+                        $this->shop
+                    ]
+                );
+            endforeach;
+        endif;
+
+        return $this->list_controller = new GatewayList($items, $this->shop);
+    }
+
+    /**
+     * Ajout d'une déclaration de plateforme de paiement.
+     *
+     * @param string $id Identifiant de qualification de la plateforme de paiement.
+     * @param string $class_name Nom de la classe de rappel de traitement de la plateforme.
+     *
+     * @return void
+     */
+    final public function add($id, $class_name)
+    {
+        if (! isset($this->registered[$id]) && class_exists($class_name)) :
+            $this->registered[$id] = $class_name;
+
+            $this->provider()->add('gateways', $id, $class_name);
+        endif;
     }
 
     /**

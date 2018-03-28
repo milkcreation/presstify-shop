@@ -19,10 +19,14 @@ use LogicException;
 use tiFy\Core\Db\Db;
 use tiFy\Core\Db\Factory as DbFactory;
 use tiFy\Core\Query\Controller\AbstractPostQuery;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Orders extends AbstractPostQuery implements OrdersInterface
+class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Instance de la classe
      * @var Orders
@@ -51,12 +55,12 @@ class Orders extends AbstractPostQuery implements OrdersInterface
      * Type de post Wordpress du controleur
      * @var string|array
      */
-    protected $objectName = 'order';
+    protected $objectName = 'shop_order';
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
@@ -93,9 +97,9 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
-     * @param Shop $shop
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return Orders
      */
@@ -121,7 +125,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Initialisation de la table de base de données
+     * Initialisation de la table de base de données.
      *
      * @return DbFactory
      */
@@ -169,40 +173,40 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Initialisation globale de wordpress
+     * Initialisation globale de Wordpress.
      *
      * @return void
      */
     final public function init()
     {
         // Déclaration de la liste des statuts de commande
-        foreach ($this->getRegisteredStatus() as $order_status => $values) :
+        foreach ($this->getRegisteredStatuses() as $order_status => $values) :
             \register_post_status($order_status, $values);
         endforeach;
     }
 
     /**
-     * Récupération du controleur de données d'un élément
+     * Récupération du controleur de données d'un élément.
      *
      * @return string
      */
     final public function getItemController()
     {
-        return $this->shop->provider()->getMapController('orders.item');
+        return $this->provider()->getMapController('orders.item');
     }
 
     /**
-     * Récupération du controleur de données d'une liste d'éléments
+     * Récupération du controleur de données d'une liste d'éléments.
      *
      * @return string
      */
     final public function getListController()
     {
-        return $this->shop->provider()->getMapController('orders.list');
+        return $this->provider()->getMapController('orders.list');
     }
 
     /**
-     * Récupération d'un élément
+     * Récupération d'un élément.
      *
      * @param string|int|\WP_Post|null $id Nom de qualification du post WP (slug, post_name)|Identifiant de qualification du post WP|Object post WP|Post WP  de la page courante
      *
@@ -212,8 +216,8 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     {
         if (is_string($id)) :
             return self::getBy('name', $id);
-        elseif (!$id) :
-            $post = get_the_ID();
+        elseif (! $id) :
+            $post = $this->session()->get('order_awaiting_payment', 0);
         else :
             $post = $id;
         endif;
@@ -241,7 +245,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Récupération d'un élément selon un attribut particulier
+     * Récupération d'un élément selon un attribut particulier.
      *
      * @param string $key Identifiant de qualification de l'attribut. défaut name.
      * @param string $value Valeur de l'attribut
@@ -254,7 +258,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Récupération des données d'une liste d'élément selon des critères de requête
+     * Récupération des données d'une liste d'élément selon des critères de requête.
      *
      * @param array $query_args Liste des arguments de requête
      *
@@ -266,7 +270,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Récupération du controleur de base de données
+     * Récupération du controleur de base de données.
      *
      * @return null|DbFactory
      */
@@ -280,13 +284,20 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Création d'une nouvelle commande
+     * Création d'une nouvelle commande.
      *
      * @return null|OrderInterface
      */
     public function create()
     {
-       if (! $id = \wp_insert_post(['post_type' => $this->objectName])) :
+       if (
+           ! $id = \wp_insert_post(
+               [
+                   'post_type'      => $this->objectName,
+                   'post_status'    => $this->getDefaultStatus()
+               ]
+           )
+       ) :
            return null;
        endif;
 
@@ -294,7 +305,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Vérifie d'intégrité d'une commande
+     * Vérifie d'intégrité d'une commande.
      *
      * @param OrderInterface $order
      *
@@ -310,7 +321,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
      *
      * @return array
      */
-    public function getRegisteredStatus()
+    public function getRegisteredStatuses()
     {
         return [
             'order-pending'    => [
@@ -411,7 +422,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface
             return $this->statuses;
         endif;
 
-        $collect = new Collection($this->getRegisteredStatus());
+        $collect = new Collection($this->getRegisteredStatuses());
 
         return $this->statuses = $collect->mapWithKeys(
             function($item, $key) {
@@ -421,12 +432,22 @@ class Orders extends AbstractPostQuery implements OrdersInterface
     }
 
     /**
-     * Récupération de la liste des status.
+     * Récupération du statut de commande par défaut.
      *
      * @return string
      */
     public function getDefaultStatus()
     {
         return 'order-pending';
+    }
+
+    /**
+     * Récupération de la liste des statuts relatif à un processus de paiement abouti.
+     *
+     * @return array
+     */
+    public function getPaymentCompleteStatuses()
+    {
+        return ['order-on-hold', 'order-pending', 'order-failed', 'order-cancelled'];
     }
 }

@@ -84,18 +84,14 @@ interface GatewayInterface
 
     /**
      * Url de retour (Page de remerciement).
-     *
      * @param OrderInterface $order
-     *
      * @return string
      */
     public function getReturnUrl($order = null);
 
     /**
      * Procède au paiement de la commande.
-     *
      * @param OrderInterface $order Classe de rappel de la commande à régler.
-     *
      * @return array {
      *      Liste des attributs de retour.
      *
@@ -104,4 +100,10 @@ interface GatewayInterface
      * }
      */
     public function processPayment($order);
+
+    /**
+     * Formulaire de paiement de la commande.
+     * @return void
+     */
+    public function checkoutPaymentForm();
 }

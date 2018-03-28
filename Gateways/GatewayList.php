@@ -27,19 +27,19 @@ class GatewayList implements GatewayListInterface
 
     /**
      * Classe de rappel de gestion de la liste des plateformes.
-     * @var \Illuminate\Support\Collection
+     * @var Collection
      */
     protected $collect;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
      * @param GatewayInterface[] $items
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, $items = [])
+    public function __construct($items = [], Shop $shop)
     {
         // Définitation de la classe de rappel de gestion de la liste des plateformes
         $this->collect = new Collection($items);
@@ -59,7 +59,7 @@ class GatewayList implements GatewayListInterface
     }
 
     /**
-     * Récupération de la liste des plateformes de paiement disponibles
+     * Récupération de la liste des plateformes de paiement disponibles.
      *
      * @return GatewayInterface[]
      */

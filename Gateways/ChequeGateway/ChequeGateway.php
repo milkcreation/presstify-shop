@@ -27,7 +27,6 @@ class ChequeGateway extends AbstractGateway
     public function getDefaults()
     {
         return [
-            'id'                   => 'cheque',
             'order_button_text'    => '',
             'enabled'              => true,
             'title'                => __('Chèque', 'tify'),
@@ -64,7 +63,7 @@ class ChequeGateway extends AbstractGateway
 
         // @todo Mise à jour des stocks
 
-        // @todo Suppression du cart
+        // Suppression des éléments du panier
         $this->cart()->destroy();
 
         return [

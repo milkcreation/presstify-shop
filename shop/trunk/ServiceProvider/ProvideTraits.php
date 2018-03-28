@@ -39,6 +39,16 @@ trait ProvideTraits
     }
 
     /**
+     * Récupération du fournisseur de services.
+     *
+     * @return object|ServiceProvider
+     */
+    public function provider()
+    {
+        return $this->shop->provider();
+    }
+
+    /**
      * Récupération d'un service fournit par la boutique.
      *
      * @param string $name Identifiant de qualification du service
@@ -48,7 +58,7 @@ trait ProvideTraits
      */
     public function provide($name, $args = [])
     {
-        return $this->shop->provider()->get($name, $args);
+        return $this->provider()->get($name, $args);
     }
 
     /**

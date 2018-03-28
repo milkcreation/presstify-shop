@@ -14,14 +14,16 @@
 
 namespace tiFy\Plugins\Shop\Notices;
 
+use LogicException;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Core\Layout\Layout;
-use Illuminate\Support\Arr;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-final class Notices
+final class Notices implements NoticesInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -34,12 +36,6 @@ final class Notices
      * @var Shop
      */
     protected $shop;
-
-    /**
-     * Classe de rappel de traitement de la session
-     * @var \tiFy\Core\User\Session\StoreInterface
-     */
-    protected $session;
 
     /**
      * Liste des messages de notification à afficher
@@ -113,9 +109,9 @@ final class Notices
      *
      * @return void
      */
-    public function wp_loaded()
+    final public function wp_loaded()
     {
-        $this->notices = $this->shop->session()->get('notices', []);
+        $this->notices = $this->session()->get('notices', []);
     }
 
     /**
@@ -123,7 +119,7 @@ final class Notices
      *
      * @return void
      */
-    public function wp_enqueue_scripts()
+    final public function wp_enqueue_scripts()
     {
         if (!$this->notices) :
             return;
@@ -140,12 +136,12 @@ final class Notices
      *
      * @return void
      *
-     * @throws \LogicException
+     * @throws LogicException
      */
     public function add($message, $type = 'success')
     {
         if (!did_action('wp_loaded')) :
-            throw new \LogicException(
+            throw new LogicException(
                 __('L\'ajout de message de notification ne devrait pas être fait à ce moment de l\'exécution de votre code', 'tify'),
                 500
             );
@@ -156,7 +152,7 @@ final class Notices
         endif;
         $this->notices[$type][] = $message;
 
-        $this->shop->session()->put('notices', $this->notices);
+        $this->session()->put('notices', $this->notices);
     }
 
     /**
@@ -167,7 +163,7 @@ final class Notices
     public function clear()
     {
         $this->notices = [];
-        $this->shop->session()->put('notices', []);
+        $this->session()->put('notices', []);
     }
 
     /**

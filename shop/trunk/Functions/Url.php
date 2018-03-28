@@ -91,15 +91,21 @@ class Url implements UrlInterface, ProvideTraitsInterface
     /**
      * Url vers la page de demande de paiement de la commande.
      *
+     * @param array $args Liste des arguments de requête.
+     *
      * @return string
      */
-    public function checkoutPayPage()
+    public function checkoutOrderPayPage($args = [])
     {
-        return '';
+        $base_uri = Uri\create($this->checkoutPage());
+
+        return (string)Uri\append_query($base_uri, http_build_query($args));
     }
 
     /**
      * Url vers la page de commande reçue.
+     *
+     * @param array $args Liste des arguments de requête.
      *
      * @return string
      */

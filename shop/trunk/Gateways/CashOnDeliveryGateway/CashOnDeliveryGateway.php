@@ -26,7 +26,6 @@ class CashOnDeliveryGateway extends AbstractGateway
     public function getDefaults()
     {
         return [
-            'id'                   => 'cash_on_delivery',
             'order_button_text'    => '',
             'enabled'              => true,
             'title'                => '',

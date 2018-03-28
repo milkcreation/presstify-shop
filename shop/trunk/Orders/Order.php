@@ -14,6 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
+use Exception;
 use Illuminate\Support\Arr;
 use tiFy\Core\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemInterface;
@@ -26,6 +27,7 @@ use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemTaxInterface;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
+use \WP_Post;
 
 class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInterface
 {
@@ -132,20 +134,48 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     ];
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
-     * @param \WP_Post $post
+     * @param Shop $shop Classe de rappel de la boutique.
+     * @param WP_Post $post Objet post Wordpress.
      *
      * @return void
      */
-    public function __construct(Shop $shop, \WP_Post $post)
+    public function __construct(Shop $shop, WP_Post $post)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
         parent::__construct($post);
+
+        $this->read();
+    }
+
+    /**
+     * Récupération de la liste des attributs.
+     *
+     * @return void
+     */
+    public function read()
+    {
         $this->attributes = array_merge($this->attributes, $this->defaults);
+
+        if (! $id = $this->getId()) :
+            return;
+        endif;
+
+        foreach($this->metas_map as $attr_key => $meta_key) :
+            $this->set($attr_key, \get_post_meta($id, $meta_key, true) ? : $this->defaults[$attr_key]);
+        endforeach;
+
+        foreach(['billing', 'shipping'] as $address_type) :
+            if (!$address_data = $this->get($address_type, [])) :
+                continue;
+            endif;
+            foreach($address_data as $key => $value) :
+                $this->set("{$address_type}.{$key}", \get_post_meta($id, "_{$address_type}_{$key}", true));
+            endforeach;
+        endforeach;
     }
 
     /**
@@ -172,15 +202,13 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
      * @param string $key Identifiant de qualification déclaré.
      * @param mixed $value Valeur de définition de l'attribut.
      *
-     * @return mixed
+     * @return $this
      */
     public function set($key, $value)
     {
-        if (!isset($this->defaults[$key])) :
-            return null;
-        endif;
+        Arr::set($this->attributes, $key, $value);
 
-        return $this[$key] = $value;
+        return $this;
     }
 
     /**
@@ -210,16 +238,6 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Récupération de la clé d'identification de la commande
-     *
-     * @return string
-     */
-    public function getOrderKey()
-    {
-        return (string)$this->get('order_key', '');
-    }
-
-    /**
      * Récupération du statut de publication
      *
      * @return string
@@ -230,7 +248,19 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Récupération de la valeur brute ou formatée de l'extrait
+     * Vérification de correspondance du statut de la commande.
+     *
+     * @param string|array $status Statut unique ou liste de statuts de contrôle de correspondance.
+     *
+     * @return bool
+     */
+    public function hasStatus($status)
+    {
+        return in_array($this->getStatus(), (array)$status);
+    }
+
+    /**
+     * Récupération de la valeur brute ou formatée de l'extrait.
      *
      * @param bool $raw Formatage de la valeur
      *
@@ -245,6 +275,140 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
         else :
             return \apply_filters('get_the_excerpt', $excerpt, $this->getPost());
         endif;
+    }
+
+    /**
+     * Récupération de la clé d'identification de la commande.
+     *
+     * @return string
+     */
+    public function getOrderKey()
+    {
+        return (string)$this->get('order_key', '');
+    }
+
+    /**
+     * Récupération de l'identifiant de qualification du client associé à la commande.
+     *
+     * @return int
+     */
+    public function getCustomerId()
+    {
+        return (int)$this->get('customer_id', 0);
+    }
+
+    /**
+     * Récupération d'un attribut pour un type d'adresse.
+     *
+     * @param string $key Clé d'identification de l'attribut à retourner.
+     * @param string $type Type d'adresse. billing|shipping.
+     * @param mixed $default Valeur de retour par défaut.
+     *
+     * @return mixed
+     */
+    public function getAddressAttr($key, $type = 'billing', $default = '')
+    {
+        return $this->get("{$type}.{$key}", $default);
+    }
+
+    /**
+     * Récupération du montant total de la commande.
+     *
+     * @return float
+     */
+    public function getTotal()
+    {
+        return (float)$this->get('total', 0);
+    }
+
+    /**
+     * Récupération de la méthode de paiement.
+     *
+     * @return string
+     */
+    public function getPaymentMethod()
+    {
+        return (string)$this->get('payment_method', '');
+    }
+
+    /**
+     * Ajout d'une note à la commande.
+     *
+     * @param string $note Message de la note.
+     * @param bool $is_customer Définie si la note est à destination du client.
+     * @param bool $by_user Lorsque la note provient de l'utilisateur.
+     *
+     * @return int
+     */
+    public function addNote($note, $is_customer = false, $by_user = false)
+    {
+        if (! $this->getId()) :
+            return 0;
+        endif;
+
+        if (($user = $this->users()->get()) && $user->can('edit_shop_order', $this->getId()) && $by_user) :
+            $comment_author       = $user->getDisplayName();
+            $comment_author_email = $user->getEmail();
+        else :
+            $comment_author       = __('tiFyShop', 'tify');
+            $comment_author_email = strtolower(__('tiFyShop', 'tify')) . '@';
+            $comment_author_email .= 'noreply.com';
+            $comment_author_email = sanitize_email( $comment_author_email );
+        endif;
+
+        $commentdata = [
+            'comment_post_ID'      => $this->getId(),
+            'comment_author'       => $comment_author,
+            'comment_author_email' => $comment_author_email,
+            'comment_author_url'   => '',
+            'comment_content'      => $note,
+            'comment_agent'        => 'tiFyShop',
+            'comment_type'         => 'order_note',
+            'comment_parent'       => 0,
+            'comment_approved'     => 1,
+        ];
+
+        $comment_id = \wp_insert_comment($commentdata);
+
+        if ($is_customer) :
+            \add_comment_meta($comment_id, 'is_customer_note', 1);
+        endif;
+
+        return $comment_id;
+    }
+
+    /**
+     * Action appelée à l'issue du processus de paiement.
+     *
+     * @param string $transaction_id Optional Identifiant de qualification de la transaction.
+     *
+     * @return bool
+     */
+    public function paymentComplete($transaction_id = '')
+    {
+        try {
+            if (! $this->getId() ) :
+                return false;
+            endif;
+
+            $this->session()->set('order_awaiting_payment', false);
+
+            if ($this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
+                if (! empty($transaction_id)) :
+                    $this->transaction_id = $transaction_id;
+                endif;
+                if (! $this->get('date_paid')) :
+                    $this->set('date_paid', $this->functions()->date()->utc('U'));
+                endif;
+
+                exit;
+                $this->status = $this->needs_processing() ? 'order-processing' : 'order-completed';
+                $this->save();
+            endif;
+        } catch (Exception $e) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -390,7 +554,7 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Sauvegarde de la liste des éléments
+     * Sauvegarde de la liste des éléments.
      *
      * @return void
      */
@@ -409,7 +573,20 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Récupération de l'url vers la page de remerciement.
+     * Récupération de l'url vers la page d'invitation au paiement de la commande.
+     *
+     * @return string
+     */
+    public function getCheckoutPaymentUrl()
+    {
+        return $this->functions()->url()->checkoutOrderPayPage([
+            'order-pay' => $this->getId(),
+            'key'       => $this->getOrderKey()
+        ]);
+    }
+
+    /**
+     * Récupération de l'url vers la page de paiement reçu.
      * @internal Lorsque le paiement a été accepté.
      *
      * @return string

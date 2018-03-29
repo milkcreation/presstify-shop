@@ -55,13 +55,6 @@ interface OrderInterface extends PostItemInterface
     public function getStatus();
 
     /**
-     * Vérification de correspondance du statut de la commande.
-     * @param string|array $status Statut unique ou liste de statuts de contrôle de correspondance.
-     * @return bool
-     */
-    public function hasStatus($status);
-
-    /**
      * Récupération de la valeur brute ou formatée de l'extrait.
      * @param bool $raw Formatage de la valeur
      * @return string
@@ -109,6 +102,19 @@ interface OrderInterface extends PostItemInterface
      * @return int Comment ID.
      */
     public function addNote($note, $is_customer = false, $by_user = false);
+
+    /**
+     * Vérification de correspondance du statut de la commande.
+     * @param string|array $status Statut unique ou liste de statuts de contrôle de correspondance.
+     * @return bool
+     */
+    public function hasStatus($status);
+
+    /**
+     * Mise à jour du statut et enregistrement immédiat.
+     * @return bool
+     */
+    public function updateStatus($new_status);
 
     /**
      * Action appelée à l'issue du processus de paiement.
@@ -177,6 +183,20 @@ interface OrderInterface extends PostItemInterface
      * @return void
      */
     public function saveItems();
+
+    /**
+     * Vérifie si une commande nécessite un paiement.
+     *
+     * @return bool
+     */
+    public function needPayment();
+
+    /**
+     * Vérifie si une commande nécessite une intervention avant d'être complétée.
+     *
+     * @return bool
+     */
+    public function needProcessing();
 
     /**
      * Récupération de l'url vers la page d'invitation au paiement de la commande.

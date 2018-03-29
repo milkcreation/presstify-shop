@@ -131,9 +131,9 @@ class Functions implements ProvideTraitsInterface
      *
      * @return object|DateInterface
      */
-    final public function date($time = 'now')
+    final public function date($time = 'now', $timezone = true)
     {
-        return $this->call('date', [$time, $this->shop], DateInterface::class);
+        return $this->call('date', [$time, $timezone, $this->shop], DateInterface::class);
     }
 
     /**

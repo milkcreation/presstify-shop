@@ -39,17 +39,25 @@ class Date extends DateTime implements DateInterface, ProvideTraitsInterface
      * CONSTRUCTEUR
      *
      * @param string $time
+     * @param bool|string|DateTimeZone $timezone
      * @param Shop $shop
      *
      * @return void
      */
-    public function __construct($time = 'now', Shop $shop)
+    public function __construct($time = 'now', $timezone = true, Shop $shop)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
         // Définition de la zone géographique
-        $timezone = new DateTimeZone(\get_option('timezone_string'));
+        if ($timezone instanceof DateTimeZone) :
+        elseif ($timezone === true) :
+            $timezone = new DateTimeZone(\get_option('timezone_string'));
+        elseif(is_string($timezone)) :
+            $timezone = new DateTimeZone($timezone);
+        else :
+            $timezone = null;
+        endif;
 
         parent::__construct($time, $timezone);
     }
@@ -85,8 +93,8 @@ class Date extends DateTime implements DateInterface, ProvideTraitsInterface
      */
     public function utc($format = null)
     {
-        return (new self(null, $this->shop))
-            ->setTimestamp($this->getTimestamp()-$this->getOffset())
+        return (new self(null, false, $this->shop))
+            ->setTimestamp($this->getTimestamp())
             ->format($format ? : self::SQL);
     }
 }

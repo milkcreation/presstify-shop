@@ -15,18 +15,22 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use tiFy\Core\Query\Controller\AbstractPostItem;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class ProductItem extends AbstractPostItem implements ProductItemInterface
+class ProductItem extends AbstractPostItem implements ProductItemInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
-     * Classe de rappel de la boutique
+     * Classe de rappel de la boutique.
      * @var Shop
      */
     protected $shop;
 
     /**
-     * Classe de rappel de l'Object Type
+     * Classe de rappel de l'Object Type.
      * @var ObjectTypes\Categorized|ObjectTypes\Uncategorized
      */
     private $productObjectType;
@@ -34,7 +38,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     /**
      * CONSTRUCTEUR
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Classe de rappel de la boutique.
      * @param \WP_Post $wp_post
      *
      * @return void
@@ -48,7 +52,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération de la liste des types de produit
+     * Récupération de la liste des types de produit.
      *
      * @return ObjectTypes\Categorized|ObjectTypes\Uncategorized
      */
@@ -58,11 +62,11 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
             return $this->productObjectType;
         endif;
 
-        return $this->productObjectType = $this->shop->products()->getObjectType($this->getType());
+        return $this->productObjectType = $this->products()->getObjectType($this->getType());
     }
 
     /**
-     * Récupération de la liste des types de produit
+     * Récupération de la liste des types de produit.
      *
      * @return array
      */
@@ -72,7 +76,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération du type de produit
+     * Récupération du type de produit.
      *
      * @return string
      */
@@ -93,7 +97,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération de l'Unité de Gestion de Stock (SKU)
+     * Récupération de l'Unité de Gestion de Stock (SKU).
      *
      * @return string
      */
@@ -103,7 +107,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération du prix de vente
+     * Récupération du prix de vente.
      *
      * @return float
      */
@@ -113,17 +117,17 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération du prix de vente affiché
+     * Récupération du prix de vente affiché.
      *
      * @return string
      */
     public function salePriceDisplay()
     {
-        return $this->shop->functions()->price()->html($this->getRegularPrice());
+        return $this->functions()->price()->html($this->getRegularPrice());
     }
 
     /**
-     * Récupération du poids
+     * Récupération du poids.
      *
      * @return float
      */
@@ -133,7 +137,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération dess attributs
+     * Récupération dess attributs.
      *
      * @return array
      */
@@ -143,7 +147,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération des produits du groupe
+     * Récupération des produits du groupe.
      *
      * @return string[]
      */
@@ -153,7 +157,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Récupération des produits de montée en gamme
+     * Récupération des produits de montée en gamme.
      *
      * @return string[]
      */
@@ -163,7 +167,27 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Vérifie si un produit est mis en avant
+     * Vérifie si un produit est téléchargeable.
+     *
+     * @return bool
+     */
+    public function isDownloadable()
+    {
+        return false;
+    }
+
+    /**
+     * Vérifie si un produit est dématérialisé (virtuel).
+     *
+     * @return bool
+     */
+    public function isVirtual()
+    {
+        return false;
+    }
+
+    /**
+     * Vérifie si un produit est mis en avant.
      *
      * @return bool
      */
@@ -179,7 +203,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Vérifie si un produit est en droit d'être commandé
+     * Vérifie si un produit est en droit d'être commandé.
      *
      * @return bool
      */
@@ -189,7 +213,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Vérifie si un produit est en stock
+     * Vérifie si un produit est en stock.
      *
      * @return bool
      */
@@ -199,7 +223,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface
     }
 
     /**
-     * Sauvegarde des données d'un produit
+     * Sauvegarde des données d'un produit.
      *
      * @return void
      */

@@ -16,6 +16,8 @@ namespace tiFy\Plugins\Shop\Orders;
 
 use Exception;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use tiFy\Core\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemInterface;
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
@@ -158,14 +160,14 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
      */
     public function read()
     {
-        $this->attributes = array_merge($this->attributes, $this->defaults);
+        $this->attributes = array_merge($this->defaults, $this->attributes);
 
         if (! $id = $this->getId()) :
             return;
         endif;
 
         foreach($this->metas_map as $attr_key => $meta_key) :
-            $this->set($attr_key, \get_post_meta($id, $meta_key, true) ? : $this->defaults[$attr_key]);
+            $this->set($attr_key, \get_post_meta($id, $meta_key, true) ? : $this->get($attr_key, Arr::get($this->defaults, $attr_key)));
         endforeach;
 
         foreach(['billing', 'shipping'] as $address_type) :
@@ -176,6 +178,12 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
                 $this->set("{$address_type}.{$key}", \get_post_meta($id, "_{$address_type}_{$key}", true));
             endforeach;
         endforeach;
+
+        $this->set('parent_id', $this->getParentId());
+        $this->set('date_created', $this->getDate(true));
+        $this->set('date_modified', $this->getModified(true));
+        $this->set('status', $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
+        $this->set('customer_note', $this->getExcerpt(true));
     }
 
     /**
@@ -245,36 +253,6 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     public function getStatus()
     {
         return (string)$this->get('status', $this->orders()->getDefaultStatus());
-    }
-
-    /**
-     * Vérification de correspondance du statut de la commande.
-     *
-     * @param string|array $status Statut unique ou liste de statuts de contrôle de correspondance.
-     *
-     * @return bool
-     */
-    public function hasStatus($status)
-    {
-        return in_array($this->getStatus(), (array)$status);
-    }
-
-    /**
-     * Récupération de la valeur brute ou formatée de l'extrait.
-     *
-     * @param bool $raw Formatage de la valeur
-     *
-     * @return string
-     */
-    public function getExcerpt($raw = false)
-    {
-        $excerpt = (string)$this->get('customer_note', '');
-
-        if ($raw) :
-            return $excerpt;
-        else :
-            return \apply_filters('get_the_excerpt', $excerpt, $this->getPost());
-        endif;
     }
 
     /**
@@ -378,6 +356,45 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
+     * Vérification de correspondance du statut de la commande.
+     *
+     * @param string|array $status Statut unique ou liste de statuts de contrôle de correspondance.
+     *
+     * @return bool
+     */
+    public function hasStatus($status)
+    {
+        return in_array($this->getStatus(), (array)$status);
+    }
+
+    /**
+     * Mise à jour du statut et enregistrement immédiat.
+     *
+     * @return bool
+     */
+    public function updateStatus($new_status)
+    {
+        if (! $this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) :
+            return false;
+        endif;
+
+        $this->set('status', $new_status);
+        // @todo status_transition
+
+        if (! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
+            $this->set('date_paid', $this->functions()->date()->utc());
+        endif;
+
+        if (! $this->get('date_completed') && $this->hasStatus('completed')) :
+            $this->set('date_completed', $this->functions()->date()->utc());
+        endif;
+
+        $this->save();
+
+        return true;
+    }
+
+    /**
      * Action appelée à l'issue du processus de paiement.
      *
      * @param string $transaction_id Optional Identifiant de qualification de la transaction.
@@ -391,9 +408,9 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
                 return false;
             endif;
 
-            $this->session()->set('order_awaiting_payment', false);
+            $this->session()->pull('order_awaiting_payment', false);
 
-            if ($this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
+            if ($this->hasStatus($this->orders()->getPaymentValidStatuses())) :
                 if (! empty($transaction_id)) :
                     $this->transaction_id = $transaction_id;
                 endif;
@@ -401,8 +418,8 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
                     $this->set('date_paid', $this->functions()->date()->utc('U'));
                 endif;
 
-                exit;
-                $this->status = $this->needs_processing() ? 'order-processing' : 'order-completed';
+                $this->set('status', $this->needProcessing() ? 'order-processing' : 'order-completed');
+
                 $this->save();
             endif;
         } catch (Exception $e) {
@@ -479,11 +496,15 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     /**
      * Récupération de la liste des éléments associés à la commande.
      *
-     * @return array
+     * @param string $type Type d'éléments à récupérer. null pour tous par défaut|coupon|fee|line_item (product)|shipping|tax.
+     *
+     * @return Collection
      */
-    public function getItems()
+    public function getItems($type = null)
     {
-        return $this->items;
+        $items = $type ? Arr::get($this->items, $type) : $this->items;
+
+        return new Collection($items);
     }
 
     /**
@@ -497,13 +518,13 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
         // @todo
         $post_data = [
             'ID'                => $this->getId(),
-            'post_date'         => $this->functions()->date()->utc(),
-            'post_date_gmt'     => $this->functions()->date()->get(),
+            'post_date'         => $this->functions()->date()->get(),
+            'post_date_gmt'     => $this->functions()->date()->utc(),
             'post_status'       => $this->getStatus(),
             'post_parent'       => $this->getParentId(),
             'post_excerpt'      => $this->getExcerpt(true),
-            'post_modified'     => $this->functions()->date()->utc(),
-            'post_modified_gmt' => $this->functions()->date()->get(),
+            'post_modified'     => $this->functions()->date()->get(),
+            'post_modified_gmt' => $this->functions()->date()->utc(),
         ];
         \wp_update_post($post_data);
 
@@ -570,6 +591,36 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
                 $item->save();
             endforeach;
         endforeach;
+    }
+
+    /**
+     * Vérifie si une commande nécessite un paiement.
+     *
+     * @return bool
+     */
+    public function needPayment()
+    {
+        return $this->hasStatus($this->orders()->getNeedPaymentStatuses()) && ($this->getTotal() > 0);
+    }
+
+    /**
+     * Vérifie si une commande nécessite une intervention avant d'être complétée.
+     * @internal Seul les produits téléchargeable et dématerialisé ne nécessite aucune intervention.
+     *
+     * @return bool
+     */
+    public function needProcessing()
+    {
+        if (! $line_items = $this->getItems('line_item')) :
+            return false;
+        endif;
+
+        $virtual_and_downloadable = $line_items->filter(function($line_item) {
+            /** @var OrderItemProductInterface $item */
+            return $item->getProduct()->isDownloadable() &&  $item->getProduct()->isVirtual();
+        });
+
+        return count($virtual_and_downloadable) === 0;
     }
 
     /**

@@ -311,11 +311,6 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
                     default :
                         $this->addMapController($key, $controller);
                         break;
-                    case 'cart.controller' :
-                        $this->addMapController($key, function ($shop) use ($controller) {
-                            $controller::boot($shop);
-                        });
-                        break;
                 endswitch;
             endforeach;
         endforeach;
@@ -338,7 +333,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             ->addMapArgs('cart.session_items', [$this->shop, Cart::class])
             ->addMapArgs('checkout.controller', [$this->shop])
             ->addMapArgs('functions.controller', [$this->shop])
-            ->addMapArgs('functions.date', ['now', $this->shop])
+            ->addMapArgs('functions.date', ['now', true, $this->shop])
             ->addMapArgs('functions.page', [$this->shop])
             ->addMapArgs('functions.price', [$this->shop])
             ->addMapArgs('functions.url', [$this->shop])

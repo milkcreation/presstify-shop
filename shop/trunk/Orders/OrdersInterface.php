@@ -87,6 +87,13 @@ interface OrdersInterface
     public function getDefaultStatus();
 
     /**
+     * Récupération de la liste des statuts nécessitant un paiement.
+     *
+     * @return array
+     */
+    public function getNeedPaymentStatuses();
+
+    /**
      * Récupération de la liste des statuts relatif à un processus de paiement abouti.
      *
      * @return array

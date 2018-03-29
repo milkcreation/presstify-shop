@@ -290,14 +290,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     public function create()
     {
-       if (
-           ! $id = \wp_insert_post(
-               [
-                   'post_type'      => $this->objectName,
-                   'post_status'    => $this->getDefaultStatus()
-               ]
-           )
-       ) :
+       if (! $id = \wp_insert_post(['post_type' => $this->objectName])) :
            return null;
        endif;
 
@@ -432,6 +425,18 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
+     * Vérifie si un statut correspond aux statuts de commandes.
+     *
+     * @param string $status Identifiant de qualification du statut à contrôler.
+     *
+     * @return bool
+     */
+    public function isStatus($status)
+    {
+        return in_array($status, array_keys($this->getStatuses()));
+    }
+
+    /**
      * Récupération du statut de commande par défaut.
      *
      * @return string
@@ -442,11 +447,31 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
+     * Récupération de la liste des statuts nécessitant un paiement.
+     *
+     * @return array
+     */
+    public function getNeedPaymentStatuses()
+    {
+        return ['order-pending', 'order-failed'];
+    }
+
+    /**
      * Récupération de la liste des statuts relatif à un processus de paiement abouti.
      *
      * @return array
      */
     public function getPaymentCompleteStatuses()
+    {
+        return ['order-processing', 'order-completed'];
+    }
+
+    /**
+     * Récupération de la liste des statuts relatif à un processus de paiement valide.
+     *
+     * @return array
+     */
+    public function getPaymentValidStatuses()
     {
         return ['order-on-hold', 'order-pending', 'order-failed', 'order-cancelled'];
     }

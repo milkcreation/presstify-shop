@@ -106,4 +106,14 @@ interface GatewayInterface
      * @return void
      */
     public function checkoutPaymentForm();
+
+    /**
+     * Journalisation des actions.
+     *
+     * @param string $message Message de notification.
+     * @param string $type Type de notification. debug|info (par défaut)|notice|warning|error|critical|alert|emergency.
+     *
+     * @return void
+     */
+    public function log($message, $type);
 }

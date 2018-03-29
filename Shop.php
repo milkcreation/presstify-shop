@@ -6,7 +6,7 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Shop
- * @version 1.0.4
+ * @version 1.0.5
  */
 
 namespace tiFy\Plugins\Shop;
@@ -48,8 +48,6 @@ class Shop extends Plugin
         $this->appContainer()->addServiceProvider($this->provider);
 
         require_once($this->appDirname() . '/Helpers.php');
-
-        $this->cart();
     }
 
     /**

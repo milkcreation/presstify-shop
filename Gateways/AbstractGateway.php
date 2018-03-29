@@ -26,6 +26,13 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     protected $shop;
 
     /**
+     * Activation du mode de déboguage
+     * @internal Journalisation des processus engagés, affichage des information de deboguage, ...
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
      * Définition des attributs par défaut de la plateforme
      *
      * @var array
@@ -46,7 +53,8 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
         'supports'             => ['products'],
         'max_amount'           => 0,
         'view_transaction_url' => '',
-        'tokens'               => []
+        'tokens'               => [],
+        'debug'                => false
     ];
 
     /**
@@ -204,13 +212,19 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     /**
      * Url de retour (Page de remerciement).
      *
-     * @param OrderInterface $order
+     * @param null|OrderInterface $order Classe de rappel de la commande.
      *
      * @return string
      */
     public function getReturnUrl($order = null)
     {
-        return $order->getCheckoutOrderReceivedUrl();
+        if ($order) :
+            $order->getCheckoutOrderReceivedUrl();
+        else :
+            return $this->functions()->url()->checkoutOrderReceivedPage([
+                'order-received' => ''
+            ]);
+        endif;
     }
 
     /**
@@ -238,5 +252,30 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     public function checkoutPaymentForm()
     {
         echo '';
+    }
+
+    /**
+     * Journalisation des actions.
+     *
+     * @param string $message Message
+     * @param string $type Type de notification. DEBUG|INFO (par défaut)|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY.
+     *
+     * @return void
+     */
+    public function log($message, $type = 'INFO')
+    {
+        if (! $this->get('debug', false)) :
+            return;
+        endif;
+
+        $Type = strtoupper($type);
+        if (! in_array($Type, ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'])) :
+            return;
+        endif;
+
+        $logger = $this->appLog();
+        $levels = $logger::getLevels();
+
+        $logger->addRecord($levels[$Type], $message);
     }
 }

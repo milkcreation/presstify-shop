@@ -19,13 +19,13 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use tiFy\Core\Query\Controller\AbstractPostItem;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemInterface;
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemCouponInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemFeeInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemProductInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemShippingInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemTaxInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemCouponInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemFeeInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemProductInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemShippingInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTaxInterface;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -184,6 +184,13 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
         $this->set('date_modified', $this->getModified(true));
         $this->set('status', $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
         $this->set('customer_note', $this->getExcerpt(true));
+
+        // @todo Récupération de la liste des éléments stockés en base de donnée
+        $results = $this->orders()->getDb()->select()->rows(
+            [
+                'order_id' => $this->getId()
+            ]
+        );
     }
 
     /**
@@ -297,6 +304,16 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     public function getTotal()
     {
         return (float)$this->get('total', 0);
+    }
+
+    /**
+     * Nombre d'article contenu dans la commande.
+     *
+     * @return int
+     */
+    public function productCount()
+    {
+        return (int)count($this->getItems('line_item'));
     }
 
     /**

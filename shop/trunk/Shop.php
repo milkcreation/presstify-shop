@@ -5,8 +5,8 @@
  * @desc Extension PresstiFy de gestion de boutique ecommerce
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Shop
- * @version 1.0.5
+ * @namespace \tiFy\Plugins\Shop
+ * @version 1.0.6
  */
 
 namespace tiFy\Plugins\Shop;
@@ -44,7 +44,7 @@ class Shop extends Plugin
         parent::__construct();
 
         // Déclaration du fournisseur de services.
-        $this->provider = new ServiceProvider($this);
+        $this->provider = new ServiceProvider($this->appConfig('service_provider', []), $this);
         $this->appContainer()->addServiceProvider($this->provider);
 
         require_once($this->appDirname() . '/Helpers.php');

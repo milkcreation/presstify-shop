@@ -4,7 +4,7 @@
  * @name OrderItemShipping
  * @desc Controleur de la livraison associée aux articles d'une commande
  * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItem
+ * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
  * @version 1.1
  * @since 1.1
  *
@@ -12,7 +12,7 @@
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Orders\OrderItem;
+namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 final class OrderItemShipping extends AbstractOrderItem implements OrderItemShippingInterface
 {

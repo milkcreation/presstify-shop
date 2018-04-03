@@ -1,6 +1,6 @@
 <?php
 
-namespace tiFy\Plugins\Shop\Orders\OrderItem;
+namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 interface OrderItemShippingInterface extends OrderItemInterface
 {

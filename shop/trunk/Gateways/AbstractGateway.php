@@ -259,10 +259,11 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
      *
      * @param string $message Message
      * @param string $type Type de notification. DEBUG|INFO (par défaut)|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY.
+     * @param string $context Données complémentaire de contexte
      *
      * @return void
      */
-    public function log($message, $type = 'INFO')
+    public function log($message, $type = 'INFO', $context = [])
     {
         if (! $this->get('debug', false)) :
             return;
@@ -276,6 +277,6 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
         $logger = $this->appLog();
         $levels = $logger::getLevels();
 
-        $logger->addRecord($levels[$Type], $message);
+        $logger->addRecord($levels[$Type], $message, $context);
     }
 }

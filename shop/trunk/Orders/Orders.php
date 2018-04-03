@@ -74,6 +74,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
 
         // Déclaration des événments
         $this->appAddAction('init');
+        $this->appAddAction('get_header', 'onReceived');
     }
 
     /**
@@ -186,13 +187,35 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
+     * Evénement lancé à l'issue du paiement.
+     *
+     * @return void
+     */
+    final public function onReceived()
+    {
+        if ($order_id = $this->appRequest('get')->getInt('order-received', 0)) :
+            $order_key = $this->appRequest('get')->get('key', '');
+
+            if (($order = $this->orders()->get($order_id)) && ($order->getOrderKey() === $order_key)) :
+                $this->cart()->destroy();
+            endif;
+        endif;
+
+        if ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) :
+            if (($order = $this->orders()->get($order_awaiting_payment)) && ! $order->hasStatus($this->getNotEmptyCartStatus())) :
+                $this->cart()->destroy();
+            endif;
+        endif;
+    }
+
+    /**
      * Récupération du controleur de données d'un élément.
      *
      * @return string
      */
     final public function getItemController()
     {
-        return $this->provider()->getMapController('orders.item');
+        return $this->provider()->getMapController('orders.order');
     }
 
     /**
@@ -405,7 +428,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
-     * Récupération de la liste des status.
+     * Récupération de la liste des statuts.
      *
      * @return array
      */
@@ -422,6 +445,16 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 return [$key => $item['label']];
             })
                 ->all();
+    }
+
+    /**
+     * Récupération de la liste des statuts en relation avec les post.
+     *
+     * @return string[]
+     */
+    public function getRelPostStatuses()
+    {
+        return array_keys($this->getStatuses());
     }
 
     /**
@@ -451,9 +484,19 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      *
      * @return array
      */
+    public function getNotEmptyCartStatus()
+    {
+        return ['order-cancelled', 'order-failed', 'order-pending'];
+    }
+
+    /**
+     * Récupération de la liste des statuts nécessitant un paiement.
+     *
+     * @return array
+     */
     public function getNeedPaymentStatuses()
     {
-        return ['order-pending', 'order-failed'];
+        return ['order-failed', 'order-pending'];
     }
 
     /**
@@ -463,7 +506,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     public function getPaymentCompleteStatuses()
     {
-        return ['order-processing', 'order-completed'];
+        return ['order-completed', 'order-processing'];
     }
 
     /**
@@ -473,6 +516,6 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     public function getPaymentValidStatuses()
     {
-        return ['order-on-hold', 'order-pending', 'order-failed', 'order-cancelled'];
+        return ['order-failed', 'order-cancelled', 'order-on-hold', 'order-pending'];
     }
 }

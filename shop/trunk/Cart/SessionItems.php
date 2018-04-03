@@ -124,6 +124,7 @@ class SessionItems extends Fluent implements SessionItemsInterface, ProvideTrait
         foreach($this->defaults as $key => $default) :
             $this->session()->put($key, $default);
         endforeach;
+        $this->session()->put('order_awaiting_payment', 0);
         $this->session()->save();
 
         if ($persistent) :

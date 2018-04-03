@@ -10,7 +10,7 @@
     "woocommerce"
   ],
   "homepage": "https://svn.milkcreation.fr/presstify-plugins/shop",
-  "time": "2018-03-29",
+  "time": "2018-04-03",
   "license": "proprietary",
   "authors": [
     {
@@ -19,7 +19,14 @@
       "role": "Developper"
     }
   ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "http://composer.tigreblanc.fr/presstify/"
+    }
+  ],
   "require": {
+    "composer/installers": "~1.0",
     "presstify/framework": "^1.4"
   },
   "autoload": {

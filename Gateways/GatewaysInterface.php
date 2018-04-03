@@ -2,8 +2,17 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
+use tiFy\Plugins\Shop\Shop;
+
 interface GatewaysInterface
 {
+    /**
+     * Instanciation de la classe.
+     * @param Shop $shop
+     * @return self
+     */
+     public static function boot(Shop $shop);
+
     /**
      * Ajout d'une déclaration de plateforme de paiement.
      * @param string $name Identifiant de qualification de la plateforme de paiement.

@@ -15,13 +15,13 @@
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Arr;
+use LogicException;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
 use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
 
 class Gateways implements GatewaysInterface, ProvideTraitsInterface
 {
@@ -67,7 +67,7 @@ class Gateways implements GatewaysInterface, ProvideTraitsInterface
      *
      * @return void
      */
-    private function __construct(Shop $shop)
+    protected function __construct(Shop $shop)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
@@ -103,13 +103,25 @@ class Gateways implements GatewaysInterface, ProvideTraitsInterface
      *
      * @return Gateways
      */
-    final public static function make(Shop $shop)
+    final public static function boot(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
         endif;
 
-        return self::$instance = new self($shop);
+        self::$instance = new self($shop);
+
+        if(! self::$instance instanceof Gateways) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
+                    Gateways::class
+                ),
+                500
+            );
+        endif;
+
+        return self::$instance;
     }
 
     /**
@@ -183,7 +195,7 @@ class Gateways implements GatewaysInterface, ProvideTraitsInterface
         if (! isset($this->registered[$id]) && class_exists($class_name)) :
             $this->registered[$id] = $class_name;
 
-            $this->provider()->add('gateways', $id, $class_name);
+            $this->provider()->add("gateways.{$id}", $class_name);
         endif;
     }
 

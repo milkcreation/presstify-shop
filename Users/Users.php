@@ -2,14 +2,19 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
+use LogicException;
 use tiFy\Core\Query\Controller\AbstractUserQuery;
 use tiFy\Core\User\Login\Login;
-use \tiFy\Core\User\Role\Role;
+use tiFy\Core\User\Role\Role;
 use tiFy\Core\User\TakeOver\TakeOver;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Users extends AbstractUserQuery
+class Users extends AbstractUserQuery implements ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Instance de la classe
      * @var Users
@@ -114,11 +119,33 @@ class Users extends AbstractUserQuery
         endif;
 
         if ($item->isCustomer()) :
-            $controller = $this->shop->appConfig('roles.customer.controller', '') ? : 'tiFy\Plugins\Shop\Users\Customer';
-            return new $controller($item->getUser());
+            $user = $this->provider()->get('users.customer', [$item->getUser(), $this->shop]);
+
+            if(! $user instanceof CustomerInterface) :
+                throw new LogicException(
+                    sprintf(
+                        __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
+                        CustomerInterface::class
+                    ),
+                    500
+                );
+            endif;
+
+            return $user;
         elseif ($item->isShopManager()) :
-            $controller = $this->shop->appConfig('roles.shop_manager.controller', '') ? : 'tiFy\Plugins\Shop\Users\Customer';
-            return new $controller($item->getUser());
+            $user = $this->provider()->get('users.shop_manager', [$item->getUser(), $this->shop]);
+
+            if(! $user instanceof ShopManagerInterface) :
+                throw new LogicException(
+                    sprintf(
+                        __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
+                        ShopManagerInterface::class
+                    ),
+                    500
+                );
+            endif;
+
+            return $user;
         else :
             return $item;
         endif;
@@ -131,7 +158,7 @@ class Users extends AbstractUserQuery
      */
     public function tify_user_role_register()
     {
-        if ($roles = $this->shop->appConfig('roles', [])) :
+        if ($roles = $this->config('roles', [])) :
             foreach ($roles as $role => $attrs) :
                 self::$Role[$role] = Role::register($role, $attrs);
             endforeach;
@@ -147,7 +174,7 @@ class Users extends AbstractUserQuery
     {
         self::$Login = Login::register(
             '_tiFyShop',
-            $this->shop->appConfig('login', [])
+            $this->config('login', [])
         );
     }
 

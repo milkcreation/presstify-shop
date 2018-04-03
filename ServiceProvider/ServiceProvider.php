@@ -2,15 +2,7 @@
 
 namespace tiFy\Plugins\Shop\ServiceProvider;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use League\Container\ServiceProvider\AbstractServiceProvider;
-use League\Container\ServiceProvider\BootableServiceProviderInterface;
-use League\Container\Exception\NotFoundException;
-use \LogicException;
-use ReflectionFunction;
-use ReflectionException;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Core\ServiceProvider\AbstractServiceProvider;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Addresses\Billing as AddressesBilling;
@@ -30,18 +22,19 @@ use tiFy\Plugins\Shop\Functions\Page as FunctionsPage;
 use tiFy\Plugins\Shop\Functions\Price as FunctionsPrice;
 use tiFy\Plugins\Shop\Functions\Url as FunctionsUrl;
 use tiFy\Plugins\Shop\Gateways\Gateways;
+use tiFy\Plugins\Shop\Gateways\GatewaysInterface;
 use tiFy\Plugins\Shop\Gateways\GatewayList as GatewaysList;
 use tiFy\Plugins\Shop\Notices\Notices;
 use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
 use tiFy\Plugins\Shop\Orders\Orders;
 use tiFy\Plugins\Shop\Orders\OrdersInterface;
-use tiFy\Plugins\Shop\Orders\Order as OrdersItem;
-use tiFy\Plugins\Shop\Orders\OrderList as OrdersList;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemCoupon as OrdersItemCoupon;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemFee as OrdersItemFee;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemProduct as OrdersItemProduct;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemShipping as OrdersItemShipping;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemTax as OrdersItemTax;
+use tiFy\Plugins\Shop\Orders\Order;
+use tiFy\Plugins\Shop\Orders\OrderList;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemCoupon;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemFee;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemProduct;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemShipping;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTax;
 use tiFy\Plugins\Shop\Products\Products;
 use tiFy\Plugins\Shop\Products\ProductsInterface;
 use tiFy\Plugins\Shop\Products\ProductItem as ProductsItem;
@@ -50,13 +43,22 @@ use tiFy\Plugins\Shop\Products\ProductList as ProductsList;
 use tiFy\Plugins\Shop\Session\Session;
 use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Users\Users;
+use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
+use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
+use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
 
-class ServiceProvider extends AbstractServiceProvider implements BootableServiceProviderInterface, ProvideTraitsInterface
+class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
-     * Liste des identifiant de qualification de services fournis.
+     * Classe de rappel de la boutique.
+     * @var Shop
+     */
+    protected $shop;
+
+    /**
+     * Liste des alias des services fournis.
      * @internal requis. Tous les alias de services à traiter doivent être renseignés.
      * @var string[]
      */
@@ -82,24 +84,28 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
         Notices::class,
         CustomTypes::class,
         Orders::class,
-        OrdersItem::class,
-        OrdersItemCoupon::class,
-        OrdersItemFee::class,
-        OrdersItemProduct::class,
-        OrdersItemShipping::class,
-        OrdersItemTax::class,
-        OrdersList::class,
+        Order::class,
+        OrderItemCoupon::class,
+        OrderItemFee::class,
+        OrderItemProduct::class,
+        OrderItemShipping::class,
+        OrderItemTax::class,
+        OrderList::class,
         Products::class,
         ProductsItem::class,
         ProductsList::class,
         Session::class,
         Settings::class,
-        Users::class
+        Users::class,
+        UsersCustomer::class,
+        UsersLoggedOut::class,
+        UsersShopManager::class,
     ];
 
     /**
      * Cartographie des alias de service fournis.
-     * @internal requis. Toutes les correspondances de services doivent être renseignées.
+     * @internal requis. Etabli la correspondances entre l'identifiant de qualification d'un service et son alias de service fourni (cf $this->provides).
+     * Toutes les correspondances de services doivent être renseignées.
      * @var array
      */
     protected $aliases_map = [
@@ -110,7 +116,7 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             'shipping'     => AddressesShipping::class,
         ],
         'admin'        => [
-            'controller' => Admin::class
+            'controller' => Admin::class,
         ],
         'cart'         => [
             'controller'    => Cart::class,
@@ -120,65 +126,56 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
             'total'         => CartTotal::class,
         ],
         'checkout'     => [
-            'controller' => Checkout::class
+            'controller' => Checkout::class,
         ],
         'functions'    => [
             'controller' => Functions::class,
             'date'       => FunctionsDate::class,
             'page'       => FunctionsPage::class,
             'price'      => FunctionsPrice::class,
-            'url'        => FunctionsUrl::class
+            'url'        => FunctionsUrl::class,
         ],
         'gateways'     => [
             'controller' => Gateways::class,
-            'list'       => GatewaysList::class
+            'list'       => GatewaysList::class,
         ],
         'notices'      => [
-            'controller' => Notices::class
+            'controller' => Notices::class,
         ],
         'custom_types' => [
-            'controller' => CustomTypes::class
+            'controller' => CustomTypes::class,
         ],
         'orders'       => [
             'controller'    => Orders::class,
-            'item'          => OrdersItem::class,
-            'item_coupon'   => OrdersItemCoupon::class,
-            'item_fee'      => OrdersItemFee::class,
-            'item_product'  => OrdersItemProduct::class,
-            'item_shipping' => OrdersItemShipping::class,
-            'item_tax'      => OrdersItemTax::class,
-            'list'          => OrdersList::class
+            'order'         => Order::class,
+            'item_coupon'   => OrderItemCoupon::class,
+            'item_fee'      => OrderItemFee::class,
+            'item_product'  => OrderItemProduct::class,
+            'item_shipping' => OrderItemShipping::class,
+            'item_tax'      => OrderItemTax::class,
+            'list'          => OrderList::class,
         ],
         'products'     => [
-            'controller'   => Products::class,
-            'product_item' => ProductsItem::class,
-            'product_list' => ProductsList::class,
+            'controller' => Products::class,
+            'item'       => ProductsItem::class,
+            'list'       => ProductsList::class,
         ],
         'session'      => [
-            'controller' => Session::class
+            'controller' => Session::class,
         ],
         'settings'     => [
-            'controller' => Settings::class
+            'controller' => Settings::class,
         ],
         'users'        => [
-            'controller' => Users::class
+            'controller'   => Users::class,
+            'customer'     => UsersCustomer::class,
+            'logged_out'   => UsersLoggedOut::class,
+            'shop_manager' => UsersShopManager::class,
         ],
     ];
 
     /**
-     * Cartographie des controleurs des services à traiter.
-     * @var array
-     */
-    protected $provides_map = [];
-
-    /**
-     * Cartographie des variables passé en arguments dans les services.
-     * @var array
-     */
-    protected $arguments_map = [];
-
-    /**
-     * Listes des services initiaux.
+     * Listes des services qui seront instanciés au démarrage.
      * @var array
      */
     protected $bootable = [
@@ -198,380 +195,115 @@ class ServiceProvider extends AbstractServiceProvider implements BootableService
     ];
 
     /**
-     * Liste des services différés.
+     * Liste des services qui seront instanciés de manière différée.
      * @var array
      */
-    protected $registered = [
+    protected $deferred = [
         'addresses' => ['billing', 'form_handler', 'shipping'],
         'cart'      => ['line', 'session_items'],
         'functions' => ['date', 'page', 'price', 'url'],
-        'orders'    => ['item_product']
+        'orders'    => ['item_product'],
+        'users'     => ['customer', 'shop_manager']
     ];
-
-    /**
-     * Liste des services personnalisables.
-     * @var array
-     */
-    protected $customs = [
-        'addresses' => [
-            'billing'      => AddressesBilling::class,
-            'form_handler' => AddressesFormHandler::class,
-            'shipping'     => AddressesShipping::class
-        ],
-        'cart'      => [
-            'line'          => CartLine::class,
-            'session_items' => CartSessionItems::class
-        ],
-        'functions' => [
-            'date'  => FunctionsDate::class,
-            'page'  => FunctionsPage::class,
-            'price' => FunctionsPrice::class,
-            'url'   => FunctionsUrl::class
-        ],
-        'orders'    => [
-            'item'         => OrdersItem::class,
-            'list'         => OrdersList::class,
-            'item_product' => OrdersItemProduct::class
-        ],
-        'products'  => [
-            'list' => ProductsList::class
-        ]
-    ];
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
 
     /**
      * CONSTRUCTEUR
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param array $customs Liste des attributs de personnalisation.
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct($customs = [], Shop $shop)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Déclaration des services natifs (non personnalisables).
+        // Pré-déclaration des controleurs principaux.
         $this
-            ->addMapController('addresses.controller', function ($shop) {
+            ->setMapController('addresses.controller', function ($shop) {
                 return Addresses::boot($shop);
             })
-            ->addMapController('admin.controller', function ($shop) {
+            ->setMapController('admin.controller', function ($shop) {
                 return Admin::make($shop);
             })
-            ->addMapController('cart.controller', function ($shop, $controller) {
+            ->setMapController('cart.controller', function ($shop, $controller) {
                 /** @var CartInterface $controller */
                 return $controller::boot($shop);
             })
-            ->addMapController('checkout.controller', function ($shop) {
+            ->setMapController('checkout.controller', function ($shop) {
                 return Checkout::make($shop);
             })
-            ->addMapController('functions.controller', function ($shop) {
+            ->setMapController('functions.controller', function ($shop) {
                 return Functions::boot($shop);
             })
-            ->addMapController('gateways.controller', function ($shop) {
-                return Gateways::make($shop);
+            ->setMapController('gateways.controller', function ($shop, $controller) {
+                /** @var GatewaysInterface $controller */
+                return $controller::boot($shop);
             })
-            ->addMapController('notices.controller', function ($shop) {
+            ->setMapController('notices.controller', function ($shop) {
                 return Notices::make($shop);
             })
-            ->addMapController('custom_types.controller', function ($shop) {
+            ->setMapController('custom_types.controller', function ($shop) {
                 return CustomTypes::make($shop);
             })
-            ->addMapController('orders.controller', function ($shop, $controller) {
+            ->setMapController('orders.controller', function ($shop, $controller) {
                 /** @var OrdersInterface $controller */
                 return $controller::boot($shop);
             })
-            ->addMapController('products.controller', function ($shop, $controller) {
+            ->setMapController('products.controller', function ($shop, $controller) {
                 /** @var ProductsInterface $controller */
                 return $controller::boot($shop);
             })
-            ->addMapController('session.controller', function ($shop) {
+            ->setMapController('session.controller', function ($shop) {
                 return Session::make($shop);
             })
-            ->addMapController('settings.controller', function ($shop) {
+            ->setMapController('settings.controller', function ($shop) {
                 return Settings::make($shop);
             })
-            ->addMapController('users.controller', function ($shop) {
+            ->setMapController('users.controller', function ($shop) {
                 return Users::make($shop);
             });
 
-        // Déclaration des services personnalisables.
-        foreach ($this->customs as $category => $controllers) :
-            foreach ($controllers as $name => $default_controller) :
-                $key = "{$category}.{$name}";
-                $controller = $this->config("service_provider.{$key}", $default_controller);
+        // Déclaration des personnalisations.
+        parent::__construct($customs);
 
-                switch ($key) :
-                    default :
-                        $this->addMapController($key, $controller);
-                        break;
-                endswitch;
-            endforeach;
-        endforeach;
-
-        /**
-         * Déclaration de la listes des variables passés en arguments dans le service.
-         * @var array
-         */
+        // Déclaration de la listes des variables passées en arguments dans les controleurs.
         $this
-            ->addMapArgs('addresses.controller', [$this->shop])
-            ->addMapArgs('addresses.billing', [$this->shop, Addresses::class])
-            ->addMapArgs('addresses.form_handler', [$this->shop])
-            ->addMapArgs('addresses.shipping', [$this->shop, Addresses::class])
-            ->addMapArgs('admin.controller', [$this->shop])
-            ->addMapArgs('cart.controller', [
+            ->setMapArgs('addresses.controller', [$this->shop])
+            ->setMapArgs('addresses.billing', [$this->shop, Addresses::class])
+            ->setMapArgs('addresses.form_handler', [$this->shop])
+            ->setMapArgs('addresses.shipping', [$this->shop, Addresses::class])
+            ->setMapArgs('admin.controller', [$this->shop])
+            ->setMapArgs('cart.controller', [
                 $this->shop,
-                $this->config('service_provider.cart.controller', Cart::class)
+                $this->getMapCustom('cart.controller', 'controller') ? : $this->getDefault('cart.controller'),
             ])
-            ->addMapArgs('cart.line', [$this->shop, Cart::class, []])
-            ->addMapArgs('cart.session_items', [$this->shop, Cart::class])
-            ->addMapArgs('checkout.controller', [$this->shop])
-            ->addMapArgs('functions.controller', [$this->shop])
-            ->addMapArgs('functions.date', ['now', true, $this->shop])
-            ->addMapArgs('functions.page', [$this->shop])
-            ->addMapArgs('functions.price', [$this->shop])
-            ->addMapArgs('functions.url', [$this->shop])
-            ->addMapArgs('gateways.controller', [$this->shop])
-            ->addMapArgs('notices.controller', [$this->shop])
-            ->addMapArgs('custom_types.controller', [$this->shop])
-            ->addMapArgs('orders.controller', [
+            ->setMapArgs('cart.line', [$this->shop, Cart::class, []])
+            ->setMapArgs('cart.session_items', [$this->shop, Cart::class])
+            ->setMapArgs('checkout.controller', [$this->shop])
+            ->setMapArgs('functions.controller', [$this->shop])
+            ->setMapArgs('functions.date', ['now', true, $this->shop])
+            ->setMapArgs('functions.page', [$this->shop])
+            ->setMapArgs('functions.price', [$this->shop])
+            ->setMapArgs('functions.url', [$this->shop])
+            ->setMapArgs('gateways.controller', [
                 $this->shop,
-                $this->config('service_provider.orders.controller', Orders::class)
+                $this->getMapCustom('gateways.controller', 'controller') ? : $this->getDefault('gateways.controller')
             ])
-            ->addMapArgs('orders.item_product', [
-                ProductsItemInterface::class,
+            ->setMapArgs('notices.controller', [$this->shop])
+            ->setMapArgs('custom_types.controller', [$this->shop])
+            ->setMapArgs('orders.controller', [
                 $this->shop,
-                OrdersItem::class
+                $this->getMapCustom('orders.controller', 'controller') ? : $this->getDefault('orders.controller')
             ])
-            ->addMapArgs('products.controller', [
+            ->setMapArgs('orders.item_product', [ProductsItemInterface::class, $this->shop, Order::class])
+            ->setMapArgs('products.controller', [
                 $this->shop,
-                $this->config('service_provider.products.controller', Products::class)
+                $this->getMapCustom('products.controller', 'controller') ? : $this->getDefault('products.controller')
             ])
-            ->addMapArgs('session.controller', [$this->shop])
-            ->addMapArgs('settings.controller', [$this->shop])
-            ->addMapArgs('users.controller', [$this->shop]);
-    }
-
-    /**
-     * Instanciation des services initiaux.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        if ($this->bootable) :
-            foreach ($this->bootable as $category => $controllers) :
-                foreach ($controllers as $name) :
-                    $this->addContainer("{$category}.{$name}");
-                endforeach;
-            endforeach;
-        endif;
-    }
-
-    /**
-     * Instanciation des services différés.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        if ($this->registered) :
-            foreach ($this->registered as $category => $controllers) :
-                foreach ($controllers as $name) :
-                    $this->addContainer("{$category}.{$name}");
-                endforeach;
-            endforeach;
-        endif;
-    }
-
-    /**
-     *
-     */
-    public function add($category, $name, $provide_controller, $args = [])
-    {
-        $key = "{$category}.{$name}";
-        if (Arr::get($this->aliases_map, $key, '')) :
-            return;
-        endif;
-
-        array_push($this->provides, $provide_controller);
-
-        $this->aliases_map = Arr::add($this->aliases_map, $key, $provide_controller);
-
-        if (!isset($this->registered[$category])) :
-            $this->registered[$category] = [];
-        endif;
-        array_push($this->registered[$category], $name);
-
-        $this->addMapController($key, $this->config("service_provider.{$key}", $provide_controller));
-
-        if ($args) :
-            $this->addMapArgs($key, $args);
-        endif;
-
-        $this->addContainer($key);
-    }
-
-    /**
-     * Récupération d'un service déclaré.
-     *
-     * @param string $key
-     *
-     * @return object
-     */
-    public function get($key, $args = [])
-    {
-        try {
-            $alias = $this->getAlias($key);
-        } catch (LogicException $e) {
-            \wp_die($e->getMessage(), __('Alias de fournisseur de service introuvable', 'tify'), $e->getCode());
-            exit;
-        }
-
-        try {
-            return $this->appGetContainer($alias, $args);
-        } catch (NotFoundException $e) {
-            \wp_die($e->getMessage(), __('Service requis introuvable', 'tify'), $e->getCode());
-            exit;
-        }
-    }
-
-    /**
-     * Récupération de l'alias d'un service.
-     *
-     * @param string $key Identifiant de qualification du service.
-     * @internal La Syntaxe à points est autorisée et permet une recherche en profondeur dans les clés d'un tableau dimensionné.
-     *
-     * @return string
-     *
-     * @throws LogicException
-     */
-    public function getAlias($key)
-    {
-        if ($alias = Arr::get($this->aliases_map, $key, '')) :
-            return $alias;
-        endif;
-
-        if ($this->provides($alias)) :
-            return $alias;
-        endif;
-
-        throw new LogicException(
-            sprintf(
-                __('Le service qualifié par l\'alias <b>%s</b> n\'est pas disponible.', 'tify'),
-                $key
-            )
-        );
-    }
-
-    /**
-     * Ajout d'une déclaration de controleur de service.
-     *
-     * @param string $key Identifiant de qualification du service.
-     * @param mixed $controller Définition du controleur.
-     *
-     * @return self
-     */
-    public function addMapController($key, $controller)
-    {
-        $this->provides_map = Arr::add($this->provides_map, $key, $controller);
-
-        return $this;
-    }
-
-    /**
-     * Récupération d'un controleur de service déclaré.
-     *
-     * @param string $key Identifiant de qualification du service.
-     *
-     * @return false|mixed
-     */
-    public function getMapController($key)
-    {
-        return Arr::get($this->provides_map, $key, false);
-    }
-
-    /**
-     * Ajout d'une déclaration d'une liste de variables à passer en argument dans le service.
-     *
-     * @param string $key Identifiant de qualification du service.
-     * @param array $args Liste des variables passés en argument du service.
-     *
-     * @return self
-     */
-    public function addMapArgs($key, $args)
-    {
-        $this->arguments_map = Arr::add($this->arguments_map, $key, $args);
-
-        return $this;
-    }
-
-    /**
-     * Récupération d'une liste de variable à passer en argument dans le service.
-     *
-     * @param string $key Identifiant de qualification du service.
-     *
-     * @return array
-     */
-    public function getMapArgs($key)
-    {
-        return Arr::get($this->arguments_map, $key, []);
-    }
-
-    /**
-     * Vérifie si un controleur est une function anonyme.
-     *
-     * @return bool
-     */
-    public function isClosure($controller)
-    {
-        try {
-            $reflection = new ReflectionFunction($controller);
-            return $reflection->isClosure();
-        } catch (ReflectionException $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Déclaration d'un conteneur d'injection de service selon ses attributs enregistrés.
-     *
-     * @param string $key Identifiant de qualification du service.
-     *
-     * @return void
-     */
-    public function addContainer($key)
-    {
-        if (!$controller = $this->getMapController($key)) :
-            return;
-        endif;
-
-        try {
-            $alias = $this->getAlias($key);
-        } catch (LogicException $e) {
-            wp_die($e->getMessage(), __('Alias de fournisseur de service introuvable', 'tify'), $e->getCode());
-            exit;
-        }
-
-        $args = $this->getMapArgs($key);
-
-        if ($this->isClosure($controller)) :
-            $this->getContainer()->add(
-                $alias,
-                call_user_func_array($controller, $args)
-            );
-        else :
-            $this->getContainer()->add(
-                $alias,
-                $controller
-            )
-                ->withArguments($args);
-        endif;
+            ->setMapArgs('session.controller', [$this->shop])
+            ->setMapArgs('settings.controller', [$this->shop])
+            ->setMapArgs('users.controller', [$this->shop]);
     }
 }

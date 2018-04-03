@@ -4,7 +4,7 @@
  * @name AbstractOrderItem
  * @desc Controleur d'un élément associé à une commande
  * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders
+ * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
  * @version 1.1
  * @since 1.1
  *
@@ -12,14 +12,18 @@
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Orders\OrderItem;
+namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use Illuminate\Support\Fluent;
 use tiFy\Plugins\Shop\Orders\OrderInterface;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-abstract class AbstractOrderItem extends Fluent implements OrderItemInterface
+abstract class AbstractOrderItem extends Fluent implements OrderItemInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -104,7 +108,7 @@ abstract class AbstractOrderItem extends Fluent implements OrderItemInterface
      */
     public function save()
     {
-        $db = $this->shop->orders()->getDb();
+        $db = $this->orders()->getDb();
 
         if (
             $this->id = $db->handle()->record(
@@ -153,7 +157,7 @@ abstract class AbstractOrderItem extends Fluent implements OrderItemInterface
             return 0;
         endif;
 
-        $db = $this->shop->orders()->getDb();
+        $db = $this->orders()->getDb();
 
         return $db->meta()->add($this->id, $meta_key, $meta_value);
     }

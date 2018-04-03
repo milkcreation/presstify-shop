@@ -4,12 +4,12 @@ namespace tiFy\Plugins\Shop\Orders;
 
 use tiFy\Core\Query\Controller\PostItemInterface;
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemCouponInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemFeeInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemProductInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemShippingInterface;
-use tiFy\Plugins\Shop\Orders\OrderItem\OrderItemTaxInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemCouponInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemFeeInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemProductInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemShippingInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTaxInterface;
 
 interface OrderInterface extends PostItemInterface
 {
@@ -87,6 +87,12 @@ interface OrderInterface extends PostItemInterface
      * @return float
      */
     public function getTotal();
+
+    /**
+     * Nombre d'article contenu dans la commande.
+     * @return int
+     */
+    public function productCount();
 
     /**
      * Récupération de la méthode de paiement.

@@ -4,7 +4,7 @@
  * @name OrderItemTax
  * @desc Controleur de la taxe associée à une commande
  * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItem
+ * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
  * @version 1.1
  * @since 1.1
  *
@@ -12,7 +12,7 @@
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Orders\OrderItem;
+namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 final class OrderItemTax extends AbstractOrderItem implements OrderItemTaxInterface
 {

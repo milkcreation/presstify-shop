@@ -3,9 +3,34 @@
 namespace tiFy\Plugins\Shop\Users;
 
 use tiFy\Core\Query\Controller\AbstractUserItem;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\Shop;
+use WP_User;
 
-abstract class AbstractUser extends AbstractUserItem implements UserInterface
+abstract class AbstractUser extends AbstractUserItem implements UserInterface, ProvideTraitsInterface
 {
+    use ProvideTraits;
+
+    /**
+     * Classe de rappel de la boutique
+     * @var Shop
+     */
+    protected $shop;
+
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @return void
+     */
+    public function __construct(WP_User $user, Shop $shop)
+    {
+        // Définition de la classe de rappel de la boutique
+        $this->shop = $shop;
+
+        parent::__construct($user);
+    }
+
     /**
      * Vérifie si un utilisateur est considéré en tant que client
      *

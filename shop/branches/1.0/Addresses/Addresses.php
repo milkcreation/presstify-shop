@@ -25,7 +25,7 @@ class Addresses implements AddressesInterface
 
     /**
      * Instance de la classe
-     * @var Addresses
+     * @var AddressesInterface
      */
     private static $instance;
 
@@ -88,7 +88,7 @@ class Addresses implements AddressesInterface
      *
      * @param Shop $shop
      *
-     * @return Addresses
+     * @return AddressesInterface
      */
     public static function boot(Shop $shop)
     {
@@ -96,7 +96,19 @@ class Addresses implements AddressesInterface
             return self::$instance;
         endif;
 
-        return self::$instance = new self($shop);
+        self::$instance = new self($shop);
+
+        if(! self::$instance instanceof AddressesInterface) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
+                    AddressesInterface::class
+                ),
+                500
+            );
+        endif;
+
+        return self::$instance;
     }
 
     /**

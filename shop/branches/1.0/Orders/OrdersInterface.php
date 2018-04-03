@@ -79,6 +79,14 @@ interface OrdersInterface
      */
     public function getStatuses();
 
+
+    /**
+     * Récupération de la liste des statuts en relation avec les post.
+     *
+     * @return string[]
+     */
+    public function getRelPostStatuses();
+
     /**
      * Récupération du statut de commande par défaut.
      *

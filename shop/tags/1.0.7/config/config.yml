@@ -1,0 +1,91 @@
+# @var array $products Déclaration des gammes de produits
+products:
+  product:
+    singular:               "<?php _e('Produit', 'tify'); ?>"
+    plural:                 "<?php _e('Produits', 'tify'); ?>"
+
+    # @var bool|array $category Gestion de la hiérarchisation par catégorie de la gamme de produit
+    category:
+      # Liste des attributs de configuration de la taxonomy
+      # @see wp-content/mu-plugins/docs/core/CustomType/README.md
+      taxonomy:             'product_cat'
+
+    # @var array $product_types Liste des types de produits permis(simple|grouped|external|variable)
+    product_types: ['simple', 'grouped', 'external', 'variable']
+
+    # @var array $tabs Liste des onglets de saisie
+    # @see wp-content/mu-plugins/docs/core/Taboox/README.md
+    tabs:
+      -
+        id:       'general'
+        position: 1
+      -
+        id:       'inventory'
+        position: 2
+      -
+        id:       'shipping'
+        position: 3
+      -
+        id:       'linked'
+        position: 4
+      -
+        id:       'attributes'
+        position: 5
+      -
+        id:       'variations'
+        position: 6
+      -
+        id:       'advanced'
+        position: 7
+
+# @var array $roles Liste des roles
+# @see wp-content/mu-plugins/docs/core/User/Role/README.md
+roles:
+  # @var string $id Identifiant de qualification du rôle
+  shop_manager:
+      # @var string $display_name Nom d'affichage
+      display_name:         "<?php _e('Gestionnaire boutique', 'tify'); ?>"
+
+      # @var bool|array $admin_ui Interface dédiée
+      admin_ui:
+        global:
+          admin_menu:
+            menu_title:   "<?php _e('Gestionnaires', 'tify'); ?>"
+            icon_url:     'dashicons-businessman'
+            position:     71
+        list:
+          admin_menu:
+            menu_title:   "<?php _e('Tous les gestionnaires', 'tify'); ?>"
+
+  # @var string $id Identifiant de qualification du rôle
+  customer:
+    # @var string $display_name Nom d'affichage
+    display_name:           "<?php _e('Client', 'tify'); ?>"
+
+    # @var bool|array $admin_ui Interface dédiée
+    admin_ui:
+      global:
+        admin_menu:
+          menu_title:   "<?php _e('Clients', 'tify'); ?>"
+          icon_url:     'dashicons-cart'
+          position:     72
+      list:
+        admin_menu:
+          menu_title:   "<?php _e('Tous les clients', 'tify'); ?>"
+
+# @var array $login Déclarations attributs de configuration de l'interface d'authentification à la boutique
+# @see wp-content/mu-plugins/docs/components/Login/README.md
+login:
+  cb :    '\tiFy\Plugins\Shop\App\Components\Login\Factory'
+  roles : ['customer', 'shop_manager']
+
+# @var array $take_over Déclarations permissions de prise de contrôle de comptes utilisateurs par les administrateurs et gestionnaires de boutiques
+# @see wp-content/mu-plugins/docs/core/User/TakeOver/README.md
+take_over:
+  _tiFyPluginShopAdmin :
+    auth_roles :    ['administrator']
+    allowed_roles : ['shop_manager', 'customer']
+
+  _tiFyPluginShopManager :
+    auth_roles :    ['shop_manager']
+    allowed_roles : ['customer']

@@ -104,7 +104,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      *
      * @return Orders
      */
-    final public static function boot(Shop $shop)
+    final public static function make(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;

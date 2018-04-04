@@ -222,24 +222,24 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
         // Pré-déclaration des controleurs principaux.
         $this
             ->setMapController('addresses.controller', function ($shop) {
-                return Addresses::boot($shop);
+                return Addresses::make($shop);
             })
             ->setMapController('admin.controller', function ($shop) {
                 return Admin::make($shop);
             })
             ->setMapController('cart.controller', function ($shop, $controller) {
                 /** @var CartInterface $controller */
-                return $controller::boot($shop);
+                return $controller::make($shop);
             })
             ->setMapController('checkout.controller', function ($shop) {
                 return Checkout::make($shop);
             })
             ->setMapController('functions.controller', function ($shop) {
-                return Functions::boot($shop);
+                return Functions::make($shop);
             })
             ->setMapController('gateways.controller', function ($shop, $controller) {
                 /** @var GatewaysInterface $controller */
-                return $controller::boot($shop);
+                return $controller::make($shop);
             })
             ->setMapController('notices.controller', function ($shop) {
                 return Notices::make($shop);
@@ -249,11 +249,11 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
             })
             ->setMapController('orders.controller', function ($shop, $controller) {
                 /** @var OrdersInterface $controller */
-                return $controller::boot($shop);
+                return $controller::make($shop);
             })
             ->setMapController('products.controller', function ($shop, $controller) {
                 /** @var ProductsInterface $controller */
-                return $controller::boot($shop);
+                return $controller::make($shop);
             })
             ->setMapController('session.controller', function ($shop) {
                 return Session::make($shop);

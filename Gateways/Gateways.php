@@ -103,7 +103,7 @@ class Gateways implements GatewaysInterface, ProvideTraitsInterface
      *
      * @return Gateways
      */
-    final public static function boot(Shop $shop)
+    final public static function make(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;

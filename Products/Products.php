@@ -92,7 +92,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
      *
      * @return Products
      */
-    final public static function boot(Shop $shop)
+    final public static function make(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;

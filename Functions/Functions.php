@@ -81,7 +81,7 @@ class Functions implements ProvideTraitsInterface
      *
      * @return Functions
      */
-    public static function boot(Shop $shop)
+    public static function make(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;

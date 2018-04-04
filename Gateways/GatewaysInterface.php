@@ -11,7 +11,7 @@ interface GatewaysInterface
      * @param Shop $shop
      * @return self
      */
-     public static function boot(Shop $shop);
+     public static function make(Shop $shop);
 
     /**
      * Ajout d'une déclaration de plateforme de paiement.

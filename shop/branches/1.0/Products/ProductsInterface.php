@@ -12,5 +12,5 @@ interface ProductsInterface extends QueryInterface
      * @param Shop $shop
      * @return Products
      */
-    public static function boot(Shop $shop);
+    public static function make(Shop $shop);
 }

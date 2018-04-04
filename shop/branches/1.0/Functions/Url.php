@@ -118,6 +118,7 @@ class Url implements UrlInterface, ProvideTraitsInterface
 
     /**
      * Url vers la page d'ajout de moyen de paiement.
+     * @todo
      *
      * @return string
      */
@@ -128,6 +129,7 @@ class Url implements UrlInterface, ProvideTraitsInterface
 
     /**
      * Url vers la page de suppression de moyen de paiement.
+     * @todo
      *
      * @return string
      */
@@ -138,6 +140,7 @@ class Url implements UrlInterface, ProvideTraitsInterface
 
     /**
      * Url vers la page de définition du moyen de paiement par défaut.
+     * @todo
      *
      * @return string
      */

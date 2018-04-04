@@ -399,11 +399,11 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
         // @todo status_transition
 
         if (! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
-            $this->set('date_paid', $this->functions()->date()->utc());
+            $this->set('date_paid', $this->functions()->date()->utc('U'));
         endif;
 
         if (! $this->get('date_completed') && $this->hasStatus('completed')) :
-            $this->set('date_completed', $this->functions()->date()->utc());
+            $this->set('date_completed', $this->functions()->date()->utc('U'));
         endif;
 
         $this->save();
@@ -568,10 +568,10 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
 
             switch($attr_key) :
                 case 'date_paid' :
-                    \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value->getTimestamp() : '');
+                    \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value : '');
                     break;
                 case 'date_completed' :
-                    \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value->getTimestamp() : '');
+                    \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value : '');
                     break;
                 default :
                     \update_post_meta($this->getId(), $meta_key, $meta_value);

@@ -6,7 +6,7 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop
- * @version 1.0.6
+ * @version 1.0.7
  */
 
 namespace tiFy\Plugins\Shop;
@@ -46,8 +46,6 @@ class Shop extends Plugin
         // Déclaration du fournisseur de services.
         $this->provider = new ServiceProvider($this->appConfig('service_provider', []), $this);
         $this->appContainer()->addServiceProvider($this->provider);
-
-        require_once($this->appDirname() . '/Helpers.php');
     }
 
     /**

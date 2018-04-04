@@ -110,7 +110,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
      *
      * @return CartInterface
      */
-    final public static function boot(Shop $shop)
+    final public static function make(Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;

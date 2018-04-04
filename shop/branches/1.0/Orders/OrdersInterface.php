@@ -12,7 +12,7 @@ interface OrdersInterface
      * @param Shop $shop
      * @return Orders
      */
-    public static function boot(Shop $shop);
+    public static function make(Shop $shop);
 
     /**
      * Récupération d'un élément.

@@ -13,7 +13,7 @@ interface CartInterface
      * @param Shop $shop
      * @return CartInterface
      */
-    public static function boot(Shop $shop);
+    public static function make(Shop $shop);
 
     /**
      * Initialisation des messages de notification

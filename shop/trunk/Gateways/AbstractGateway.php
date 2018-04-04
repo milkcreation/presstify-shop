@@ -219,7 +219,7 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface, Provi
     public function getReturnUrl($order = null)
     {
         if ($order) :
-            $order->getCheckoutOrderReceivedUrl();
+            return $order->getCheckoutOrderReceivedUrl();
         else :
             return $this->functions()->url()->checkoutOrderReceivedPage([
                 'order-received' => ''

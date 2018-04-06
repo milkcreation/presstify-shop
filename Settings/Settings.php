@@ -16,12 +16,29 @@ namespace tiFy\Plugins\Shop\Settings;
 
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Settings extends Fluent implements SettingsInterface
+class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterface
 {
+    use TraitsApp, ProvideTraits;
+
     /**
-     * Liste des réglages disponibles
+     * Instance de la classe.
+     * @var Settings
+     */
+    private static $instance;
+
+    /**
+     * Classe de rappel de la boutique.
+     * @var Shop
+     */
+    protected $shop;
+
+    /**
+     * Liste des réglages disponibles.
      * @var array
      */
     protected $settings = [
@@ -67,13 +84,14 @@ class Settings extends Fluent implements SettingsInterface
     ];
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param array|object $attributes
+     * @param array|object $attributes Liste des attributs de configuration.
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
-    public function __construct($attributes = [])
+    public function __construct($attributes = [], Shop $shop)
     {
         foreach($this->settings as $setting) :
             if (isset($attributes[$setting])) :
@@ -93,15 +111,39 @@ class Settings extends Fluent implements SettingsInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Court-circuitage de l'implémentation.
      *
-     * @param
+     * @return void
+     */
+    private function __clone()
+    {
+
+    }
+
+    /**
+     * Court-circuitage de l'implémentation.
+     *
+     * @return void
+     */
+    private function __wakeup()
+    {
+
+    }
+
+    /**
+     * Instanciation de la classe.
+     *
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return self
      */
     public static function make(Shop $shop)
     {
-        return new static($shop->appConfig('settings', []));
+        if (self::$instance) :
+            return self::$instance;
+        endif;
+
+        return self::$instance = new self($shop->appConfig('settings', []), $shop);
     }
 
     /**

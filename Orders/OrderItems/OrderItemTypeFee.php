@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @name OrderItemCoupon
- * @desc Controleur d'une ligne d'un coupon de réduction associé à une commande
+ * @name OrderItemTypeFee
+ * @desc Controleur d'une ligne d'article associée à une commande
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
  * @version 1.1
@@ -14,15 +14,15 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-final class OrderItemCoupon extends AbstractOrderItem implements OrderItemCouponInterface
+final class OrderItemTypeFee extends  AbstractOrderItemType implements OrderItemTypeFeeInterface
 {
     /**
      * Récupération du type d'élement associé à la commande.
      *
-     * @return string coupon
+     * @return string fee
      */
     public function getType()
     {
-        return 'coupon';
+        return 'fee';
     }
 }

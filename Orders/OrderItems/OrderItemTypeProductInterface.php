@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
 
-interface OrderItemProductInterface extends OrderItemInterface
+interface OrderItemTypeProductInterface extends OrderItemTypeInterface
 {
     /**
      * Récupération de la classe de rappel du produit associé.

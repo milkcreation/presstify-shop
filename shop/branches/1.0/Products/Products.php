@@ -66,7 +66,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -76,7 +76,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */

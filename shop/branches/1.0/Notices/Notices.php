@@ -61,7 +61,7 @@ final class Notices implements NoticesInterface, ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -71,21 +71,13 @@ final class Notices implements NoticesInterface, ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
     private function __wakeup()
     {
 
-    }
-
-    /**
-     * Affichage des message de notification
-     */
-    public function __toString()
-    {
-        return $this->display();
     }
 
     /**
@@ -194,5 +186,15 @@ final class Notices implements NoticesInterface, ProvideTraitsInterface
         $this->clear();
 
         return $output;
+    }
+
+    /**
+     * Affichage des message de notification
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->display();
     }
 }

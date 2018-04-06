@@ -24,7 +24,7 @@ use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Checkout implements ProvideTraitsInterface
+class Checkout implements CheckoutInterface, ProvideTraitsInterface
 {
     use TraitsApp, ProvideTraits;
 
@@ -57,21 +57,21 @@ class Checkout implements ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __clone()
+    private function __clone()
     {
 
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __wakeup()
+    private function __wakeup()
     {
 
     }
@@ -346,15 +346,16 @@ class Checkout implements ProvideTraitsInterface
         if ($lines = $this->cart()->lines()) :
             foreach($lines as $line) :
                 $product = $line->getProduct();
-                $item = $order->createItemProduct($product);
+                $item = $order->createItemProduct();
                 $item
+                    ->set('name', $product->getTitle())
                     ->set('quantity', $line->getQuantity())
                     ->set('variation', '')
                     ->set('subtotal', $line->getSubtotal())
                     ->set('subtotal_tax', $line->getSubtotalTax())
+                    ->set('total', $line->getTotal())
                     ->set('total_tax', $line->getTax())
                     ->set('taxes', [])
-                    ->set('name', $product->getTitle())
                     ->set('tax_class', '')
                     ->set('product_id', $product->getId())
                     ->set('variation_id', 0);

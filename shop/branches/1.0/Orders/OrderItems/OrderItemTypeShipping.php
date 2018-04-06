@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @name OrderItemProduct
- * @desc Controleur d'une ligne d'article associée à une commande
+ * @name OrderItemShipping
+ * @desc Controleur de la livraison associée aux articles d'une commande
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
  * @version 1.1
@@ -14,15 +14,15 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-final class OrderItemFee extends AbstractOrderItem implements OrderItemFeeInterface
+final class OrderItemTypeShipping extends AbstractOrderItemType implements OrderItemTypeShippingInterface
 {
     /**
      * Récupération du type d'élement associé à la commande.
      *
-     * @return string fee
+     * @return string shipping
      */
     public function getType()
     {
-        return 'fee';
+        return 'shipping';
     }
 }

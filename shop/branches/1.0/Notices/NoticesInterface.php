@@ -3,9 +3,17 @@
 namespace tiFy\Plugins\Shop\Notices;
 
 use LogicException;
+use tiFy\Plugins\Shop\Shop;
 
 interface NoticesInterface
 {
+    /**
+     * Instanciation de la classe
+     * @param Shop $shop
+     * @return Notices
+     */
+    public static function make(Shop $shop);
+
     /**
      * Ajout d'un message de notification.
      * @param string $message Intitulé du message de notification.

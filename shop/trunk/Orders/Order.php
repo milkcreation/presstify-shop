@@ -17,15 +17,14 @@ namespace tiFy\Plugins\Shop\Orders;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use tiFy\Core\Query\Controller\AbstractPostItem;
-use tiFy\Plugins\Shop\Products\ProductItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemCouponInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemFeeInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemProductInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemShippingInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTaxInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFeeInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProductInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShippingInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTaxInterface;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -36,13 +35,19 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     use ProvideTraits;
 
     /**
-     * Classe de rappel de la boutique
+     * Classe de rappel de la boutique.
      * @var Shop
      */
     protected $shop;
 
     /**
-     * Liste des éléments associé à la commande
+     * Classe de rappel de traitement de la liste des éléments associés à la commande.
+     * @var OrderItems
+     */
+    protected $order_items;
+
+    /**
+     * Liste des éléments associés à la commande.
      * @var array
      */
     protected $items = [];
@@ -138,17 +143,20 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique.
      * @param WP_Post $post Objet post Wordpress.
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, WP_Post $post)
+    public function __construct(WP_Post $post, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
+        // Définition de la classe de rappel de la boutique.
         $this->shop = $shop;
 
         parent::__construct($post);
+
+        // Définition de la classe de rappel de traitement de la liste des éléments associés à la commande
+        $this->order_items = new OrderItems($this, $shop);
 
         $this->read();
     }
@@ -185,12 +193,11 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
         $this->set('status', $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
         $this->set('customer_note', $this->getExcerpt(true));
 
-        // @todo Récupération de la liste des éléments stockés en base de donnée
-        $results = $this->orders()->getDb()->select()->rows(
-            [
-                'order_id' => $this->getId()
-            ]
-        );
+        // Récupération de la liste des éléments associé à la commande, enregistré en base de donnée.
+        foreach($this->order_items->getList() as $item) :
+            /** @var OrderItemTypeInterface $item */
+            $this->items[$item->getType()][$item->getId()] = $item;
+        endforeach;
     }
 
     /**
@@ -307,13 +314,36 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Nombre d'article contenu dans la commande.
+     * Vérification de correspondance du client associé à la commande.
+     *
+     * @param int $customer_id Identifiant de qualification de l'utilisateur à contrôler.
+     *
+     * @return bool
+     */
+    public function isCustomer($customer_id)
+    {
+        return (bool)($this->getCustomerId() === (int) $customer_id);
+    }
+
+    /**
+     * Nombre de produit contenu dans la commande.
      *
      * @return int
      */
     public function productCount()
     {
         return (int)count($this->getItems('line_item'));
+    }
+
+    /**
+     * Nombre total d'articles commandé.
+     * @internal Calcul le cumul des quantités produits.
+     *
+     * @return int
+     */
+    public function quantityProductCount()
+    {
+        return (int) (new Collection($this->getItems('line_item')))->sum('quantity');
     }
 
     /**
@@ -448,57 +478,57 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     /**
      * Création d'une ligne de coupon de réduction.
      *
-     * @return object|OrderItemCouponInterface
+     * @return null|object|OrderItemTypeCouponInterface
      */
     public function createItemCoupon()
     {
-        // @todo
+        return $this->provide('orders.item_coupon', [0, $this, $this->shop]);
     }
 
     /**
      * Création d'une ligne de promotion.
      *
-     * @return object|OrderItemFeeInterface
+     * @return null|object|OrderItemTypeFeeInterface
      */
     public function createItemFee()
     {
-        // @todo
+        return $this->provide('orders.item_fee', [0, $this, $this->shop]);
     }
 
     /**
      * Création d'une ligne de produit.
      *
-     * @return object|OrderItemProductInterface
+     * @return null|object|OrderItemTypeProductInterface
      */
-    public function createItemProduct(ProductItemInterface $product)
+    public function createItemProduct()
     {
-        return $this->provide('orders.item_product', [$product, $this->shop, $this]);
+        return $this->provide('orders.order_item_type_product', [0, $this, $this->shop]);
     }
 
     /**
      * Création d'une ligne de livraison.
      *
-     * @return object|OrderItemShippingInterface
+     * @return null|object|OrderItemTypeShippingInterface
      */
     public function createItemShipping()
     {
-        // @todo
+        return $this->provide('orders.item_shipping', [0, $this, $this->shop]);
     }
 
     /**
      * Création d'une ligne de taxe.
      *
-     * @return object|OrderItemTaxInterface
+     * @return null|object|OrderItemTypeTaxInterface
      */
     public function createItemTax()
     {
-        // @todo
+        return $this->provide('orders.item_tax', [0, $this, $this->shop]);
     }
 
     /**
      * Ajout d'une ligne d'élément associé à la commande.
      *
-     * @param OrderItemInterface $item
+     * @param OrderItemTypeInterface $item
      *
      * @return void
      */
@@ -598,13 +628,13 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
      */
     public function saveItems()
     {
-        if (!$this->items) :
+        if (! $this->items) :
             return;
         endif;
 
         foreach ($this->items as $group => $group_items) :
             foreach ($group_items as $item_key => $item) :
-                /** @var OrderItemInterface $item */
+                /** @var OrderItemTypeInterface $item */
                 $item->save();
             endforeach;
         endforeach;
@@ -633,8 +663,8 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
         endif;
 
         $virtual_and_downloadable = $line_items->filter(function($line_item) {
-            /** @var OrderItemProductInterface $item */
-            return $item->getProduct()->isDownloadable() &&  $item->getProduct()->isVirtual();
+            /** @var OrderItemTypeProductInterface $line_item */
+            return $line_item->getProduct()->isDownloadable() &&  $line_item->getProduct()->isVirtual();
         });
 
         return count($virtual_and_downloadable) === 0;

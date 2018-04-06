@@ -2,8 +2,17 @@
 
 namespace tiFy\Plugins\Shop\Settings;
 
+use tiFy\Plugins\Shop\Shop;
+
 interface SettingsInterface
 {
+    /**
+     * Instanciation de la classe.
+     * @param Shop $shop Classe de rappel de la boutique.
+     * @return self
+     */
+    public static function make(Shop $shop);
+
     /**
      * Adresse de la boutique - ligne 1.
      * @return string
@@ -144,35 +153,30 @@ interface SettingsInterface
 
     /**
      * Vérifie si les tarifs des produits saisie inclus la TVA (prix TTC ou HT).
-     *
      * @return bool
      */
     public function isPricesIncludeTax();
 
     /**
      * Vérifie si le calculateur de frais du panier est actif.
-     *
      * @return bool
      */
     public function isShippingCalcEnabled();
 
     /**
      * Vérifie s'il faut masquer les frais de livraison tant qu'aucune adresse de livraison n'est renseignée.
-     *
      * @return bool
      */
     public function isShippingCostRequiresAddress();
 
     /**
      * Destination de livraison.
-     *
      * @return string shipping|billing|billing_only
      */
     public function shipToDestination();
 
     /**
      * Activation du mode de débogage de la livraison.
-     *
      * @return bool
      */
     public function isShippingDebugMode();

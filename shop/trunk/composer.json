@@ -1,16 +1,16 @@
 {
   "name": "presstify-plugins/shop",
-  "description": "Extension PresstiFy de gestion de boutique ecommerce.",
+  "description": "Extension PresstiFy de gestion de boutique e-commerce.",
   "type": "presstify-plugin",
   "keywords": [
     "presstify",
     "plugins",
     "wordpress",
-    "ecommerce",
+    "e-commerce",
     "woocommerce"
   ],
   "homepage": "https://svn.milkcreation.fr/presstify-plugins/shop",
-  "time": "2018-04-04",
+  "time": "2018-04-06",
   "license": "proprietary",
   "authors": [
     {

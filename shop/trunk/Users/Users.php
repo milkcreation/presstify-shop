@@ -11,7 +11,7 @@ use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Users extends AbstractUserQuery implements ProvideTraitsInterface
+class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsInterface
 {
     use ProvideTraits;
 
@@ -70,7 +70,7 @@ class Users extends AbstractUserQuery implements ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -80,7 +80,7 @@ class Users extends AbstractUserQuery implements ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -90,7 +90,7 @@ class Users extends AbstractUserQuery implements ProvideTraitsInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
      * @param Shop $shop
      *

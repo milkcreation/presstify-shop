@@ -1,30 +1,44 @@
 <?php
 
+/**
+ * @name Admin
+ * @desc Controleur de gestion des interfaces d'administration (produits, commandes)
+ * @package presstiFy
+ * @namespace \tiFy\Plugins\Shop\Admin
+ * @version 1.1
+ * @since 1.0.0
+ *
+ * @author Jordy Manner <jordy@tigreblanc.fr>
+ * @copyright Milkcreation
+ */
+
 namespace tiFy\Plugins\Shop\Admin;
 
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Admin
+class Admin implements AdminInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
-     * Instance de la classe
+     * Instance de la classe.
      * @var Admin
      */
     private static $instance;
 
     /**
-     * Classe de rappel de la boutique
+     * Classe de rappel de la boutique.
      * @var Shop
      */
     protected $shop;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
@@ -38,21 +52,21 @@ class Admin
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __clone()
+    private function __clone()
     {
 
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __wakeup()
+    private function __wakeup()
     {
 
     }

@@ -14,11 +14,9 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Orders\OrderInterface;
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
-use tiFy\Plugins\Shop\Shop;
 
-final class OrderItemProduct extends AbstractOrderItem implements OrderItemProductInterface
+final class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
     /**
      * Classe de rappel du produit associé.
@@ -47,7 +45,10 @@ final class OrderItemProduct extends AbstractOrderItem implements OrderItemProdu
      * @var array
      */
     protected $attributes = [
+        'id'           => 0,
         'name'         => '',
+        'type'         => '',
+        'order_id'     => 0,
         'product_id'   => 0,
         'variation_id' => 0,
         'quantity'     => 1,
@@ -63,25 +64,6 @@ final class OrderItemProduct extends AbstractOrderItem implements OrderItemProdu
     ];
 
     /**
-     * CONSTRUCTEUR
-     *
-     * @param ProductItemInterface $product ProductItemInterface Classe de rappel du produit associé.
-     * @param Shop $shop Classe de rappel de la boutique.
-     * @param OrderInterface $order Classe de rappel de la commande associée.
-     *
-     * @return void
-     */
-    public function __construct(ProductItemInterface $product, Shop $shop, OrderInterface $order)
-    {
-        // Définition de la classe de rappel du produit associé
-        $this->product = $product;
-
-        $this['name'] = $this->product->getTitle();
-
-        parent::__construct($shop, $order);
-    }
-
-    /**
      * Récupération du type d'élement associé à la commande.
      *
      * @return string line_item
@@ -92,23 +74,13 @@ final class OrderItemProduct extends AbstractOrderItem implements OrderItemProdu
     }
 
     /**
-     * Récupération de la classe de rappel du produit associé.
-     *
-     * @return ProductItemInterface
-     */
-    public function getProduct()
-    {
-        return $this->product;
-    }
-
-    /**
      * Récupération de l'identifiant de qualification du produit associé.
      *
      * @return int
      */
     public function getProductId()
     {
-        return (int)$this->get('product_id', $this->getProduct()->getId());
+        return (int)$this->get('product_id', 0);
     }
 
     /**
@@ -168,7 +140,7 @@ final class OrderItemProduct extends AbstractOrderItem implements OrderItemProdu
      */
     public function getTotal()
     {
-        return (float)$this->get('subtotal_tax', 0);
+        return (float)$this->get('total', 0);
     }
 
     /**
@@ -189,5 +161,21 @@ final class OrderItemProduct extends AbstractOrderItem implements OrderItemProdu
     public function getTaxes()
     {
         return (array)$this->get('taxes', []);
+    }
+
+    /**
+     * Récupération de la classe de rappel du produit associé.
+     *
+     * @return null|ProductItemInterface
+     */
+    public function getProduct()
+    {
+        if ($this->product instanceof ProductItemInterface) :
+            return $this->product;
+        elseif ($id = $this->getProductId()) :
+            return $this->product = $this->provide('products.controller')->get($id);
+        else :
+            return null;
+        endif;
     }
 }

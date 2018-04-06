@@ -19,7 +19,7 @@ use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Functions implements ProvideTraitsInterface
+class Functions implements FunctionsInterface, ProvideTraitsInterface
 {
     use TraitsApp, ProvideTraits;
 
@@ -55,21 +55,21 @@ class Functions implements ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __clone()
+    private function __clone()
     {
 
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __wakeup()
+    private function __wakeup()
     {
 
     }

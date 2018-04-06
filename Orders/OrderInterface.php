@@ -3,13 +3,12 @@
 namespace tiFy\Plugins\Shop\Orders;
 
 use tiFy\Core\Query\Controller\PostItemInterface;
-use tiFy\Plugins\Shop\Products\ProductItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemCouponInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemFeeInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemProductInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemShippingInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTaxInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFeeInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProductInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShippingInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTaxInterface;
 
 interface OrderInterface extends PostItemInterface
 {
@@ -89,10 +88,24 @@ interface OrderInterface extends PostItemInterface
     public function getTotal();
 
     /**
-     * Nombre d'article contenu dans la commande.
+     * Vérification de correspondance du client associé à la commande.
+     * @param int $customer_id Identifiant de qualification de l'utilisateur à contrôler.
+     * @return bool
+     */
+    public function isCustomer($customer_id);
+
+    /**
+     * Nombre de produit contenu dans la commande.
      * @return int
      */
     public function productCount();
+
+    /**
+     * Nombre total d'articles commandé.
+     * @internal Calcul le cumul des quantités produits.
+     * @return int
+     */
+    public function quantityProductCount();
 
     /**
      * Récupération de la méthode de paiement.
@@ -131,46 +144,49 @@ interface OrderInterface extends PostItemInterface
 
     /**
      * Création d'une ligne de coupon de réduction.
-     * @return object|OrderItemCouponInterface
+     * @return object|OrderItemTypeCouponInterface
      */
     public function createItemCoupon();
 
     /**
      * Création d'une ligne de promotion.
-     * @return object|OrderItemFeeInterface
+     * @return object|OrderItemTypeFeeInterface
      */
     public function createItemFee();
 
     /**
      * Création d'une ligne d'article.
-     * @return object|OrderItemProductInterface
+     * @return object|OrderItemTypeProductInterface
      */
-    public function createItemProduct(ProductItemInterface $product);
+    public function createItemProduct();
 
     /**
      * Création d'une ligne de livraison.
-     * @return object|OrderItemShippingInterface
+     * @return object|OrderItemTypeShippingInterface
      */
     public function createItemShipping();
 
     /**
      * Création d'une ligne de taxe.
-     * @return object|OrderItemTaxInterface
+     * @return object|OrderItemTypeTaxInterface
      */
     public function createItemTax();
 
     /**
      * Ajout d'une ligne d'élément associé à la commande.
-     * @param OrderItemInterface $item
+     * @param OrderItemTypeInterface $item
      * @return void
      */
     public function addItem($item);
 
     /**
      * Récupération de la liste des éléments associés à la commande.
+     *
+     * @param string $type Type d'éléments à récupérer. null pour tous par défaut|coupon|fee|line_item (product)|shipping|tax.
+     *
      * @return array
      */
-    public function getItems();
+    public function getItems($type = null);
 
     /**
      * Sauvegarde de la commande.

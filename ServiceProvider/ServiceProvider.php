@@ -5,10 +5,12 @@ namespace tiFy\Plugins\Shop\ServiceProvider;
 use tiFy\Core\ServiceProvider\AbstractServiceProvider;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Addresses\Addresses;
+use tiFy\Plugins\Shop\Addresses\AddressesInterface;
 use tiFy\Plugins\Shop\Addresses\Billing as AddressesBilling;
 use tiFy\Plugins\Shop\Addresses\FormHandler as AddressesFormHandler;
 use tiFy\Plugins\Shop\Addresses\Shipping as AddressesShipping;
 use tiFy\Plugins\Shop\Admin\Admin;
+use tiFy\Plugins\Shop\Admin\AdminInterface;
 use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Cart\CartInterface;
 use tiFy\Plugins\Shop\Cart\Line as CartLine;
@@ -16,7 +18,11 @@ use tiFy\Plugins\Shop\Cart\LineList as CartLineList;
 use tiFy\Plugins\Shop\Cart\SessionItems as CartSessionItems;
 use tiFy\Plugins\Shop\Cart\Total as CartTotal;
 use tiFy\Plugins\Shop\Checkout\Checkout;
+use tiFy\Plugins\Shop\Checkout\CheckoutInterface;
+use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
+use tiFy\Plugins\Shop\CustomTypes\CustomTypesInterface;
 use tiFy\Plugins\Shop\Functions\Functions;
+use tiFy\Plugins\Shop\Functions\FunctionsInterface;
 use tiFy\Plugins\Shop\Functions\Date as FunctionsDate;
 use tiFy\Plugins\Shop\Functions\Page as FunctionsPage;
 use tiFy\Plugins\Shop\Functions\Price as FunctionsPrice;
@@ -25,24 +31,30 @@ use tiFy\Plugins\Shop\Gateways\Gateways;
 use tiFy\Plugins\Shop\Gateways\GatewaysInterface;
 use tiFy\Plugins\Shop\Gateways\GatewayList as GatewaysList;
 use tiFy\Plugins\Shop\Notices\Notices;
-use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
+use tiFy\Plugins\Shop\Notices\NoticesInterface;
 use tiFy\Plugins\Shop\Orders\Orders;
 use tiFy\Plugins\Shop\Orders\OrdersInterface;
 use tiFy\Plugins\Shop\Orders\Order;
+use tiFy\Plugins\Shop\Orders\OrderInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItem;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemList;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCoupon;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFee;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProduct;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShipping;
+use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTax;
 use tiFy\Plugins\Shop\Orders\OrderList;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemCoupon;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemFee;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemProduct;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemShipping;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTax;
 use tiFy\Plugins\Shop\Products\Products;
 use tiFy\Plugins\Shop\Products\ProductsInterface;
 use tiFy\Plugins\Shop\Products\ProductItem as ProductsItem;
-use tiFy\Plugins\Shop\Products\ProductItemInterface as ProductsItemInterface;
 use tiFy\Plugins\Shop\Products\ProductList as ProductsList;
 use tiFy\Plugins\Shop\Session\Session;
+use tiFy\Plugins\Shop\Session\SessionInterface;
 use tiFy\Plugins\Shop\Settings\Settings;
+use tiFy\Plugins\Shop\Settings\SettingsInterface;
 use tiFy\Plugins\Shop\Users\Users;
+use tiFy\Plugins\Shop\Users\UsersInterface;
 use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
 use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
 use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
@@ -85,11 +97,14 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
         CustomTypes::class,
         Orders::class,
         Order::class,
-        OrderItemCoupon::class,
-        OrderItemFee::class,
-        OrderItemProduct::class,
-        OrderItemShipping::class,
-        OrderItemTax::class,
+        OrderItems::class,
+        OrderItem::class,
+        OrderItemList::class,
+        OrderItemTypeCoupon::class,
+        OrderItemTypeFee::class,
+        OrderItemTypeProduct::class,
+        OrderItemTypeShipping::class,
+        OrderItemTypeTax::class,
         OrderList::class,
         Products::class,
         ProductsItem::class,
@@ -146,14 +161,17 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
             'controller' => CustomTypes::class,
         ],
         'orders'       => [
-            'controller'    => Orders::class,
-            'order'         => Order::class,
-            'item_coupon'   => OrderItemCoupon::class,
-            'item_fee'      => OrderItemFee::class,
-            'item_product'  => OrderItemProduct::class,
-            'item_shipping' => OrderItemShipping::class,
-            'item_tax'      => OrderItemTax::class,
-            'list'          => OrderList::class,
+            'controller'               => Orders::class,
+            'order'                    => Order::class,
+            'order_items'              => OrderItems::class,
+            'order_item'               => OrderItem::class,
+            'order_item_list'          => OrderItemList::class,
+            'order_item_type_coupon'   => OrderItemTypeCoupon::class,
+            'order_item_type_fee'      => OrderItemTypeFee::class,
+            'order_item_type_product'  => OrderItemTypeProduct::class,
+            'order_item_type_shipping' => OrderItemTypeShipping::class,
+            'order_item_type_tax'      => OrderItemTypeTax::class,
+            'list'                     => OrderList::class,
         ],
         'products'     => [
             'controller' => Products::class,
@@ -202,7 +220,11 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
         'addresses' => ['billing', 'form_handler', 'shipping'],
         'cart'      => ['line', 'session_items'],
         'functions' => ['date', 'page', 'price', 'url'],
-        'orders'    => ['item_product'],
+        'orders'    => [
+            'order', 'list',
+            'order_items', 'order_item', 'order_item_list',
+            'order_item_type_coupon', 'order_item_type_fee', 'order_item_type_product', 'order_item_type_shipping', 'order_item_type_tax'
+        ],
         'users'     => ['customer', 'shop_manager']
     ];
 
@@ -221,31 +243,37 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
 
         // Pré-déclaration des controleurs principaux.
         $this
-            ->setMapController('addresses.controller', function ($shop) {
-                return Addresses::make($shop);
+            ->setMapController('addresses.controller', function ($shop, $controller) {
+                /** @var AddressesInterface $controller */
+                return $controller::make($shop);
             })
-            ->setMapController('admin.controller', function ($shop) {
-                return Admin::make($shop);
+            ->setMapController('admin.controller', function ($shop, $controller) {
+                /** @var AdminInterface $controller */
+                return $controller::make($shop);
             })
             ->setMapController('cart.controller', function ($shop, $controller) {
                 /** @var CartInterface $controller */
                 return $controller::make($shop);
             })
-            ->setMapController('checkout.controller', function ($shop) {
-                return Checkout::make($shop);
+            ->setMapController('checkout.controller', function ($shop, $controller) {
+                /** @var CheckoutInterface $controller */
+                return $controller::make($shop);
             })
-            ->setMapController('functions.controller', function ($shop) {
-                return Functions::make($shop);
+            ->setMapController('custom_types.controller', function ($shop, $controller) {
+                /** @var CustomTypesInterface $controller */
+                return $controller::make($shop);
+            })
+            ->setMapController('functions.controller', function ($shop, $controller) {
+                /** @var FunctionsInterface $controller */
+                return $controller::make($shop);
             })
             ->setMapController('gateways.controller', function ($shop, $controller) {
                 /** @var GatewaysInterface $controller */
                 return $controller::make($shop);
             })
-            ->setMapController('notices.controller', function ($shop) {
-                return Notices::make($shop);
-            })
-            ->setMapController('custom_types.controller', function ($shop) {
-                return CustomTypes::make($shop);
+            ->setMapController('notices.controller', function ($shop, $controller) {
+                /** @var NoticesInterface $controller */
+                return $controller::make($shop);
             })
             ->setMapController('orders.controller', function ($shop, $controller) {
                 /** @var OrdersInterface $controller */
@@ -255,14 +283,17 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
                 /** @var ProductsInterface $controller */
                 return $controller::make($shop);
             })
-            ->setMapController('session.controller', function ($shop) {
-                return Session::make($shop);
+            ->setMapController('session.controller', function ($shop, $controller) {
+                /** @var SessionInterface $controller */
+                return $controller::make($shop);
             })
-            ->setMapController('settings.controller', function ($shop) {
-                return Settings::make($shop);
+            ->setMapController('settings.controller', function ($shop, $controller) {
+                /** @var SettingsInterface $controller */
+                return $controller::make($shop);
             })
-            ->setMapController('users.controller', function ($shop) {
-                return Users::make($shop);
+            ->setMapController('users.controller', function ($shop, $controller) {
+                /** @var UsersInterface $controller */
+                return $controller::make($shop);
             });
 
         // Déclaration des personnalisations.
@@ -270,40 +301,87 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
 
         // Déclaration de la listes des variables passées en arguments dans les controleurs.
         $this
-            ->setMapArgs('addresses.controller', [$this->shop])
+            // Addresses
+            ->setMapArgs('addresses.controller', [
+                $this->shop,
+                $this->getMapCustom('addresses.controller', 'controller') ?: $this->getDefault('addresses.controller')
+            ])
             ->setMapArgs('addresses.billing', [$this->shop, Addresses::class])
             ->setMapArgs('addresses.form_handler', [$this->shop])
             ->setMapArgs('addresses.shipping', [$this->shop, Addresses::class])
-            ->setMapArgs('admin.controller', [$this->shop])
+            // Admin
+            ->setMapArgs('admin.controller', [
+                $this->shop,
+                $this->getMapCustom('admin.controller', 'controller') ?: $this->getDefault('admin.controller')
+            ])
+            // Cart
             ->setMapArgs('cart.controller', [
                 $this->shop,
-                $this->getMapCustom('cart.controller', 'controller') ? : $this->getDefault('cart.controller'),
+                $this->getMapCustom('cart.controller', 'controller') ?: $this->getDefault('cart.controller')
             ])
             ->setMapArgs('cart.line', [$this->shop, Cart::class, []])
             ->setMapArgs('cart.session_items', [$this->shop, Cart::class])
-            ->setMapArgs('checkout.controller', [$this->shop])
-            ->setMapArgs('functions.controller', [$this->shop])
+            // Checkout
+            ->setMapArgs('checkout.controller', [
+                $this->shop,
+                $this->getMapCustom('checkout.controller', 'controller') ?: $this->getDefault('checkout.controller')
+            ])
+            // CustomTypes
+            ->setMapArgs('custom_types.controller', [
+                $this->shop,
+                $this->getMapCustom('custom_types.controller', 'controller') ?: $this->getDefault('custom_types.controller')
+            ])
+            // Functions
+            ->setMapArgs('functions.controller', [
+                $this->shop,
+                $this->getMapCustom('functions.controller', 'controller') ?: $this->getDefault('functions.controller')
+            ])
             ->setMapArgs('functions.date', ['now', true, $this->shop])
             ->setMapArgs('functions.page', [$this->shop])
             ->setMapArgs('functions.price', [$this->shop])
             ->setMapArgs('functions.url', [$this->shop])
+            // Gateways
             ->setMapArgs('gateways.controller', [
                 $this->shop,
-                $this->getMapCustom('gateways.controller', 'controller') ? : $this->getDefault('gateways.controller')
+                $this->getMapCustom('gateways.controller', 'controller') ?: $this->getDefault('gateways.controller')
             ])
-            ->setMapArgs('notices.controller', [$this->shop])
-            ->setMapArgs('custom_types.controller', [$this->shop])
+            // Notices
+            ->setMapArgs('notices.controller', [
+                $this->shop,
+                $this->getMapCustom('notices.controller', 'controller') ?: $this->getDefault('notices.controller')
+            ])
+            // Orders
             ->setMapArgs('orders.controller', [
                 $this->shop,
-                $this->getMapCustom('orders.controller', 'controller') ? : $this->getDefault('orders.controller')
+                $this->getMapCustom('orders.controller', 'controller') ?: $this->getDefault('orders.controller')
             ])
-            ->setMapArgs('orders.item_product', [ProductsItemInterface::class, $this->shop, Order::class])
+            ->setMapArgs('orders.order_item', [[], $this->shop])
+            ->setMapArgs('orders.order_item_list', [[], $this->shop])
+            ->setMapArgs('orders.order_items', [OrderInterface::class, $this->shop])
+            ->setMapArgs('orders.order_item_type_coupon', [0, OrderInterface::class, $this->shop])
+            ->setMapArgs('orders.order_item_type_fee', [0, OrderInterface::class, $this->shop])
+            ->setMapArgs('orders.order_item_type_product', [0, OrderInterface::class, $this->shop])
+            ->setMapArgs('orders.order_item_type_shipping', [0, OrderInterface::class, $this->shop])
+            ->setMapArgs('orders.order_item_type_tax', [0, OrderInterface::class, $this->shop])
+            // Products
             ->setMapArgs('products.controller', [
                 $this->shop,
-                $this->getMapCustom('products.controller', 'controller') ? : $this->getDefault('products.controller')
+                $this->getMapCustom('products.controller', 'controller') ?: $this->getDefault('products.controller')
             ])
-            ->setMapArgs('session.controller', [$this->shop])
-            ->setMapArgs('settings.controller', [$this->shop])
-            ->setMapArgs('users.controller', [$this->shop]);
+            // Session
+            ->setMapArgs('session.controller', [
+                $this->shop,
+                $this->getMapCustom('session.controller', 'controller') ?: $this->getDefault('session.controller')
+            ])
+            // Settings
+            ->setMapArgs('settings.controller', [
+                $this->shop,
+                $this->getMapCustom('settings.controller', 'controller') ?: $this->getDefault('settings.controller')
+            ])
+            // Users
+            ->setMapArgs('users.controller', [
+                $this->shop,
+                $this->getMapCustom('users.controller', 'controller') ?: $this->getDefault('users.controller')
+            ]);
     }
 }

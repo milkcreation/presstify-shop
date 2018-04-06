@@ -16,34 +16,38 @@ namespace tiFy\Plugins\Shop\Session;
 
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Core\User\Session\Session as tFySession;
+use tiFy\Core\User\Session\Store;
+use tiFy\Core\User\Session\StoreInterface;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Session
+class Session implements SessionInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
-     * Instance de la classe
+     * Instance de la classe.
      * @var Session
      */
     private static $instance;
 
     /**
-     * Classe de rappel de la boutique
+     * Classe de rappel de la boutique.
      * @var Shop
      */
     protected $shop;
 
     /**
-     * Récupération de la classe de traitement des sessions
-     * @var \tiFy\Core\User\Session\StoreInterface
+     * Récupération de la classe responsable du traitement des sessions.
+     * @var StoreInterface
      */
     private $handler;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Classe de rappel de la boutique.
      *
      * @return void
      */
@@ -57,36 +61,27 @@ class Session
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __clone()
+    private function __clone()
     {
 
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __wakeup()
+    private function __wakeup()
     {
 
     }
 
     /**
-     *
-     * @return \tiFy\Core\User\Session\StoreInterface
-     */
-    public function __invoke()
-    {
-        return $this->handler;
-    }
-
-    /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
      * @param Shop $shop
      *
@@ -102,12 +97,22 @@ class Session
     }
 
     /**
-     * Déclaration de la session
+     * Déclaration de la session.
      *
      * @return void
      */
     public function tify_user_session_register()
     {
         $this->handler = tFySession::register('tify_shop');
+    }
+
+    /**
+     * Appel de la classe responsable du traitement à l'invocation de la classe.
+     *
+     * @return StoreInterface
+     */
+    public function __invoke()
+    {
+        return $this->handler;
     }
 }

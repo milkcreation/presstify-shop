@@ -17,10 +17,12 @@ namespace tiFy\Plugins\Shop\CustomTypes;
 use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Core\CustomType\CustomType;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
-class CustomTypes
+class CustomTypes implements CustomTypesInterface, ProvideTraitsInterface
 {
-    use TraitsApp;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -52,21 +54,21 @@ class CustomTypes
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __clone()
+    private function __clone()
     {
 
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    protected function __wakeup()
+    private function __wakeup()
     {
 
     }
@@ -95,7 +97,7 @@ class CustomTypes
     final public function tify_custom_taxonomy_register()
     {
         // Récupération de la liste des identifiant de qualification des gamme de produits déclarés
-        $product_object_types = $this->shop->products()->getObjectTypes();
+        $product_object_types = $this->products()->getObjectTypes();
 
         // Type de produit
         CustomType::registerTaxonomy(

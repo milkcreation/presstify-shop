@@ -78,7 +78,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -88,7 +88,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -237,7 +237,9 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     public function get($id = null)
     {
-        if (is_string($id)) :
+        if (is_numeric($id) && $id > 0) :
+            $post = $id;
+        elseif (is_string($id)) :
             return self::getBy('name', $id);
         elseif (! $id) :
             $post = $this->session()->get('order_awaiting_payment', 0);
@@ -261,7 +263,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
         if (! $this->appHasContainer($name)) :
             $controller = $this->getItemController();
 
-            $this->appAddContainer($name, new $controller($this->shop, $post));
+            $this->appAddContainer($name, new $controller($post, $this->shop));
         endif;
 
         return $this->appGetContainer($name);

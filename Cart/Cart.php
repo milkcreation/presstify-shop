@@ -84,7 +84,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */
@@ -94,7 +94,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
     }
 
     /**
-     * Court-circuitage de l'implémentation
+     * Court-circuitage de l'implémentation.
      *
      * @return void
      */

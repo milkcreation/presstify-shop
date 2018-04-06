@@ -2,52 +2,40 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Orders\OrderInterface;
+use Illuminate\Support\Fluent;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
+use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
 interface OrderItemInterface
 {
     /**
-     * Récupération de la valeur d'un attribut.
-     * @param string $key Identifiant de qualification de l'attribut
-     * @param mixed $default Valeur de retour par défaut
+     * Récupération d'une donnée d'élement associé à la commande.
+     * @param string $key Clé d'indice de la donnée à récupérer.
+     * @param mixed $default Valeur de retour par défaut.
      * @return mixed
      */
     public function get($key, $default = null);
 
     /**
-     * Définition de la valeur d'un attribut.
-     * @param string $key Identifiant de qualification de l'attribut
-     * @param mixed $value Valeur de définition de l'attribut
-     * @return self
+     * Récupération d'une metadonnée d'élement associé à la commande.
+     * @param string $meta_key Clé d'index de la métadonnée à récupérer.
+     * @param bool $single Type de récupération. single|multi.
+     * @return mixed
      */
-    public function set($key, $value);
+    public function getMeta($meta_key, $single = true);
 
     /**
-     * Récupération de la liste des attributs
-     * @return array
-     */
-    public function all();
-
-    /**
-     * Enregistrement de l'élément.
+     * Récupération de l'identifiant de qualification.
+     * @internal Identifiant de l'élément en base de données.
      * @return int
      */
-    public function save();
-
-    /**
-     * Récupération de la classe de rappel de la commande associée.
-     * @return OrderInterface
-     */
-    public function getOrder();
-
-    /**
-     * Récupération de l'identifiant de qualification de la commande.
-     * @return int
-     */
-    public function getOrderId();
+    public function getId();
 
     /**
      * Récupération de l'intitulé de qualification.
+     *
      * @return string
      */
     public function getName();
@@ -59,9 +47,8 @@ interface OrderItemInterface
     public function getType();
 
     /**
-     * Vérification de validité du type d'élement.
-     * @param string $type
-     * @return boolean
+     * Récupération de l'identifiant de qualification de la commande.
+     * @return int
      */
-    public function isType($type);
+    public function getOrderId();
 }

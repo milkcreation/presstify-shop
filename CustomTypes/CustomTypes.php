@@ -132,10 +132,26 @@ class CustomTypes implements CustomTypesInterface, ProvideTraitsInterface
         );
 
         // Catégorie de produit
-        // @todo
+        CustomType::registerTaxonomy(
+            'product_cat',
+            [
+                'hierarchical'          => true,
+                'singular'              => __('categorie', 'tify'),
+                'plural'                => __('categories', 'tify'),
+                'show_ui'               => true
+            ]
+        );
 
         // Etiquette de produit
-        // @todo
+        CustomType::registerTaxonomy(
+            'product_tag',
+            [
+                'hierarchical'          => false,
+                'singular'              => __('étiquette', 'tify'),
+                'plural'                => __('étiquettes', 'tify'),
+                'show_ui'               => true
+            ]
+        );
 
         // Classes de livraison
         // @todo

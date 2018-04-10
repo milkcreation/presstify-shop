@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Products\ObjectTypes;
 
+use Illuminate\Support\Arr;
 use tiFy\App\FactoryConstructor;
 use tiFy\Core\CustomType\CustomType;
 use tiFy\Core\Meta\Post as MetaPost;
@@ -49,11 +50,18 @@ abstract class Factory extends FactoryConstructor
             $this->getId(),
             $this->getAttrList()
         );
+        $tag = Arr::get($this->getAttrList(), 'tag', true);
+
+        if (($tag === true) || ($tag === 'product_tag')) :
+            $this->appAddAction(
+                'tify_custom_post_register_taxonomy_for_object_type',
+                function() {
+                    \register_taxonomy_for_object_type('product_tag', $this->getId());
+                }
+            );
+        endif;
     }
 
-    /**
-     * CONTROLEURS
-     */
     /**
      * Traitement de arguments de configuration
      *

@@ -167,6 +167,16 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
+     * Récupération du la liste des étiquettes associées.
+     *
+     * @return array|\WP_Term
+     */
+    public function getProductTags()
+    {
+        return \wp_get_post_terms($this->getId(), 'product_tag');
+    }
+
+    /**
      * Vérifie si un produit est téléchargeable.
      *
      * @return bool

@@ -77,6 +77,13 @@ interface ProductItemInterface extends PostItemInterface
     public function getUpsellProducts();
 
     /**
+     * Récupération du la liste des étiquettes associées.
+     *
+     * @return array|\WP_Term[]
+     */
+    public function getProductTags();
+
+    /**
      * Vérifie si un produit est téléchargeable.
      *
      * @return bool

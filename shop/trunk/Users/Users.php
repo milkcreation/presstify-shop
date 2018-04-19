@@ -118,21 +118,9 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
             return new LoggedOut;
         endif;
 
-        if ($item->isCustomer()) :
-            $user = $this->provider()->get('users.customer', [$item->getUser(), $this->shop]);
+        $roles = $item->getRoles();
 
-            if(! $user instanceof CustomerInterface) :
-                throw new LogicException(
-                    sprintf(
-                        __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
-                        CustomerInterface::class
-                    ),
-                    500
-                );
-            endif;
-
-            return $user;
-        elseif ($item->isShopManager()) :
+        if (in_array('shop_manager', $roles)) :
             $user = $this->provider()->get('users.shop_manager', [$item->getUser(), $this->shop]);
 
             if(! $user instanceof ShopManagerInterface) :
@@ -140,6 +128,20 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
                     sprintf(
                         __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
                         ShopManagerInterface::class
+                    ),
+                    500
+                );
+            endif;
+
+            return $user;
+        elseif (in_array('customer', $roles)) :
+            $user = $this->provider()->get('users.customer', [$item->getUser(), $this->shop]);
+
+            if(! $user instanceof CustomerInterface) :
+                throw new LogicException(
+                    sprintf(
+                        __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
+                        CustomerInterface::class
                     ),
                     500
                 );

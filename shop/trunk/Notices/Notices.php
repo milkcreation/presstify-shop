@@ -57,7 +57,6 @@ final class Notices implements NoticesInterface, ProvideTraitsInterface
 
         // Déclaration des événements
         $this->appAddAction('wp_loaded');
-        $this->appAddAction('wp_enqueue_scripts');
     }
 
     /**
@@ -104,20 +103,6 @@ final class Notices implements NoticesInterface, ProvideTraitsInterface
     final public function wp_loaded()
     {
         $this->notices = $this->session()->get('notices', []);
-    }
-
-    /**
-     * Mise en file des scripts
-     *
-     * @return void
-     */
-    final public function wp_enqueue_scripts()
-    {
-        if (!$this->notices) :
-            return;
-        endif;
-
-        Layout::Notice()->enqueue_scripts();
     }
 
     /**

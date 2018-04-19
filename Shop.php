@@ -6,7 +6,7 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop
- * @version 1.0.11
+ * @version 1.0.12
  */
 
 namespace tiFy\Plugins\Shop;
@@ -49,17 +49,14 @@ class Shop extends Plugin
     }
 
     /**
-     * Récupération de dépendance
-     *
-     * @param string $name Identifiant de qualification de la dépendance
+     * Récupération de l'instance de la classe.
      *
      * @return object|self
      */
-    public static function get($name = null)
+    public static function get()
     {
         try {
-            /** @var Shop $Shop */
-            return self::tFyAppGetContainer('tiFy\Plugins\Shop\Shop');
+            return self::tFyAppGetContainer(__CLASS__);
         } catch(NotFoundException $e) {
             wp_die($e->getMessage(), '', $e->getCode());
             exit;

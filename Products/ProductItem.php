@@ -14,6 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
+use Illuminate\Support\Arr;
 use tiFy\Core\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
@@ -137,13 +138,36 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Récupération dess attributs.
+     * Récupération des attributs.
      *
      * @return array
      */
     public function getAttributes()
     {
         return [];
+    }
+
+    /**
+     * Récupération des options d'achat
+     *
+     * @return array
+     */
+    public function getPurchasingOptions()
+    {
+        return $this->getMeta('_purchasing_options', true);
+    }
+
+    /**
+     * Récupération des attribut option d'achat.
+     *
+     * @param string $key Clé d'index de l'option ou syntaxe à point pour récupérer la valeur d'un attribut.
+     * @param mixed $default Valeur de retour par défaut.
+     *
+     * @return mixed
+     */
+    public function getPurchasingOption($key, $default = null)
+    {
+        return Arr::get($this->getPurchasingOptions(), $key, $default);
     }
 
     /**

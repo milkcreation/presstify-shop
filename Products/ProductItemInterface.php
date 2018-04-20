@@ -63,6 +63,23 @@ interface ProductItemInterface extends PostItemInterface
     public function getAttributes();
 
     /**
+     * Récupération des options d'achat
+     *
+     * @return array
+     */
+    public function getPurchasingOptions();
+
+    /**
+     * Récupération des attribut option d'achat.
+     *
+     * @param string $key Clé d'index de l'option ou syntaxe à point pour récupérer la valeur d'un attribut.
+     * @param mixed $default Valeur de retour par défaut.
+     *
+     * @return mixed
+     */
+    public function getPurchasingOption($key, $default = null);
+
+    /**
      * Récupération des produits du groupe.
      *
      * @return string[]

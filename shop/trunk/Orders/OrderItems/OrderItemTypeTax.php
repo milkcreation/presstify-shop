@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-final class OrderItemTypeTax extends AbstractOrderItemType implements OrderItemTypeTaxInterface
+class OrderItemTypeTax extends AbstractOrderItemType implements OrderItemTypeTaxInterface
 {
     /**
      * Récupération du type d'élement associé à la commande.

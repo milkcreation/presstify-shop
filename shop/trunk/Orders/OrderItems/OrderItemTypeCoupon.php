@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-final class OrderItemTypeCoupon extends  AbstractOrderItemType implements OrderItemTypeCouponInterface
+class OrderItemTypeCoupon extends  AbstractOrderItemType implements OrderItemTypeCouponInterface
 {
     /**
      * Récupération du type d'élement associé à la commande.

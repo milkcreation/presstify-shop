@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-final class OrderItemTypeShipping extends AbstractOrderItemType implements OrderItemTypeShippingInterface
+class OrderItemTypeShipping extends AbstractOrderItemType implements OrderItemTypeShippingInterface
 {
     /**
      * Récupération du type d'élement associé à la commande.

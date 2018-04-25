@@ -246,7 +246,7 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
         endif;
 
         foreach ($this->metas_map as $attr_key => $meta_key) :
-            $this->saveMeta($meta_key, $this->get($attr_key, ''), true);
+            $this->saveMeta($meta_key, $this->get($attr_key), true);
         endforeach;
     }
 

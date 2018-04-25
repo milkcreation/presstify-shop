@@ -16,7 +16,7 @@ namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
 
-final class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
+class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
     /**
      * Classe de rappel du produit associé.

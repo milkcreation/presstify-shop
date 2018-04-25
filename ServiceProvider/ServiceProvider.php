@@ -49,6 +49,7 @@ use tiFy\Plugins\Shop\Products\Products;
 use tiFy\Plugins\Shop\Products\ProductsInterface;
 use tiFy\Plugins\Shop\Products\ProductItem as ProductsItem;
 use tiFy\Plugins\Shop\Products\ProductList as ProductsList;
+use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Session\Session;
 use tiFy\Plugins\Shop\Session\SessionInterface;
 use tiFy\Plugins\Shop\Settings\Settings;
@@ -109,6 +110,7 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
         Products::class,
         ProductsItem::class,
         ProductsList::class,
+        ProductPurchasingOption::class,
         Session::class,
         Settings::class,
         Users::class,
@@ -174,9 +176,10 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
             'list'                     => OrderList::class,
         ],
         'products'     => [
-            'controller' => Products::class,
-            'item'       => ProductsItem::class,
-            'list'       => ProductsList::class,
+            'controller'        => Products::class,
+            'item'              => ProductsItem::class,
+            'list'              => ProductsList::class,
+            'purchasing_option' => ProductPurchasingOption::class
         ],
         'session'      => [
             'controller' => Session::class,
@@ -221,10 +224,18 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
         'cart'      => ['line', 'session_items'],
         'functions' => ['date', 'page', 'price', 'url'],
         'orders'    => [
-            'order', 'list',
-            'order_items', 'order_item', 'order_item_list',
-            'order_item_type_coupon', 'order_item_type_fee', 'order_item_type_product', 'order_item_type_shipping', 'order_item_type_tax'
+            'order',
+            'list',
+            'order_items',
+            'order_item',
+            'order_item_list',
+            'order_item_type_coupon',
+            'order_item_type_fee',
+            'order_item_type_product',
+            'order_item_type_shipping',
+            'order_item_type_tax'
         ],
+        'products'  => ['item', 'list', 'purchasing_option'],
         'users'     => ['customer', 'shop_manager']
     ];
 
@@ -329,7 +340,8 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
             // CustomTypes
             ->setMapArgs('custom_types.controller', [
                 $this->shop,
-                $this->getMapCustom('custom_types.controller', 'controller') ?: $this->getDefault('custom_types.controller')
+                $this->getMapCustom('custom_types.controller',
+                    'controller') ?: $this->getDefault('custom_types.controller')
             ])
             // Functions
             ->setMapArgs('functions.controller', [
@@ -367,6 +379,11 @@ class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsIn
             ->setMapArgs('products.controller', [
                 $this->shop,
                 $this->getMapCustom('products.controller', 'controller') ?: $this->getDefault('products.controller')
+            ])
+            ->setMapArgs('products.purchasing_option', [
+                '',
+                null,
+                $this->shop
             ])
             // Session
             ->setMapArgs('session.controller', [

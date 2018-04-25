@@ -16,6 +16,8 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Plugins\Shop\Products\ProductItemInterface;
+use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -94,11 +96,30 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     /**
      * Récupération des données du produit associé à l'article du panier
      *
-     * @return \tiFy\Plugins\Shop\Products\ProductItemInterface
+     * @return ProductItemInterface
      */
     public function getProduct()
     {
         return $this->get('product', null);
+    }
+
+    /**
+     * Récupération des options d'achat.
+     *
+     * @return ProductPurchasingOption[]
+     */
+    public function getPurchasingOptions()
+    {
+        $purchasing_opts = [];
+        foreach($this->get('purchasing_options',[]) as $product_id => $po) :
+            foreach($po as $name => $selected) :
+                $opt = $this->provide('products.purchasing_option', [$name, $product_id, $this->shop]);
+                $opt->setSelected($selected);
+                $purchasing_opts[] = $opt;
+            endforeach;
+        endforeach;
+
+        return $purchasing_opts;
     }
 
     /**

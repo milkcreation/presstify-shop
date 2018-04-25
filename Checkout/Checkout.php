@@ -23,6 +23,7 @@ use tiFy\Core\Route\Route;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Orders\OrderInterface;
 
 class Checkout implements CheckoutInterface, ProvideTraitsInterface
 {
@@ -89,7 +90,19 @@ class Checkout implements CheckoutInterface, ProvideTraitsInterface
             return self::$instance;
         endif;
 
-        return self::$instance = new self($shop);
+        self::$instance = new static($shop);
+
+        if(! self::$instance instanceof Checkout) :
+            throw new LogicException(
+                sprintf(
+                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
+                    Checkout::class
+                ),
+                500
+            );
+        endif;
+
+        return self::$instance;
     }
 
     /**
@@ -313,7 +326,7 @@ class Checkout implements CheckoutInterface, ProvideTraitsInterface
             endif;
         endif;
 
-        /** @var  $order */
+        /** @var OrderInterface $order */
         $order = ($order_id = $this->session()->get('order_awaiting_payment', 0))
             ? $this->orders()->get($order_id)
             : $this->orders()->create();
@@ -343,38 +356,19 @@ class Checkout implements CheckoutInterface, ProvideTraitsInterface
         $total = $this->cart()->getTotals()->getGlobal();
 
         // Liste des articles du panier associés à la commande
-        if ($lines = $this->cart()->lines()) :
-            foreach($lines as $line) :
-                $product = $line->getProduct();
-                $item = $order->createItemProduct();
-                $item
-                    ->set('name', $product->getTitle())
-                    ->set('quantity', $line->getQuantity())
-                    ->set('variation', '')
-                    ->set('subtotal', $line->getSubtotal())
-                    ->set('subtotal_tax', $line->getSubtotalTax())
-                    ->set('total', $line->getTotal())
-                    ->set('total_tax', $line->getTax())
-                    ->set('taxes', [])
-                    ->set('tax_class', '')
-                    ->set('product_id', $product->getId())
-                    ->set('variation_id', 0);
-
-                $order->addItem($item);
-            endforeach;
-        endif;
+        $this->createOrderItemsProduct($order);
 
         // Liste des promotions associées à la commande
-        // @todo
+        $this->createOrderItemsFee($order);
 
         // Liste des livraisons associées à la commande
-        // @todo
+        $this->createOrderItemsShipping($order);
 
         // Liste des taxes associées à la commandes
-        // @todo
+        $this->createOrderItemsTax($order);
 
         // Liste des coupons de réduction associé à la commande
-        // @todo
+        $this->createOrderItemsCoupon($order);
 
         $order_datas = compact(
             'created_via', 'cart_hash', 'customer_id', 'currency', 'prices_include_tax', 'customer_ip_address',
@@ -409,5 +403,84 @@ class Checkout implements CheckoutInterface, ProvideTraitsInterface
 
         \wp_redirect(Arr::get($result, 'redirect', $redirect));
         exit;
+    }
+
+    /**
+     * Ajout des élements du panier à la commande
+     *
+     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
+     *
+     * @return void
+     */
+    public function createOrderItemsProduct(OrderInterface $order)
+    {
+        if ($lines = $this->cart()->lines()) :
+            foreach($lines as $line) :
+                $product = $line->getProduct();
+                $item = $order->createItemProduct();
+                $item
+                    ->set('name', $product->getTitle())
+                    ->set('quantity', $line->getQuantity())
+                    ->set('variation', '')
+                    ->set('subtotal', $line->getSubtotal())
+                    ->set('subtotal_tax', $line->getSubtotalTax())
+                    ->set('total', $line->getTotal())
+                    ->set('total_tax', $line->getTax())
+                    ->set('taxes', [])
+                    ->set('tax_class', '')
+                    ->set('product_id', $product->getId())
+                    ->set('variation_id', 0);
+
+                $order->addItem($item);
+            endforeach;
+        endif;
+    }
+
+    /**
+     * Ajout des élements de promotion à la commande
+     *
+     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
+     *
+     * @return void
+     */
+    public function createOrderItemsFee(OrderInterface $order)
+    {
+
+    }
+
+    /**
+     * Ajout des élements de livraison à la commande
+     *
+     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
+     *
+     * @return void
+     */
+    public function createOrderItemsShipping(OrderInterface $order)
+    {
+
+    }
+
+    /**
+     * Ajout des élements de taxe à la commande
+     *
+     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
+     *
+     * @return void
+     */
+    public function createOrderItemsTax(OrderInterface $order)
+    {
+
+    }
+
+    /**
+     * Ajout des élements de bon de réduction à la commande
+     *
+     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
+     *
+     * @return void
+     */
+    public function createOrderItemsCoupon(OrderInterface $order)
+    {
+
     }
 }

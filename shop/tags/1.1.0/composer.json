@@ -1,0 +1,47 @@
+{
+  "name": "presstify-plugins/shop",
+  "description": "Extension PresstiFy de gestion de boutique e-commerce.",
+  "type": "presstify-plugin",
+  "keywords": [
+    "presstify",
+    "plugins",
+    "wordpress",
+    "e-commerce",
+    "woocommerce"
+  ],
+  "homepage": "https://svn.milkcreation.fr/presstify-plugins/shop",
+  "time": "2018-04-26",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Jordy Manner",
+      "email": "jordy.manner@milkcreation.fr",
+      "role": "Developper"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "http://composer.tigreblanc.fr/presstify/"
+    }
+  ],
+  "require": {
+    "composer/installers": "~1.0",
+    "presstify/framework": "^1.5"
+  },
+  "autoload": {
+    "files": [
+      "Helpers.php"
+    ],
+    "psr-4": {
+      "tiFy\\Plugins\\Shop\\": ""
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config" : {
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "optimize-autoloader": true
+  }
+}

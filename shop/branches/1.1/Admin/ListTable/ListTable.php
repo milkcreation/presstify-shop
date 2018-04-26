@@ -3,9 +3,10 @@
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
 use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Components\Columns\PostType\PostThumbnail;
 use tiFy\Core\Column\Column;
-use tiFy\Core\Column\PostType\PostThumbnail\PostThumbnail;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Products\ObjectTypes\Factory as ObjectTypesFactory;
 
 class ListTable
 {
@@ -31,7 +32,7 @@ class ListTable
      *
      * @return void
      */
-    public function __construct(Shop $shop, \tiFy\Plugins\Shop\Products\ObjectTypes\Factory $ObjectType)
+    public function __construct(Shop $shop, ObjectTypesFactory $ObjectType)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;

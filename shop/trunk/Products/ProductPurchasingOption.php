@@ -20,7 +20,7 @@ use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class ProductPurchasingOption implements ProvideTraitsInterface
+class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasingOptionInterface
 {
     use ProvideTraits;
 

@@ -2,18 +2,18 @@
 
 /**
  * @name Shop
- * @desc Extension PresstiFy de gestion de boutique ecommerce
+ * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop
- * @version 1.1.1
+ * @version 2.0.0
  */
 
 namespace tiFy\Plugins\Shop;
 
 use League\Container\Exception\NotFoundException;
-use tiFy\App\Plugin;
-use tiFy\Core\User\Session\StoreInterface as tiFySession;
+use tiFy\Apps\AppController;
+use tiFy\User\Session\StoreInterface as tiFySession;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Checkout\Checkout;
@@ -26,7 +26,7 @@ use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
 use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Users\Users;
 
-class Shop extends Plugin
+final class Shop extends AppController
 {
     /**
      * Fournisseur de service
@@ -45,7 +45,7 @@ class Shop extends Plugin
 
         // Déclaration du fournisseur de services.
         $this->provider = new ServiceProvider($this->appConfig('service_provider', []), $this);
-        $this->appContainer()->addServiceProvider($this->provider);
+        $this->appServiceProvider($this->provider);
     }
 
     /**

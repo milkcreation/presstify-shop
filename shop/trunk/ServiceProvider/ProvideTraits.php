@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\ServiceProvider;
 
-use tiFy\Core\User\Session\StoreInterface as tiFySession;
+use tiFy\User\Session\StoreInterface as tiFySession;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Checkout\Checkout;

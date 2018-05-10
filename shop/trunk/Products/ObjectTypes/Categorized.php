@@ -15,8 +15,8 @@
 namespace tiFy\Plugins\Shop\Products\ObjectTypes;
 
 use tiFy\Components;
-use tiFy\Core\CustomType\CustomType;
-use tiFy\Core\Taboox\Taboox;
+use tiFy\CustomType\CustomType;
+use tiFy\Taboox\Taboox;
 use tiFy\Plugins\Shop\Shop;
 
 class Categorized extends Factory
@@ -78,7 +78,7 @@ class Categorized extends Factory
     /**
      * Déclaration des catégories type pour les gammes de produits multiple
      *
-     * @return \tiFy\Core\CustomType\CustomType::registerTaxonomy()
+     * @return \tiFy\CustomType\CustomType::registerTaxonomy()
      */
     final public function tify_custom_taxonomy_register()
     {
@@ -113,7 +113,7 @@ class Categorized extends Factory
             [
                 'id'    => $this->getCat() . '--icon',
                 'title' => __('Icône représentative', 'tify'),
-                'cb'    => 'tiFy\Core\Taboox\Taxonomy\Icon\Admin\Icon',
+                'cb'    => 'tiFy\Taboox\Taxonomy\Icon\Admin\Icon',
             ]
         );
         Taboox::registerNode(
@@ -121,7 +121,7 @@ class Categorized extends Factory
             [
                 'id'    => $this->getCat() . '--order',
                 'title' => __('Ordre d\'affichage', 'tify'),
-                'cb'    => 'tiFy\Core\Taboox\Taxonomy\Order\Admin\Order',
+                'cb'    => 'tiFy\Taboox\Taxonomy\Order\Admin\Order',
             ]
         );
     }

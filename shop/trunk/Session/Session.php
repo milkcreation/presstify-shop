@@ -14,17 +14,17 @@
 
 namespace tiFy\Plugins\Shop\Session;
 
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\User\Session\Session as tFySession;
-use tiFy\Core\User\Session\Store;
-use tiFy\Core\User\Session\StoreInterface;
+use tiFy\Apps\AppController;
+use tiFy\User\Session\Session as tFyUserSession;
+use tiFy\User\Session\Store;
+use tiFy\User\Session\StoreInterface;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Session implements SessionInterface, ProvideTraitsInterface
+class Session extends AppController implements SessionInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe.
@@ -99,11 +99,13 @@ class Session implements SessionInterface, ProvideTraitsInterface
     /**
      * Déclaration de la session.
      *
+     * @param tFyUserSession $session Classe de rappel de traitement des sessions utilisateur.
+     *
      * @return void
      */
-    public function tify_user_session_register()
+    public function tify_user_session_register($session)
     {
-        $this->handler = tFySession::register('tify_shop');
+        $this->handler = $session->register('tify_shop');
     }
 
     /**

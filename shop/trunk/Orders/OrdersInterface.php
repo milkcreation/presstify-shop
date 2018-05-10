@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use tiFy\Core\Db\Factory as DbFactory;
+use tiFy\Db\Factory as DbFactory;
 use tiFy\Plugins\Shop\Shop;
 
 interface OrdersInterface

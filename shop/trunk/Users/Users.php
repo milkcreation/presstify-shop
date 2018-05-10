@@ -3,10 +3,10 @@
 namespace tiFy\Plugins\Shop\Users;
 
 use LogicException;
-use tiFy\Core\Query\Controller\AbstractUserQuery;
-use tiFy\Core\User\Login\Login;
-use tiFy\Core\User\Role\Role;
-use tiFy\Core\User\TakeOver\TakeOver;
+use tiFy\Query\Controller\AbstractUserQuery;
+use tiFy\User\Login\Login;
+use tiFy\User\Role\Role;
+use tiFy\User\TakeOver\TakeOver;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -154,15 +154,17 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     }
 
     /**
-     * Déclaration des roles
+     * Déclaration des roles.
+     *
+     * @param Role $roleController Classe de rappel du controleur de gestion des rôles.
      *
      * @return void
      */
-    public function tify_user_role_register()
+    public function tify_user_role_register($roleController)
     {
         if ($roles = $this->config('roles', [])) :
-            foreach ($roles as $role => $attrs) :
-                self::$Role[$role] = Role::register($role, $attrs);
+            foreach ($roles as $name => $attrs) :
+                self::$Role[$name] = $roleController->register($name, $attrs);
             endforeach;
         endif;
     }
@@ -170,11 +172,13 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     /**
      * Déclaration de l'interface d'authentification
      *
+     * @param Login $loginController Classe de rappel du controleur d'interfaces de connexion.
+     *
      * @return void
      */
-    public function tify_user_login_register()
+    public function tify_user_login_register($loginController)
     {
-        self::$Login = Login::register(
+        self::$Login = $loginController->register(
             '_tiFyShop',
             $this->config('login', [])
         );
@@ -183,13 +187,15 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     /**
      * Déclaration des permissions de prise de contrôle de comptes utilisateurs
      *
+     * @param TakeOver $takeOverController Classe de rappel du controleur de prise de controle.
+     *
      * @return void
      */
-    public function tify_user_take_over_register()
+    public function tify_user_take_over_register($takeOverController)
     {
-        if ($take_over = self::tFyAppConfig('take_over', [], 'tiFy\Plugins\Shop\Shop')) :
-            foreach ($take_over as $id => $attrs) :
-                self::$TakeOver[$id] = TakeOver::register($id, $attrs);
+        if ($take_over = $this->config('take_over', [])) :
+            foreach ($take_over as $name => $attrs) :
+                self::$TakeOver[$name] = $takeOverController->register($name, $attrs);
             endforeach;
         endif;
     }

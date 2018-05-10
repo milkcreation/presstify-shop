@@ -3,7 +3,6 @@
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use Illuminate\Support\Fluent;
-use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;

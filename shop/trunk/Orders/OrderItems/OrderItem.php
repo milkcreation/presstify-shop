@@ -15,14 +15,14 @@
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use Illuminate\Support\Fluent;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Apps\AppTrait;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
 class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInterface
 {
-    use TraitsApp, ProvideTraits;
+    use AppTrait, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique.

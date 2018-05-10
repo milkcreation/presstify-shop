@@ -14,11 +14,12 @@
 namespace tiFy\Plugins\Shop\Functions;
 
 use League\Uri;
+use tiFy\Apps\AppController;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Url implements UrlInterface, ProvideTraitsInterface
+class Url extends AppController implements UrlInterface, ProvideTraitsInterface
 {
     use ProvideTraits;
 

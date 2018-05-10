@@ -14,15 +14,15 @@
 
 namespace tiFy\Plugins\Shop\CustomTypes;
 
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\CustomType\CustomType;
+use tiFy\Apps\AppController;
+use tiFy\CustomType\CustomType;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
-class CustomTypes implements CustomTypesInterface, ProvideTraitsInterface
+class CustomTypes extends AppController implements CustomTypesInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe

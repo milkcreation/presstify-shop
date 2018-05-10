@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Fluent;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Apps\AppTrait;
 use tiFy\Plugins\Shop\Orders\OrderInterface;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
@@ -11,7 +11,7 @@ use tiFy\Plugins\Shop\Shop;
 
 abstract class AbstractGateway extends Fluent implements GatewayInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use AppTrait, ProvideTraits;
 
     /**
      * Identifiant de qualification de la plateforme

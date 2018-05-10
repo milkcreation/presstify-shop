@@ -15,14 +15,14 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Apps\AppTrait;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
 class Total extends Fluent implements TotalInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use AppTrait, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique.

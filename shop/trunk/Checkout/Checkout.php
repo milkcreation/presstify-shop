@@ -18,16 +18,16 @@ use Illuminate\Support\Arr;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\Route\Route;
+use tiFy\Apps\AppController;
+use tiFy\Route\Route;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Orders\OrderInterface;
 
-class Checkout implements CheckoutInterface, ProvideTraitsInterface
+class Checkout extends AppController implements CheckoutInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe
@@ -106,14 +106,16 @@ class Checkout implements CheckoutInterface, ProvideTraitsInterface
     }
 
     /**
-     * Déclaration du chemin des routes
+     * Déclaration du chemin des routes.
+     *
+     * @param Route $route Classe de rappel de traitement des routes.
      *
      * @return void
      */
-    final public function tify_route_register()
+    final public function tify_route_register($route)
     {
         // Ajout d'un produit au panier
-        Route::register(
+        $route->register(
             'tify.plugins.shop.checkout.process',
             [
                 'method' => 'post',
@@ -139,7 +141,7 @@ class Checkout implements CheckoutInterface, ProvideTraitsInterface
      */
     public function processUrl()
     {
-        return Route::url('tify.plugins.shop.checkout.process');
+        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.checkout.process');
     }
 
     /**

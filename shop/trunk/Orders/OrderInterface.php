@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use tiFy\Core\Query\Controller\PostItemInterface;
+use tiFy\Query\Controller\PostItemInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFeeInterface;

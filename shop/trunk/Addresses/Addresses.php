@@ -15,14 +15,12 @@
 namespace tiFy\Plugins\Shop\Addresses;
 
 use LogicException;
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\Forms\Addons;
+use tiFy\Apps\AppController;
+use tiFy\Form\Addons\AddonsController;
 use tiFy\Plugins\Shop\Shop;
 
-class Addresses implements AddressesInterface
+class Addresses extends AppController implements AddressesInterface
 {
-    use TraitsApp;
-
     /**
      * Instance de la classe
      * @var AddressesInterface
@@ -112,11 +110,13 @@ class Addresses implements AddressesInterface
     }
 
     /**
-     * Déclaration de l'addon de traitement des formulaire
+     * Déclaration de l'addon de traitement des formulaire.
+     *
+     * @param AddonsController $addonsController Classe de rappel de gestion des addons de formulaire.
      *
      * @return void
      */
-    final public function tify_form_register_addon()
+    final public function tify_form_register_addon($addonsController)
     {
         $this->billing();
         $this->shipping();
@@ -132,7 +132,7 @@ class Addresses implements AddressesInterface
             );
         endif;
 
-        Addons::register(
+        $addonsController->register(
             'tify_shop_address_form_handler',
             $form_handler_class,
             $this->shop

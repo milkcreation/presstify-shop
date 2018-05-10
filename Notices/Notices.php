@@ -15,15 +15,15 @@
 namespace tiFy\Plugins\Shop\Notices;
 
 use LogicException;
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\Partial\Partial;
+use tiFy\Apps\AppController;
+use tiFy\Partial\Partial;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-final class Notices implements NoticesInterface, ProvideTraitsInterface
+final class Notices extends AppController implements NoticesInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe

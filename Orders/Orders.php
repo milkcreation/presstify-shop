@@ -16,9 +16,9 @@ namespace tiFy\Plugins\Shop\Orders;
 
 use Illuminate\Support\Collection;
 use LogicException;
-use tiFy\Core\Db\Db;
-use tiFy\Core\Db\Factory as DbFactory;
-use tiFy\Core\Query\Controller\AbstractPostQuery;
+use tiFy\Db\Db;
+use tiFy\Db\Factory as DbFactory;
+use tiFy\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -132,7 +132,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     private function initDb()
     {
-        $this->db = Db::register(
+        $this->db = $this->appServiceGet(Db::class)->register(
             '_tiFyShopOrderItems',
             [
                 'install'    => false,

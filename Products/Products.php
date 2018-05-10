@@ -15,7 +15,7 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use LogicException;
-use tiFy\Core\Query\Controller\AbstractPostQuery;
+use tiFy\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\Shop;
 
 class Products extends AbstractPostQuery implements ProductsInterface
@@ -239,7 +239,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
      */
     private function registerObjectTypes()
     {
-        foreach (self::tFyAppConfig('products', [], 'tiFy\Plugins\Shop\Shop') as $post_type => $attrs) :
+        foreach ($this->appConfig('products', [], Shop::class) as $post_type => $attrs) :
             if (empty($attrs['category'])) :
                 return self::$ObjectTypes[$post_type] = new ObjectTypes\Uncategorized($this->shop, $post_type, $attrs);
             else :
@@ -271,7 +271,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
         endif;
 
         // Bypass - Si l'argument de requête renseignant l'indication de type de post est manquant
-        if (!$post_type = self::tFyAppGetRequestVar('post_type', '', 'POST')) :
+        if (!$post_type = $this->appRequest('POST')->get('post_type', '')) :
             return null;
         endif;
 

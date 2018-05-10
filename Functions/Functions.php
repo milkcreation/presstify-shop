@@ -14,14 +14,14 @@
 namespace tiFy\Plugins\Shop\Functions;
 
 use LogicException;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Apps\AppController;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Functions implements FunctionsInterface, ProvideTraitsInterface
+class Functions extends AppController implements FunctionsInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe.

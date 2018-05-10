@@ -17,7 +17,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use tiFy\Core\Query\Controller\AbstractPostItem;
+use tiFy\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;

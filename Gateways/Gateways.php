@@ -16,16 +16,16 @@ namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Arr;
 use LogicException;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Apps\AppController;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
 use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
-class Gateways implements GatewaysInterface, ProvideTraitsInterface
+class Gateways extends AppController implements GatewaysInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Core\Query\Controller\QueryInterface;
+use tiFy\Query\Controller\QueryInterface;
 use tiFy\Plugins\Shop\Shop;
 
 interface ProductsInterface extends QueryInterface

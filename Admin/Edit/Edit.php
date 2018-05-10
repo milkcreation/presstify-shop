@@ -1,15 +1,13 @@
 <?php
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\Field\Field;
-use tiFy\Core\Taboox\Taboox;
+use tiFy\Apps\AppController;
+use tiFy\Field\Field;
+use tiFy\Taboox\Taboox;
 use tiFy\Plugins\Shop\Shop;
 
-class Edit
+class Edit extends AppController
 {
-    use TraitsApp;
-
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -61,7 +59,7 @@ class Edit
     /**
      * Déclaration de la liste des organes de saisie
      *
-     * @return \tiFy\Core\Taboox\Taboox::registerNode()
+     * @return \tiFy\Taboox\Taboox::registerNode()
      */
     final  public function tify_taboox_register_node()
     {

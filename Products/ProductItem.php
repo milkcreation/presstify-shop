@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Core\Query\Controller\AbstractPostItem;
+use tiFy\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;

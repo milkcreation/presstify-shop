@@ -19,15 +19,15 @@ use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\App\Traits\App as TraitsApp;
-use tiFy\Core\Route\Route;
+use tiFy\Apps\AppController;
+use tiFy\Route\Route;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Cart implements CartInterface, ProvideTraitsInterface
+class Cart extends AppController implements CartInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use ProvideTraits;
 
     /**
      * Instance de la classe
@@ -149,12 +149,14 @@ class Cart implements CartInterface, ProvideTraitsInterface
      * Déclaration du chemin des routes de traitement du panier
      * @internal Ajout d'article au panier|Mise à jour d'article dans le panier|Suppression d'article du panier
      *
+     * @param Route $route Classe de rappel de traitement des routes.
+     *
      * @return void
      */
-    final public function tify_route_register()
+    final public function tify_route_register($route)
     {
         // Ajout d'un article au panier
-        Route::register(
+        $route->register(
             'tify.plugins.shop.cart.add',
             [
                 'method' => 'post',
@@ -176,7 +178,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
         );
 
         // Mise à jour des articles du panier
-        Route::register(
+        $route->register(
             'tify.plugins.shop.cart.update',
             [
                 'method' => 'post',
@@ -194,7 +196,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
         );
 
         // Suppression d'un article du panier
-        Route::register(
+        $route->register(
             'tify.plugins.shop.cart.remove',
             [
                 'method' => ['get', 'post'],
@@ -310,7 +312,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
         endif;
 
         if ($product instanceof \tiFy\Plugins\Shop\Products\ProductItemInterface) :
-            return Route::url('tify.plugins.shop.cart.add', [$product->getSlug()]);
+            return $this->appServiceGet(Route::class)->url('tify.plugins.shop.cart.add', [$product->getSlug()]);
         else :
             return '';
         endif;
@@ -326,7 +328,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
      */
     public function updateUrl()
     {
-        return Route::url('tify.plugins.shop.cart.update');
+        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.cart.update');
     }
 
     /**
@@ -338,7 +340,7 @@ class Cart implements CartInterface, ProvideTraitsInterface
      */
     public function removeUrl($key)
     {
-        return Route::url('tify.plugins.shop.cart.remove', [$key]);
+        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.cart.remove', [$key]);
     }
 
     /**

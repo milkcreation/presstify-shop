@@ -18,7 +18,7 @@ class Billing extends AbstractAddress implements BillingInterface
 {
     /**
      * Récupération de la liste des champs de formulaire
-     * @see \tiFy\Core\Forms\Form\Field
+     * @see \tiFy\Form\Controller\Field
      *
      * @return array
      */

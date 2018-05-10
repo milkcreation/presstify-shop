@@ -2,17 +2,17 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Core\Forms\Addons\Factory;
-use tiFy\Core\Forms\Form\Handle;
+use tiFy\Form\Addons\AbstractAddonController;
+use tiFy\Form\Forms\FormHandleController;
 use tiFy\Plugins\Shop\Shop;
 
-class FormHandler extends Factory implements FormHandlerInterface
+class FormHandler extends AbstractAddonController implements FormHandlerInterface
 {
     /**
      * Identifiant de qualification de l'addon
      * @var string
      */
-    public $ID = 'tify_shop_address_form_handler';
+    public $id = 'tify_shop_address_form_handler';
 
     /**
      * Classe de rappel de la boutique
@@ -21,7 +21,7 @@ class FormHandler extends Factory implements FormHandlerInterface
     protected $shop;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
      * @param Shop $shop Classe de rappel de la boutique
      *
@@ -34,14 +34,12 @@ class FormHandler extends Factory implements FormHandlerInterface
 
         // Définition des fonctions de callback
         $this->callbacks['handle_submit_request'] = [$this, 'cb_handle_submit_request'];
-
-        parent::__construct();
     }
 
     /**
-     * Traitement de la requête de formulaire
+     * Traitement de la requête de formulaire.
      *
-     * @param Handle $handle Controleur de traitement des formulaires
+     * @param FormHandleController $handle Controleur de traitement des formulaires.
      *
      * @return void
      */

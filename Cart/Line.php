@@ -15,7 +15,7 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
-use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Apps\AppTrait;
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
 use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
@@ -24,7 +24,7 @@ use tiFy\Plugins\Shop\Shop;
 
 class Line extends Fluent implements LineInterface, ProvideTraitsInterface
 {
-    use TraitsApp, ProvideTraits;
+    use AppTrait, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique

@@ -17,7 +17,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use Illuminate\Support\Collection;
 use LogicException;
 use tiFy\Db\Db;
-use tiFy\Db\Factory as DbFactory;
+use tiFy\Db\DbController as DbController;
 use tiFy\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
@@ -41,7 +41,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
 
     /**
      * Classe de rappel de la base de données
-     * @var DbFactory
+     * @var DbController
      */
     protected $db;
 
@@ -128,7 +128,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     /**
      * Initialisation de la table de base de données.
      *
-     * @return DbFactory
+     * @return DbController
      */
     private function initDb()
     {
@@ -260,13 +260,13 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
         endif;
 
         $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appHasContainer($name)) :
+        if (! $this->appServiceHas($name)) :
             $controller = $this->getItemController();
 
-            $this->appAddContainer($name, new $controller($post, $this->shop));
+            $this->appServiceAdd($name, new $controller($post, $this->shop));
         endif;
 
-        return $this->appGetContainer($name);
+        return $this->appServiceGet($name);
     }
 
     /**
@@ -297,11 +297,11 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     /**
      * Récupération du controleur de base de données.
      *
-     * @return null|DbFactory
+     * @return null|DbController
      */
     public function getDb()
     {
-        if ($this->db instanceof DbFactory) :
+        if ($this->db instanceof DbController) :
             return $this->db;
         endif;
 

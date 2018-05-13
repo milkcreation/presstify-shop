@@ -4,8 +4,8 @@ namespace tiFy\Plugins\Shop\Users;
 
 use LogicException;
 use tiFy\Query\Controller\AbstractUserQuery;
-use tiFy\User\Login\Login;
 use tiFy\User\Role\Role;
+use tiFy\User\SignIn\SignIn;
 use tiFy\User\TakeOver\TakeOver;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
@@ -35,9 +35,9 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
 
     /**
      * Classe de rappel des l'interface d'authentification
-     * @var Login
+     * @var SignIn
      */
-    private static $Login = null;
+    private static $SignIn = null;
 
     /**
      * Liste des classes de rappel des permissions de prise de contrôle de comptes utilisateurs
@@ -65,7 +65,7 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
 
         // Déclaration des événements
         $this->appAddAction('tify_user_role_register');
-        $this->appAddAction('tify_user_login_register');
+        $this->appAddAction('tify_user_signin_register');
         $this->appAddAction('tify_user_take_over_register');
     }
 
@@ -172,15 +172,15 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     /**
      * Déclaration de l'interface d'authentification
      *
-     * @param Login $loginController Classe de rappel du controleur d'interfaces de connexion.
+     * @param SignIn $signInController Classe de rappel du controleur d'interfaces de connexion.
      *
      * @return void
      */
-    public function tify_user_login_register($loginController)
+    public function tify_user_signin_register($signinController)
     {
-        self::$Login = $loginController->register(
+        self::$SignIn = $signinController->register(
             '_tiFyShop',
-            $this->config('login', [])
+            $this->config('signin', [])
         );
     }
 

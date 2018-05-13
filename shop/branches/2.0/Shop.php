@@ -56,7 +56,7 @@ final class Shop extends AppController
     public static function get()
     {
         try {
-            return self::tFyAppGetContainer(__CLASS__);
+            return self::appInstance();
         } catch(NotFoundException $e) {
             wp_die($e->getMessage(), '', $e->getCode());
             exit;

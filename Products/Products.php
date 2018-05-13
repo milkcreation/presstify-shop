@@ -153,12 +153,12 @@ class Products extends AbstractPostQuery implements ProductsInterface
         endif;
 
         $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appHasContainer($name)) :
+        if (! $this->appServiceHas($name)) :
             $controller = $this->getObjectType($post->post_type)->getItemController();
-            $this->appAddContainer($name, new $controller($this->shop, $post));
+            $this->appServiceAdd($name, new $controller($this->shop, $post));
         endif;
 
-        return $this->appGetContainer($name);
+        return $this->appServiceGet($name);
     }
 
     /**

@@ -15,10 +15,11 @@
 namespace tiFy\Plugins\Shop\CustomTypes;
 
 use tiFy\Apps\AppController;
-use tiFy\CustomType\CustomType;
+use tiFy\PostType\PostType;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Taxonomy\Taxonomy;
 
 class CustomTypes extends AppController implements CustomTypesInterface, ProvideTraitsInterface
 {
@@ -49,8 +50,8 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
         $this->shop = $shop;
 
         // Déclaration des événements de déclenchement
-        $this->appAddAction('tify_custom_taxonomy_register');
-        $this->appAddAction('tify_custom_post_type_register');
+        $this->appAddAction('tify_taxonomy_register');
+        $this->appAddAction('tify_post_type_register');
     }
 
     /**
@@ -92,15 +93,17 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
     /**
      * Déclaration des types de taxonomies personnalisées
      *
+     * @param Taxonomy $taxonomyController Classe de rappel du controleur de taxonomie.
+     *
      * @return void
      */
-    final public function tify_custom_taxonomy_register()
+    final public function tify_taxonomy_register($taxonomyController)
     {
         // Récupération de la liste des identifiant de qualification des gamme de produits déclarés
         $product_object_types = $this->products()->getObjectTypes();
 
         // Type de produit
-        CustomType::registerTaxonomy(
+        $taxonomyController->register(
             'product_type',
             [
                 'hierarchical'      => false,
@@ -116,7 +119,7 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
         );
 
         // Visibilité d'un produit
-        CustomType::registerTaxonomy(
+        $taxonomyController->register(
             'product_visibility',
             [
                 'hierarchical'      => false,
@@ -132,7 +135,7 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
         );
 
         // Catégorie de produit
-        CustomType::registerTaxonomy(
+        $taxonomyController->register(
             'product_cat',
             [
                 'hierarchical'          => true,
@@ -143,7 +146,7 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
         );
 
         // Etiquette de produit
-        CustomType::registerTaxonomy(
+        $taxonomyController->register(
             'product_tag',
             [
                 'hierarchical'          => false,
@@ -160,15 +163,17 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
     /**
      * Déclaration des types de posts personnalisés des gammes de produits
      *
+     * @param PostType $postTypeController Classe de rappel du controleur de type de post.
+     *
      * @return void
      */
-    final public function tify_custom_post_type_register()
+    final public function tify_post_type_register($postTypeController)
     {
         // Produits
         // @todo
 
         // Variation de produits
-        CustomType::registerPostType(
+        $postTypeController->register(
             'product_variation',
             [
                 'plural'          => __('variations', 'tify'),
@@ -183,7 +188,7 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
         );
 
         // Commandes
-        CustomType::registerPostType(
+        $postTypeController->register(
             'shop_order',
             [
                 'plural'              => __('commandes', 'tify'),
@@ -206,7 +211,7 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
         );
 
         // Remboursements
-        CustomType::registerPostType(
+        $postTypeController->register(
             'shop_order_refund',
             [
                 'plural'          => __('remboursements', 'tify'),

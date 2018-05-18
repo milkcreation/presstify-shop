@@ -40,10 +40,10 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     private static $SignIn = null;
 
     /**
-     * Liste des classes de rappel des permissions de prise de contrôle de comptes utilisateurs
+     * Liste des classes de rappel des permissions de prise de contrôle de comptes utilisateurs.
      * @var TakeOver[]
      */
-    private static $TakeOver = [];
+    protected $takeOver = [];
 
     /**
      * Utilisateur courant
@@ -195,7 +195,7 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     {
         if ($take_over = $this->config('take_over', [])) :
             foreach ($take_over as $name => $attrs) :
-                self::$TakeOver[$name] = $takeOverController->register($name, $attrs);
+                $this->takeOver[$name] = $takeOverController->register($name, $attrs);
             endforeach;
         endif;
     }

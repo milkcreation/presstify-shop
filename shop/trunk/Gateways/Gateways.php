@@ -150,7 +150,7 @@ class Gateways extends AppController implements GatewaysInterface, ProvideTraits
             $this->add($id, $controller);
         endforeach;
 
-        $this->appEmit('tify.plugins.shop.gateways.register', $this);
+        $this->appEventTrigger('tify.plugins.shop.gateways.register', $this);
 
         $items = [];
         if ($this->registered) :

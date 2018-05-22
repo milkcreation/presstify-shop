@@ -54,11 +54,9 @@ class Addresses extends AppController implements AddressesInterface
      */
     protected function __construct(Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Déclaration des événements
-        $this->appAddAction('tify_form_register_addon');
+        $this->appAddAction('tify_form_addon_register');
     }
 
     /**
@@ -116,7 +114,7 @@ class Addresses extends AppController implements AddressesInterface
      *
      * @return void
      */
-    final public function tify_form_register_addon($addonsController)
+    final public function tify_form_addon_register($addonsController)
     {
         $this->billing();
         $this->shipping();
@@ -200,59 +198,84 @@ class Addresses extends AppController implements AddressesInterface
     {
         return [
             'first_name' => [
-                'label'        => __('Prénom', 'tify'),
+                'title'        => __('Prénom', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'autocomplete' => 'given-name',
+                'attrs'        => [
+                    'autocomplete' => 'given-name',
+                ],
                 'order'        => 10,
             ],
             'last_name'  => [
-                'label'        => __('Nom de famille', 'tify'),
+                'title'        => __('Nom de famille', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'autocomplete' => 'family-name',
+                'attrs'        => [
+                    'autocomplete' => 'family-name',
+                ],
                 'order'        => 20,
             ],
             'company'    => [
-                'label'        => __('Société', 'tify'),
-                'autocomplete' => 'organization',
+                'title'        => __('Société', 'tify'),
+                'type'         => 'text',
+                'attrs'        => [
+                    'autocomplete' => 'organization',
+                ],
                 'order'        => 30,
             ],
             'country'    => [
-                'label'        => __('Pays', 'tify'),
+                'title'        => __('Pays', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'class'        => ['form-row-wide', 'address-field', 'update_totals_on_change'],
-                'autocomplete' => 'country',
+                'attrs'        => [
+                    'autocomplete' => 'country',
+                ],
                 'order'        => 40,
             ],
             'address_1'  => [
-                'label'        => __('Numéro et nom de rue', 'tify'),
-                'placeholder'  => esc_attr__('N° et rue', 'tify'),
+                'title'        => __('Numéro et nom de rue', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'autocomplete' => 'address-line1',
+                'attrs'        => [
+                    'autocomplete' => 'address-line1',
+                    'placeholder'  => esc_attr__('N° et rue', 'tify'),
+                ],
                 'order'        => 50,
             ],
             'address_2'  => [
-                'label'        => __('Complément d\'adresse', 'tify'),
-                'placeholder'  => esc_attr__('Appartement, porte, bureau, etc. (optionnel)', 'tify'),
-                'required'     => false,
-                'autocomplete' => 'address-line2',
+                'title'        => __('Complément d\'adresse', 'tify'),
+                'type'         => 'text',
+                'attrs'        => [
+                    'autocomplete' => 'address-line2',
+                    'placeholder'  => esc_attr__('Appartement, porte, bureau, etc. (optionnel)', 'tify'),
+                ],
                 'order'        => 60,
             ],
             'city'       => [
-                'label'        => __('Ville', 'tify'),
+                'title'        => __('Ville', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'autocomplete' => 'address-level2',
+                'attrs'        => [
+                    'autocomplete' => 'address-level2',
+                ],
                 'order'        => 70,
             ],
             'state'      => [
-                'label'        => __('Département / Région', 'tify'),
+                'title'        => __('Département / Région', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'autocomplete' => 'address-level1',
+                'attrs'        => [
+                    'autocomplete' => 'address-level1',
+                ],
                 'order'        => 80,
             ],
             'postcode'   => [
-                'label'        => __('Code postal', 'tify'),
+                'title'        => __('Code postal', 'tify'),
+                'type'         => 'text',
                 'required'     => true,
-                'autocomplete' => 'postal-code',
+                'attrs'        => [
+                    'autocomplete' => 'postal-code',
+                ],
                 'order'        => 90,
             ]
         ];

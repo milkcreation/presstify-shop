@@ -46,12 +46,12 @@ class FormHandler extends AbstractAddonController implements FormHandlerInterfac
     public function cb_handle_submit_request($handle)
     {
         /** @var AddressInterface $ctrl */
-        if (!$ctrl = $this->getFormAttr('controller', '')) :
+        if (!$ctrl = $this->getFormOption('controller', '')) :
             return;
         endif;
 
         $user_data = []; $session_data = [];
-        foreach ($handle->getFieldsVars() as $slug => $value) :
+        foreach ($handle->allFieldVars() as $slug => $value) :
             $key = preg_replace('#^' . $ctrl->getId() . '_#', '', $slug);
             $session_data[$key] = $value;
             $user_data[$slug] = $value;

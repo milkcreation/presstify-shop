@@ -17,8 +17,7 @@ namespace tiFy\Plugins\Shop\Addresses;
 class Billing extends AbstractAddress implements BillingInterface
 {
     /**
-     * Récupération de la liste des champs de formulaire
-     * @see \tiFy\Form\Controller\Field
+     * Récupération de la liste des champs de formulaire.
      *
      * @return array
      */
@@ -27,16 +26,22 @@ class Billing extends AbstractAddress implements BillingInterface
         $fields = parent::fields();
 
         $fields['phone'] = [
-            'label'        => __('Numéro de téléphone', 'tify'),
+            'title'        => __('Numéro de téléphone', 'tify'),
+            'type'         => 'text',
             'required'     => true,
-            'autocomplete' => 'phone',
+            'attrs'        => [
+                'autocomplete' => 'phone',
+            ],
             'order'        => 100
         ];
 
         $fields['email'] = [
-            'label'        => __('Adresse de messagerie', 'tify'),
+            'title'        => __('Adresse de messagerie', 'tify'),
+            'type'         => 'text',
             'required'     => true,
-            'autocomplete' => 'email',
+            'attrs'        => [
+                'autocomplete' => 'email',
+            ],
             'order'        => 110
         ];
 

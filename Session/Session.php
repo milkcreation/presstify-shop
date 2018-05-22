@@ -81,7 +81,7 @@ class Session extends AppController implements SessionInterface, ProvideTraitsIn
     }
 
     /**
-     * Instanciation de la classe.
+     * Instanciation de la classe.Factory
      *
      * @param Shop $shop
      *

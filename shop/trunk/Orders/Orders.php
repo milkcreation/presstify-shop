@@ -17,7 +17,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use Illuminate\Support\Collection;
 use LogicException;
 use tiFy\Db\Db;
-use tiFy\Db\DbController as DbController;
+use tiFy\Db\DbControllerInterface;
 use tiFy\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
@@ -41,7 +41,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
 
     /**
      * Classe de rappel de la base de données
-     * @var DbController
+     * @var DbControllerInterface
      */
     protected $db;
 
@@ -128,7 +128,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     /**
      * Initialisation de la table de base de données.
      *
-     * @return DbController
+     * @return DbControllerInterface
      */
     private function initDb()
     {
@@ -297,11 +297,11 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     /**
      * Récupération du controleur de base de données.
      *
-     * @return null|DbController
+     * @return null|DbControllerInterface
      */
     public function getDb()
     {
-        if ($this->db instanceof DbController) :
+        if ($this->db instanceof DbControllerInterface) :
             return $this->db;
         endif;
 

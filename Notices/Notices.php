@@ -163,8 +163,8 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
 
         $output = "";
         foreach ($this->notices as $type => $messages) :
-            foreach($messages as $text) :
-                $output .= (string)Partial::Notice(compact('type', 'text'));
+            foreach($messages as $content) :
+                $output .= (string)Partial::Notice(compact('type', 'content'));
             endforeach;
         endforeach;
 

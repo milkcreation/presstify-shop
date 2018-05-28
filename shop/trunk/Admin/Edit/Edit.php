@@ -3,8 +3,9 @@ namespace tiFy\Plugins\Shop\Admin\Edit;
 
 use tiFy\Apps\AppController;
 use tiFy\Field\Field;
-use tiFy\Taboox\Taboox;
+use tiFy\TabMetabox\TabMetabox;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Products\ObjectTypes\Factory;
 
 class Edit extends AppController
 {
@@ -28,7 +29,7 @@ class Edit extends AppController
      *
      * @return void
      */
-    public function __construct(Shop $shop, \tiFy\Plugins\Shop\Products\ObjectTypes\Factory $ObjectType)
+    public function __construct(Shop $shop, Factory $ObjectType)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
@@ -36,95 +37,87 @@ class Edit extends AppController
         $this->objectType = $ObjectType;
 
         // Déclaration des événements de déclenchement
-        $this->appAddAction('tify_taboox_register_box');
-        $this->appAddAction('tify_taboox_register_node');
+        $this->appAddAction('tify_tabmetabox_register');
         $this->appAddAction('current_screen');
     }
 
     /**
-     * Déclaration de la liste des organes de saisie
+     * Déclaration de la liste des organes de saisie.
+     *
+     * @param TabMetabox $tabMetabox Controleur des boites à onglet de saisie.
      *
      * @return void
      */
-    final  public function tify_taboox_register_box()
+    final public function tify_tabmetabox_register($tabMetabox)
     {
-        Taboox::registerBox(
-            (string)$this->objectType,
+        $tabMetabox->registerBox(
+            "{$this->objectType}@post_type",
             [
                 'title' => [$this, 'panelHeader'],
             ]
         );
-    }
-
-    /**
-     * Déclaration de la liste des organes de saisie
-     *
-     * @return \tiFy\Taboox\Taboox::registerNode()
-     */
-    final  public function tify_taboox_register_node()
-    {
         // Définition des onglets de saisie par défaut
         $default_tabs = [
-            'general' =>  [
-                'id'            => "tFyShopProduct-generalOptions--{$this->objectType}",
-                'title'         => __('Général', 'tify'),
-                'cb'            => [$this, 'generalPanel'],
-                'position'      => 1
+            'general'    => [
+                'name'     => "tFyShopProduct-generalOptions--{$this->objectType}",
+                'title'    => __('Général', 'tify'),
+                'content'  => [$this, 'generalPanel'],
+                'position' => 1,
             ],
-            'inventory' => [
-                'id'            => "tFyShopProduct-inventoryOptions--{$this->objectType}",
-                'title'         => __('Inventaire', 'tify'),
-                'cb'            => [$this, 'inventoryPanel'],
-                'position'      => 2
+            'inventory'  => [
+                'name'     => "tFyShopProduct-inventoryOptions--{$this->objectType}",
+                'title'    => __('Inventaire', 'tify'),
+                'content'  => [$this, 'inventoryPanel'],
+                'position' => 2,
             ],
-            'shipping' => [
-                'id'            => "tFyShopProduct-shippingOptions--{$this->objectType}",
-                'title'         => __('Expédition', 'tify'),
-                'cb'            => [$this, 'shippingPanel'],
-                'position'      => 3
+            'shipping'   => [
+                'name'     => "tFyShopProduct-shippingOptions--{$this->objectType}",
+                'title'    => __('Expédition', 'tify'),
+                'content'  => [$this, 'shippingPanel'],
+                'position' => 3,
             ],
-            'linked' => [
-                'id'            => "tFyShopProduct-linkedOptions--{$this->objectType}",
-                'title'         => __('Produits liés', 'tify'),
-                'cb'            => [$this, 'linkedPanel'],
-                'position'      => 4
+            'linked'     => [
+                'name'     => "tFyShopProduct-linkedOptions--{$this->objectType}",
+                'title'    => __('Produits liés', 'tify'),
+                'content'  => [$this, 'linkedPanel'],
+                'position' => 4,
             ],
             'attributes' => [
-                'id'            => "tFyShopProduct-attributesOptions--{$this->objectType}",
-                'title'         => __('Attributs', 'tify'),
-                'cb'            => [$this, 'attributesPanel'],
-                'position'      => 5
+                'name'     => "tFyShopProduct-attributesOptions--{$this->objectType}",
+                'title'    => __('Attributs', 'tify'),
+                'content'  => [$this, 'attributesPanel'],
+                'position' => 5,
             ],
             'variations' => [
-                'id'            => "tFyShopProduct-variationsOptions--{$this->objectType}",
-                'title'         => __('Variations', 'tify'),
-                'cb'            => [$this, 'variationsPanel'],
-                'position'      => 6
+                'name'     => "tFyShopProduct-variationsOptions--{$this->objectType}",
+                'title'    => __('Variations', 'tify'),
+                'content'  => [$this, 'variationsPanel'],
+                'position' => 6,
             ],
-            'advanced'   =>             [
-                'id'            => "tFyShopProduct-advancedOptions--{$this->objectType}",
-                'title'         => __('Avancé', 'tify'),
-                'cb'            => [$this, 'advancedPanel'],
-                'position'      => 7
-            ]
+            'advanced'   => [
+                'name'     => "tFyShopProduct-advancedOptions--{$this->objectType}",
+                'title'    => __('Avancé', 'tify'),
+                'content'  => [$this, 'advancedPanel'],
+                'position' => 7,
+            ],
         ];
 
         // Récupération des onglets personalisés
-        $custom_tabs = $this->objectType->getAttr('tabs', []);
+        $custom_tabs = $this->objectType->get('tabs', []);
 
-        foreach($default_tabs as $id => $default_tab) :
+        foreach ($default_tabs as $id => $default_tab) :
             if (!isset($custom_tabs[$id])) :
                 $custom_tabs[$id] = $default_tab;
-            elseif($custom_tabs[$id] !== false) :
+            elseif ($custom_tabs[$id] !== false) :
                 $custom_tabs[$id] = array_merge($default_tab, (array)$custom_tabs[$id]);
             else :
                 unset($custom_tabs[$id]);
             endif;
         endforeach;
 
-        foreach($custom_tabs as $attrs) :
-            Taboox::registerNode(
-                (string)$this->objectType,
+        foreach ($custom_tabs as $attrs) :
+            $tabMetabox->registerNode(
+                "{$this->objectType}@post_type",
                 $attrs
             );
         endforeach;
@@ -152,26 +145,23 @@ class Edit extends AppController
      */
     final public function admin_enqueue_scripts()
     {
-        Field::enqueue('SelectJs');
+        $this->appServiceGet(Field::class)->enqueue('SelectJs');
 
         \wp_enqueue_script(
-            'tFyPluginsShopAdminEdit',
-            self::tFyAppUrl(get_class()) . '/Edit.js',
+            'tiFyPluginShopAdminEdit',
+            $this->appUrl(get_class()) . '/Edit.js',
             ['jquery'],
             171219,
             true
         );
         \wp_enqueue_style(
-            'tFyPluginsShopAdminEdit',
-            self::tFyAppUrl(get_class()) . '/Edit.css',
+            'tiFyPluginShopAdminEdit',
+            $this->appUrl(get_class()) . '/Edit.css',
             [],
             171219
         );
     }
 
-    /**
-     * CONTROLEURS
-     */
     /**
      * Titre du panneau de saisie
      *
@@ -205,7 +195,7 @@ class Edit extends AppController
             );
         endif;
 
-        echo '<b>' . __('Données produit', 'tify') . '</b>' . $product_type_selector;
+        return '<b>' . __('Données produit', 'tify') . '</b>' . $product_type_selector;
     }
 
     /**
@@ -219,9 +209,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'general',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }
@@ -237,9 +226,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'inventory',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }
@@ -255,9 +243,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'shipping',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }
@@ -273,9 +260,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'linked',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }
@@ -291,9 +277,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'attributes',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }
@@ -309,9 +294,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'variations',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }
@@ -327,9 +311,8 @@ class Edit extends AppController
     {
         $product = $this->shop->products()->get($post);
 
-        self::tFyAppGetTemplatePart(
+        return $this->appTemplateRender(
             'advanced',
-            (string)$this->objectType,
             compact('post', 'product')
         );
     }

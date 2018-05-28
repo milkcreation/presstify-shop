@@ -239,7 +239,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
      */
     private function registerObjectTypes()
     {
-        foreach ($this->appConfig('products', [], Shop::class) as $post_type => $attrs) :
+        foreach ($this->shop->appConfig('products', []) as $post_type => $attrs) :
             if (empty($attrs['category'])) :
                 return self::$ObjectTypes[$post_type] = new ObjectTypes\Uncategorized($this->shop, $post_type, $attrs);
             else :

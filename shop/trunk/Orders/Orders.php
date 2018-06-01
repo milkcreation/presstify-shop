@@ -14,6 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use LogicException;
 use tiFy\Db\Db;
@@ -447,6 +448,19 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 return [$key => $item['label']];
             })
                 ->all();
+    }
+
+    /**
+     * Récupération de l'intitulé de désignation d'un status.
+     *
+     * @param string $name Nom de qualification du status. order-pending|order-processing|order-on-hold|order-completed|order-cancelled|order-refunded|order-failed.
+     * @param mixed $default Valeur de retour par défaut.
+     *
+     * @return array
+     */
+    public function getStatusLabel($name, $default = '')
+    {
+        return Arr::get($this->getStatuses(), $name, $default);
     }
 
     /**

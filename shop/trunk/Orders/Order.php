@@ -260,13 +260,19 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Récupération du statut de publication
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function getStatus()
     {
         return (string)$this->get('status', $this->orders()->getDefaultStatus());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getStatusLabel()
+    {
+        return $this->orders()->getStatusLabel($this->getStatus());
     }
 
     /**

@@ -54,6 +54,12 @@ interface OrderInterface extends PostItemInterface
     public function getStatus();
 
     /**
+     * Récupération de l'intitulé de désignation du status.
+     * @return string
+     */
+    public function getStatusLabel();
+
+    /**
      * Récupération de la valeur brute ou formatée de l'extrait.
      * @param bool $raw Formatage de la valeur
      * @return string

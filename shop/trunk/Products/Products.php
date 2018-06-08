@@ -124,7 +124,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
     }
 
     /**
-     * Récupération des données d'un client existant
+     * Récupération des données d'un produit existant.
      *
      * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
      *

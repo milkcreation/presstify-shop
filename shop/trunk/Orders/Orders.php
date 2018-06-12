@@ -292,6 +292,10 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     public function getList($query_args = [])
     {
+        if (!isset($query_args['post_status'])) :
+            $query_args['post_status'] = $this->orders()->getRelPostStatuses();
+        endif;
+        
         return parent::getList($query_args);
     }
 

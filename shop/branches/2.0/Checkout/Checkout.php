@@ -391,6 +391,9 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
         foreach ($order_datas as $key => $value) :
             $order->set($key, $value);
         endforeach;
+
+        $this->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
+
         $order->create();
 
         $order->save();

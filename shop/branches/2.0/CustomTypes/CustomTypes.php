@@ -200,7 +200,7 @@ class CustomTypes extends AppController implements CustomTypesInterface, Provide
                 'map_meta_cap'        => true,
                 'publicly_queryable'  => false,
                 'exclude_from_search' => true,
-                'show_in_menu'        => current_user_can('manage_tify_shop') ? 'tify_shop' : true,
+                //'show_in_menu'        => current_user_can('manage_tify_shop') ? 'tify_shop' : true,
                 'hierarchical'        => false,
                 'show_in_nav_menus'   => false,
                 'rewrite'             => false,

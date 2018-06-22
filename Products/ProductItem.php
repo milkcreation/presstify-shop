@@ -253,7 +253,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     {
         // -----------------------------------------------------------
         // TYPE DE PRODUIT
-        $product_type = $this->appRequestGet('product-type', 'simple', 'POST');
+        $product_type = $this->appRequest('POST')->get('product-type', 'simple');
         \wp_set_post_terms($this->getId(), $product_type, 'product_type');
 
         // -----------------------------------------------------------
@@ -261,7 +261,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
         $visibility = [];
 
         // Mise en avant
-        $featured = $this->appRequestGet('_featured', 'off', 'POST');
+        $featured = $this->appRequest('POST')->get('_featured', 'off');
         if ($featured === 'on') :
             array_push($visibility, 'featured');
         endif;

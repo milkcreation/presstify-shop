@@ -2,7 +2,6 @@
 
 namespace tiFy\Plugins\Shop\ServiceProvider;
 
-use tiFy\Apps\AbstractAppServiceProvider;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Addresses\AddressesInterface;

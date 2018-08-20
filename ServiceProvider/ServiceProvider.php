@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\ServiceProvider;
 
+use tiFy\Core\ServiceProvider\AbstractServiceProvider;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Addresses\AddressesInterface;
@@ -59,7 +60,7 @@ use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
 use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
 use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
 
-class ServiceProvider extends AbstractAppServiceProvider implements ProvideTraitsInterface
+class ServiceProvider extends AbstractServiceProvider implements ProvideTraitsInterface
 {
     use ProvideTraits;
 

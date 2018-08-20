@@ -16,14 +16,14 @@ namespace tiFy\Plugins\Shop\Settings;
 
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
-use tiFy\Apps\AppTrait;
+use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
 class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterface
 {
-    use AppTrait, ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe.

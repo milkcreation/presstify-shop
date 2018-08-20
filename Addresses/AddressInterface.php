@@ -13,7 +13,7 @@ interface AddressInterface
 
     /**
      * Définition des attributs de configuration du formulaire
-     * @see \tiFy\Form\Controller\Form
+     * @see \tiFy\Core\Forms\Form\Form
      *
      * @return array
      */

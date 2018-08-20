@@ -16,14 +16,14 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Fluent;
-use tiFy\Apps\AppTrait;
+use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
 class SessionItems extends Fluent implements SessionItemsInterface, ProvideTraitsInterface
 {
-    use AppTrait, ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique

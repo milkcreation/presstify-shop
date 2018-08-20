@@ -18,7 +18,7 @@ class Config extends \tiFy\App\Config
                 // @var string $post_type Identifiant de qualification du type de post de la gamme de produit
                 'product' => [
                     // @var bool|string Liste des attributs de configuration du type de post
-                    // @see \tiFy\CustomType\CustomType\README.md
+                    // @see \tiFy\Core\CustomType\CustomType\README.md
 
                     // @var string $singular Intitulé d'un élément de la gamme
                     'singular' => __('Produit', 'tify'),
@@ -28,7 +28,7 @@ class Config extends \tiFy\App\Config
                     // @var bool|array $category Gestion de la hiérarchisation par catégorie de la gamme de produit
                     'category'=> [
                         // Liste des attributs de configuration de la taxonomy
-                        // @see \tiFy\CustomType\CustomType\README.md
+                        // @see \tiFy\Core\CustomType\CustomType\README.md
                         'taxonomy' => 'product_cat'
                     ]
                 ]
@@ -39,13 +39,13 @@ class Config extends \tiFy\App\Config
                 // @var string $id Identifiant de qualification d'un rôle ex. Gestionnaire boutique
                 'shop_manager' => [
                     // @var bool|string Liste des attributs de configuration du rôle
-                    // @see \tiFy\CustomType\CustomType\README.md
+                    // @see \tiFy\Core\CustomType\CustomType\README.md
 
                     // @var string $display_name Nom d'affichage
                     'display_name' => __('Gestionnaire boutique', 'tify'),
 
                     // @var bool|array $admin_ui Interface d'administration dédiée
-                    // @var see \tiFy\Ui\Ui\README.md
+                    // @var see \tiFy\Core\Ui\Ui\README.md
                     'admin_ui' => [
                         'global' => [
                             'admin_menu' => [
@@ -66,13 +66,13 @@ class Config extends \tiFy\App\Config
                 // @var string $id Identifiant de qualification d'un rôle ex. Gestionnaire boutique
                 'customer'      => [
                     // @var bool|string Liste des attributs de configuration du rôle
-                    // @see \tiFy\CustomType\CustomType\README.md
+                    // @see \tiFy\Core\CustomType\CustomType\README.md
 
                     // @var string $display_name Nom d'affichage
                     'display_name' => __('Client', 'tify'),
 
                     // @var bool|array $admin_ui Interface d'administration dédiée
-                    // @var see \tiFy\Ui\Ui\README.md
+                    // @var see \tiFy\Core\Ui\Ui\README.md
                     'admin_ui' => [
                         'global' => [
                             'admin_menu' => [

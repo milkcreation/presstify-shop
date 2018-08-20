@@ -1,16 +1,17 @@
 <?php
 
-use tiFy\Plugins\Shop\Shop;
-
 /**
- * Formulaire d'adresse de facturation
+ * @desc Fonctions d'aide à la saisie
+ * @package presstiFy
+ * @version 1.1
+ * @subpackage Core
+ * @since 1.2.596
  *
- * @return void
+ * @author Jordy Manner <jordy@tigreblanc.fr>
+ * @copyright Milkcreation
  */
-function tify_shop_billing_form()
-{
-    echo Shop::get()->addresses()->billing()->form();
-}
+
+use tiFy\Plugins\Shop\Shop;
 
 /**
  * Url de l'action d'un formulaire d'ajout d'un produit au panier d'achat
@@ -70,6 +71,19 @@ function tify_shop_notices()
 }
 
 /**
+ * Récupération d'une option de configuration
+ *
+ * @param string $key Identifiant de qualification de l'option
+ * @param string $default Valeur de retour par défaut
+ *
+ * @return string
+ */
+function tify_shop_setting($key, $default = '')
+{
+    return Shop::get()->settings()->get($key, $default);
+}
+
+/**
  * Verification du contexte d'affichage de la page courante
  *
  * @param string $name Nom de la page. shop|cart|checkout|terms.
@@ -95,31 +109,6 @@ function tify_shop_price_html($price, $format = '')
 }
 
 /**
- * Récupération des données d'un produit existant.
- *
- * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
- *
- * @return null|object|ProductItemInterface
- */
-function tify_shop_product($product)
-{
-    return Shop::get()->products()->get($product);
-}
-
-/**
- * Récupération d'une option de configuration
- *
- * @param string $key Identifiant de qualification de l'option
- * @param string $default Valeur de retour par défaut
- *
- * @return string
- */
-function tify_shop_setting($key, $default = '')
-{
-    return Shop::get()->settings()->get($key, $default);
-}
-
-/**
  * Url vers une page de la boutique
  *
  * @param string $name Nom de la page. shop|cart|checkout|terms.
@@ -129,4 +118,14 @@ function tify_shop_setting($key, $default = '')
 function tify_shop_url($name)
 {
     return Shop::get()->functions()->url()->page($name);
+}
+
+/**
+ * Formulaire d'adresse de facturation
+ *
+ * @return void
+ */
+function tify_shop_billing_form()
+{
+    echo Shop::get()->addresses()->billing()->form();
 }

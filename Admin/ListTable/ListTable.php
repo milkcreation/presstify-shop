@@ -2,14 +2,15 @@
 
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
-use tiFy\Apps\AppController;
-use tiFy\Components\Columns\PostType\PostThumbnail;
-use tiFy\Column\Column;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Core\Column\Column;
+use tiFy\Core\Column\PostType\PostThumbnail\PostThumbnail;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Products\ObjectTypes\Factory as ObjectTypesFactory;
 
-class ListTable extends AppController
+class ListTable
 {
+    use TraitsApp;
+
     /**
      * Classe de rappel de la boutique
      * @var Shop
@@ -30,7 +31,7 @@ class ListTable extends AppController
      *
      * @return void
      */
-    public function __construct(Shop $shop, ObjectTypesFactory $ObjectType)
+    public function __construct(Shop $shop, \tiFy\Plugins\Shop\Products\ObjectTypes\Factory $ObjectType)
     {
         // Définition de la classe de rappel de la boutique
         $this->shop = $shop;

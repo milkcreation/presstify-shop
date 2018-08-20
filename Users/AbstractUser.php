@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
-use tiFy\Query\Controller\AbstractUserItem;
+use tiFy\Core\Query\Controller\AbstractUserItem;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;

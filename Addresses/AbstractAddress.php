@@ -3,13 +3,14 @@
 namespace tiFy\Plugins\Shop\Addresses;
 
 use Illuminate\Support\Str;
-use tiFy\Apps\AppController;
-use tiFy\Form\Form;
-use tiFy\Form\Forms\FormBaseController;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Core\Forms\Forms;
 use tiFy\Plugins\Shop\Shop;
 
-abstract class AbstractAddress extends AppController implements AddressInterface
+abstract class AbstractAddress implements AddressInterface
 {
+    use TraitsApp;
+
     /**
      * Identifiant de qualification
      * @var string
@@ -35,7 +36,7 @@ abstract class AbstractAddress extends AppController implements AddressInterface
 
     /**
      * Classe de rappel du formulaire
-     * @var FormBaseController
+     * @var \tiFy\Core\Forms\Factory
      */
     protected $form;
 
@@ -64,7 +65,7 @@ abstract class AbstractAddress extends AppController implements AddressInterface
      *
      * @return void
      */
-    final public function tify_form_register($formController)
+    final public function tify_form_register()
     {
         $this->user = $this->shop->users()->get();
 
@@ -88,12 +89,12 @@ abstract class AbstractAddress extends AppController implements AddressInterface
         $attrs['addons']['tify_shop_address_form_handler'] = ['controller' => $this];
 
         if (
-            $form = $formController->register(
-                '_tiFyShop-formAddress--' . $this->getId(),
-                $attrs
-            )
+        $form_id = Forms::register(
+            '_tiFyShop-formAddress--' . $this->getId(),
+            $attrs
+        )
         ) :
-            $this->form = $form;
+            $this->form = Forms::get($form_id);
         endif;
     }
 
@@ -109,7 +110,7 @@ abstract class AbstractAddress extends AppController implements AddressInterface
 
     /**
      * Définition des attributs de configuration du formulaire
-     * @see \tiFy\Form\Controller\Form
+     * @see \tiFy\Core\Forms\Form\Form
      *
      * @return array
      */
@@ -164,7 +165,7 @@ abstract class AbstractAddress extends AppController implements AddressInterface
 
     /**
      * Définition de la liste des champs de formulaire
-     * @see \tiFy\Form\Controller\Field
+     * @see \tiFy\Core\Forms\Form\Field
      *
      * @return array
      */
@@ -217,7 +218,7 @@ abstract class AbstractAddress extends AppController implements AddressInterface
      */
     public function form()
     {
-        if ($this->form instanceof \tiFy\Form\Forms\FormBaseController) :
+        if ($this->form instanceof \tiFy\Core\Forms\Factory) :
             return $this->form->display();
         else :
             return '';

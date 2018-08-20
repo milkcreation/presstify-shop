@@ -15,14 +15,14 @@
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use illuminate\Support\Collection;
-use tiFy\Apps\AppTrait;
+use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
 class OrderItemList extends Collection implements ProvideTraitsInterface, OrderItemListInterface
 {
-    use AppTrait, ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Classe de rappel de la boutique.

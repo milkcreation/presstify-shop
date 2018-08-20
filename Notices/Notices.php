@@ -15,15 +15,15 @@
 namespace tiFy\Plugins\Shop\Notices;
 
 use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Partial\Partial;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Core\Layout\Layout;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-final class Notices extends AppController implements NoticesInterface, ProvideTraitsInterface
+final class Notices implements NoticesInterface, ProvideTraitsInterface
 {
-    use ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -163,8 +163,8 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
 
         $output = "";
         foreach ($this->notices as $type => $messages) :
-            foreach($messages as $content) :
-                $output .= (string)Partial::Notice(compact('type', 'content'));
+            foreach($messages as $text) :
+                $output .= (string)Layout::Notice(compact('type', 'text'));
             endforeach;
         endforeach;
 

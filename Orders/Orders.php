@@ -14,12 +14,11 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use LogicException;
-use tiFy\Db\Db;
-use tiFy\Db\DbControllerInterface;
-use tiFy\Query\Controller\AbstractPostQuery;
+use tiFy\Core\Db\Db;
+use tiFy\Core\Db\Factory as DbFactory;
+use tiFy\Core\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -42,7 +41,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
 
     /**
      * Classe de rappel de la base de données
-     * @var DbControllerInterface
+     * @var DbFactory
      */
     protected $db;
 
@@ -129,11 +128,11 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     /**
      * Initialisation de la table de base de données.
      *
-     * @return DbControllerInterface
+     * @return DbFactory
      */
     private function initDb()
     {
-        $this->db = $this->appServiceGet(Db::class)->register(
+        $this->db = Db::register(
             '_tiFyShopOrderItems',
             [
                 'install'    => false,
@@ -261,13 +260,13 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
         endif;
 
         $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appServiceHas($name)) :
+        if (! $this->appHasContainer($name)) :
             $controller = $this->getItemController();
 
-            $this->appServiceAdd($name, new $controller($post, $this->shop));
+            $this->appAddContainer($name, new $controller($post, $this->shop));
         endif;
 
-        return $this->appServiceGet($name);
+        return $this->appGetContainer($name);
     }
 
     /**
@@ -292,21 +291,17 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      */
     public function getList($query_args = [])
     {
-        if (!isset($query_args['post_status'])) :
-            $query_args['post_status'] = $this->orders()->getRelPostStatuses();
-        endif;
-        
         return parent::getList($query_args);
     }
 
     /**
      * Récupération du controleur de base de données.
      *
-     * @return null|DbControllerInterface
+     * @return null|DbFactory
      */
     public function getDb()
     {
-        if ($this->db instanceof DbControllerInterface) :
+        if ($this->db instanceof DbFactory) :
             return $this->db;
         endif;
 
@@ -452,19 +447,6 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 return [$key => $item['label']];
             })
                 ->all();
-    }
-
-    /**
-     * Récupération de l'intitulé de désignation d'un status.
-     *
-     * @param string $name Nom de qualification du status. order-pending|order-processing|order-on-hold|order-completed|order-cancelled|order-refunded|order-failed.
-     * @param mixed $default Valeur de retour par défaut.
-     *
-     * @return array
-     */
-    public function getStatusLabel($name, $default = '')
-    {
-        return Arr::get($this->getStatuses(), $name, $default);
     }
 
     /**

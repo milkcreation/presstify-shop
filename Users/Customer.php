@@ -20,8 +20,6 @@ class Customer extends AbstractUser implements CustomerInterface
     /**
      * Récupération de la liste des commandes du client
      *
-     * @param array $query_args Liste des arguments de requête personnalisée.
-     * 
      * @return OrderListInterface
      */
     public function getOrderList($query_args = [])
@@ -39,7 +37,8 @@ class Customer extends AbstractUser implements CustomerInterface
                 'value' => $this->getId()
             ]
         ];
-        
+        $query_args['post_status'] = $this->orders()->getRelPostStatuses();
+
         return $this->orders()->getList($query_args);
     }
 }

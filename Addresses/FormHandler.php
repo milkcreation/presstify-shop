@@ -2,17 +2,17 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Form\Addons\AbstractAddonController;
-use tiFy\Form\Forms\FormHandleController;
+use tiFy\Core\Forms\Addons\Factory;
+use tiFy\Core\Forms\Form\Handle;
 use tiFy\Plugins\Shop\Shop;
 
-class FormHandler extends AbstractAddonController implements FormHandlerInterface
+class FormHandler extends Factory implements FormHandlerInterface
 {
     /**
      * Identifiant de qualification de l'addon
      * @var string
      */
-    public $id = 'tify_shop_address_form_handler';
+    public $ID = 'tify_shop_address_form_handler';
 
     /**
      * Classe de rappel de la boutique
@@ -21,7 +21,7 @@ class FormHandler extends AbstractAddonController implements FormHandlerInterfac
     protected $shop;
 
     /**
-     * CONSTRUCTEUR.
+     * CONSTRUCTEUR
      *
      * @param Shop $shop Classe de rappel de la boutique
      *
@@ -34,24 +34,26 @@ class FormHandler extends AbstractAddonController implements FormHandlerInterfac
 
         // Définition des fonctions de callback
         $this->callbacks['handle_submit_request'] = [$this, 'cb_handle_submit_request'];
+
+        parent::__construct();
     }
 
     /**
-     * Traitement de la requête de formulaire.
+     * Traitement de la requête de formulaire
      *
-     * @param FormHandleController $handle Controleur de traitement des formulaires.
+     * @param Handle $handle Controleur de traitement des formulaires
      *
      * @return void
      */
     public function cb_handle_submit_request($handle)
     {
         /** @var AddressInterface $ctrl */
-        if (!$ctrl = $this->getFormOption('controller', '')) :
+        if (!$ctrl = $this->getFormAttr('controller', '')) :
             return;
         endif;
 
         $user_data = []; $session_data = [];
-        foreach ($handle->allFieldVars() as $slug => $value) :
+        foreach ($handle->getFieldsVars() as $slug => $value) :
             $key = preg_replace('#^' . $ctrl->getId() . '_#', '', $slug);
             $session_data[$key] = $value;
             $user_data[$slug] = $value;

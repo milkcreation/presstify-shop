@@ -15,12 +15,14 @@
 namespace tiFy\Plugins\Shop\Addresses;
 
 use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Form\Addons\AddonsController;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Core\Forms\Addons;
 use tiFy\Plugins\Shop\Shop;
 
-class Addresses extends AppController implements AddressesInterface
+class Addresses implements AddressesInterface
 {
+    use TraitsApp;
+
     /**
      * Instance de la classe
      * @var AddressesInterface
@@ -54,9 +56,11 @@ class Addresses extends AppController implements AddressesInterface
      */
     protected function __construct(Shop $shop)
     {
+        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        $this->appAddAction('tify_form_addon_register');
+        // Déclaration des événements
+        $this->appAddAction('tify_form_register_addon');
     }
 
     /**
@@ -108,13 +112,11 @@ class Addresses extends AppController implements AddressesInterface
     }
 
     /**
-     * Déclaration de l'addon de traitement des formulaire.
-     *
-     * @param AddonsController $addonsController Classe de rappel de gestion des addons de formulaire.
+     * Déclaration de l'addon de traitement des formulaire
      *
      * @return void
      */
-    final public function tify_form_addon_register($addonsController)
+    final public function tify_form_register_addon()
     {
         $this->billing();
         $this->shipping();
@@ -130,7 +132,7 @@ class Addresses extends AppController implements AddressesInterface
             );
         endif;
 
-        $addonsController->register(
+        Addons::register(
             'tify_shop_address_form_handler',
             $form_handler_class,
             $this->shop
@@ -198,84 +200,59 @@ class Addresses extends AppController implements AddressesInterface
     {
         return [
             'first_name' => [
-                'title'        => __('Prénom', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Prénom', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'given-name',
-                ],
+                'autocomplete' => 'given-name',
                 'order'        => 10,
             ],
             'last_name'  => [
-                'title'        => __('Nom de famille', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Nom de famille', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'family-name',
-                ],
+                'autocomplete' => 'family-name',
                 'order'        => 20,
             ],
             'company'    => [
-                'title'        => __('Société', 'tify'),
-                'type'         => 'text',
-                'attrs'        => [
-                    'autocomplete' => 'organization',
-                ],
+                'label'        => __('Société', 'tify'),
+                'autocomplete' => 'organization',
                 'order'        => 30,
             ],
             'country'    => [
-                'title'        => __('Pays', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Pays', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'country',
-                ],
+                'class'        => ['form-row-wide', 'address-field', 'update_totals_on_change'],
+                'autocomplete' => 'country',
                 'order'        => 40,
             ],
             'address_1'  => [
-                'title'        => __('Numéro et nom de rue', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Numéro et nom de rue', 'tify'),
+                'placeholder'  => esc_attr__('N° et rue', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'address-line1',
-                    'placeholder'  => esc_attr__('N° et rue', 'tify'),
-                ],
+                'autocomplete' => 'address-line1',
                 'order'        => 50,
             ],
             'address_2'  => [
-                'title'        => __('Complément d\'adresse', 'tify'),
-                'type'         => 'text',
-                'attrs'        => [
-                    'autocomplete' => 'address-line2',
-                    'placeholder'  => esc_attr__('Appartement, porte, bureau, etc. (optionnel)', 'tify'),
-                ],
+                'label'        => __('Complément d\'adresse', 'tify'),
+                'placeholder'  => esc_attr__('Appartement, porte, bureau, etc. (optionnel)', 'tify'),
+                'required'     => false,
+                'autocomplete' => 'address-line2',
                 'order'        => 60,
             ],
             'city'       => [
-                'title'        => __('Ville', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Ville', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'address-level2',
-                ],
+                'autocomplete' => 'address-level2',
                 'order'        => 70,
             ],
             'state'      => [
-                'title'        => __('Département / Région', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Département / Région', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'address-level1',
-                ],
+                'autocomplete' => 'address-level1',
                 'order'        => 80,
             ],
             'postcode'   => [
-                'title'        => __('Code postal', 'tify'),
-                'type'         => 'text',
+                'label'        => __('Code postal', 'tify'),
                 'required'     => true,
-                'attrs'        => [
-                    'autocomplete' => 'postal-code',
-                ],
+                'autocomplete' => 'postal-code',
                 'order'        => 90,
             ]
         ];

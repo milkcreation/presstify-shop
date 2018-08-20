@@ -2,18 +2,18 @@
 
 /**
  * @name Shop
- * @desc Extension PresstiFy de gestion de boutique en ligne.
+ * @desc Extension PresstiFy de gestion de boutique ecommerce
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop
- * @version 2.0.0
+ * @version 1.0.14
  */
 
 namespace tiFy\Plugins\Shop;
 
 use League\Container\Exception\NotFoundException;
-use tiFy\Apps\AppController;
-use tiFy\User\Session\StoreInterface as tiFySession;
+use tiFy\App\Plugin;
+use tiFy\Core\User\Session\StoreInterface as tiFySession;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Checkout\Checkout;
@@ -26,7 +26,7 @@ use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
 use tiFy\Plugins\Shop\Settings\Settings;
 use tiFy\Plugins\Shop\Users\Users;
 
-final class Shop extends AppController
+class Shop extends Plugin
 {
     /**
      * Fournisseur de service
@@ -45,7 +45,7 @@ final class Shop extends AppController
 
         // Déclaration du fournisseur de services.
         $this->provider = new ServiceProvider($this->appConfig('service_provider', []), $this);
-        $this->appServiceProvider($this->provider);
+        $this->appContainer()->addServiceProvider($this->provider);
     }
 
     /**
@@ -56,7 +56,7 @@ final class Shop extends AppController
     public static function get()
     {
         try {
-            return self::appInstance();
+            return self::tFyAppGetContainer(__CLASS__);
         } catch(NotFoundException $e) {
             wp_die($e->getMessage(), '', $e->getCode());
             exit;

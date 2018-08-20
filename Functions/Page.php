@@ -13,12 +13,11 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use tiFy\Apps\AppController;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Page extends AppController implements PageInterface, ProvideTraitsInterface
+class Page implements PageInterface, ProvideTraitsInterface
 {
     use ProvideTraits;
 

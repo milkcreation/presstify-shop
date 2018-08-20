@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Form\Controller\Handle;
+use tiFy\Core\Forms\Form\Handle;
 
 interface FormHandlerInterface
 {

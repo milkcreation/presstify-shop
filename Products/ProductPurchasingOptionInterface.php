@@ -2,7 +2,8 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-interface ProductPurchasingOptionInterface
+
+interface ProductPurchasingOption
 {
     /**
      * Vérification d'existance.

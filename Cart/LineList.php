@@ -15,11 +15,11 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Collection;
-use tiFy\Apps\AppTrait;
+use tiFy\App\Traits\App as TraitsApp;
 
 class LineList extends Collection
 {
-    use AppTrait;
+    use TraitsApp;
 
     /**
      * Liste des élements.

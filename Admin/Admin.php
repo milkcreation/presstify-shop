@@ -14,14 +14,14 @@
 
 namespace tiFy\Plugins\Shop\Admin;
 
-use tiFy\Apps\AppController;
+use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Admin extends AppController implements AdminInterface, ProvideTraitsInterface
+class Admin implements AdminInterface, ProvideTraitsInterface
 {
-    use ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe.

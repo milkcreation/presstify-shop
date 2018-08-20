@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
-use tiFy\Query\Controller\UserItemInterface;
+use tiFy\Core\Query\Controller\UserItemInterface;
 
 interface UserInterface extends UserItemInterface
 {

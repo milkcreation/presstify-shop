@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Query\Controller\PostItemInterface;
+use tiFy\Core\Query\Controller\PostItemInterface;
 
 interface ProductItemInterface extends PostItemInterface
 {

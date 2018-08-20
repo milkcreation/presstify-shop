@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Query\Controller\AbstractPostItem;
+use tiFy\Core\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -253,7 +253,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     {
         // -----------------------------------------------------------
         // TYPE DE PRODUIT
-        $product_type = $this->appRequest('POST')->get('product-type', 'simple');
+        $product_type = $this->appRequestGet('product-type', 'simple', 'POST');
         \wp_set_post_terms($this->getId(), $product_type, 'product_type');
 
         // -----------------------------------------------------------
@@ -261,7 +261,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
         $visibility = [];
 
         // Mise en avant
-        $featured = $this->appRequest('POST')->get('_featured', 'off');
+        $featured = $this->appRequestGet('_featured', 'off', 'POST');
         if ($featured === 'on') :
             array_push($visibility, 'featured');
         endif;

@@ -3,31 +3,18 @@
 namespace tiFy\Plugins\Shop\Products\ObjectTypes;
 
 use Illuminate\Support\Arr;
-use tiFy\Apps\AppController;
-use tiFy\PostType\PostType;
-use tiFy\Metadata\Post as MetadataPost;
+use tiFy\App\FactoryConstructor;
+use tiFy\Core\CustomType\CustomType;
+use tiFy\Core\Meta\Post as MetaPost;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Products\ProductItem;
 
-abstract class Factory extends AppController
+abstract class Factory extends FactoryConstructor
 {
-    /**
-     * Nom de qualification du type de post.
-     * @var string
-     */
-    protected $name = '';
-
     /**
      * Classe de rappel de la boutique
      * @var Shop
      */
     protected $shop;
-
-    /**
-     * Liste des attributs de configuration
-     * @var array
-     */
-    protected $attributes = [];
 
     /**
      * CONSTRUCTEUR
@@ -38,108 +25,73 @@ abstract class Factory extends AppController
      *
      * @return void
      */
-    public function __construct(Shop $shop, $name, $attrs = [])
+    public function __construct(Shop $shop, $post_type, $attrs = [])
     {
-        parent::__construct();
-
+        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-        $this->name = $name;
-        $this->attributes = $this->parse($attrs);
-    }
 
-    /**
-     * Initialisation du controleur.
-     *
-     * @return void
-     */
-    public function appBoot()
-    {
-        $this->appAddAction('tify_post_type_register');
+        parent::__construct($post_type, $attrs);
+
+        // Déclaration des événements de déclenchement
+        $this->appAddAction('tify_custom_post_type_register');
+
+        // Déclaration des metadonnées d'enregistrement
         $this->_registerMetas();
     }
 
     /**
-     * Déclaration des types de posts personnalisés des gammes de produits.
-     *
-     * @param PostType $post_type Classe de rappel de traitement des types de post.
+     * Déclaration des types de posts personnalisés des gammes de produits
      *
      * @return void
      */
-    final public function tify_post_type_register($post_type)
+    final public function tify_custom_post_type_register()
     {
-        $post_type->register(
-            $this->getName(),
-            $this->all()
+        CustomType::registerPostType(
+            $this->getId(),
+            $this->getAttrList()
         );
+        $tag = Arr::get($this->getAttrList(), 'tag', true);
+
+        if (($tag === true) || ($tag === 'product_tag')) :
+            $this->appAddAction(
+                'tify_custom_post_register_taxonomy_for_object_type',
+                function() {
+                    \register_taxonomy_for_object_type('product_tag', $this->getId());
+                }
+            );
+        endif;
     }
 
     /**
-     * Récupération du nom de qualification.
+     * Traitement de arguments de configuration
      *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Traitement de arguments de configuration.
-     *
-     * @param array $attrs Liste des attributs de configuration.
+     * @param array $attrs
      *
      * @return array
      */
-    protected function parse($attrs = [])
+    protected function parseAttrs($attrs = [])
     {
         if (empty($attrs['label'])) :
-            $attrs['label'] = _x(sprintf('Produits de la gamme %s', $this->getName()), 'post type general name', 'tify');
+            $attrs['label'] = _x(sprintf('Produits de la gamme %s', $this->getId()), 'post type general name', 'tify');
         endif;
 
         if (empty($attrs['plural'])) :
-            $attrs['plural'] = _x(sprintf('Produits de la gamme %s', $this->getName()), 'post type plural name', 'tify');
+            $attrs['plural'] = _x(sprintf('Produits de la gamme %s', $this->getId()), 'post type plural name', 'tify');
         endif;
 
         if (empty($attrs['singular'])) :
-            $attrs['singular'] = _x(sprintf('Produit de la gamme %s', $this->getName()), 'post type singular name', 'tify');
+            $attrs['singular'] = _x(sprintf('Produit de la gamme %s', $this->getId()), 'post type singular name', 'tify');
         endif;
 
         if (empty($attrs['menu_icon'])) :
             $attrs['menu_icon'] = 'dashicons-products';
         endif;
 
-        if (isset($attrs['tag']) &&  ($attrs['tag'] === true)) :
-            $attrs['taxonomies'] = 'product_tag';
-        endif;
-
         return $attrs;
     }
 
     /**
-     * Récupération de la liste des attributs de configuration.
-     *
-     * @return array
-     */
-    public function all()
-    {
-        return $this->attributes;
-    }
-
-    /**
-     * Récupération d'un attribut de configuration.
-     *
-     * @param string $key Clé d'index de qualification de l'attribut.
-     * @param mixed $default Valeur de retoru par defaut.
-     *
-     * @return mixed
-     */
-    public function get($key, $default = null)
-    {
-        return Arr::get($this->attributes, $key, $default);
-    }
-
-    /**
-     * Déclaration des métadonnées relatives aux produits.
+     * Déclaration des métadonnées relatives aux produits
      *
      * @return void
      */
@@ -155,7 +107,7 @@ abstract class Factory extends AppController
         ];
 
         foreach ($single_meta_keys as $single_meta_key) :
-            $this->appServiceGet(MetadataPost::class)->register($this->getName(), $single_meta_key, true);
+            MetaPost::register($this->getId(), $single_meta_key, true);
         endforeach;
     }
 
@@ -166,8 +118,8 @@ abstract class Factory extends AppController
      */
     final public function getItemController()
     {
-        if (!$controller = $this->get('item_controller')) :
-            return ProductItem::class;
+        if (!$controller = $this->getAttr('item_controller')) :
+            return 'tiFy\Plugins\Shop\Products\ProductItem';
         endif;
 
         return $controller;
@@ -180,7 +132,7 @@ abstract class Factory extends AppController
      */
     final public function hasCat()
     {
-        return $this->get('category', false);
+        return $this->getAttr('category', false);
     }
 
     /**
@@ -192,10 +144,10 @@ abstract class Factory extends AppController
     {
         $allowed_types = $this->shop->products()->getProductTypes();
 
-        if (!$product_types = $this->get('product_types', [])) :
+        if (!$this->issetAttr('product_types')) :
             return $allowed_types;
         else :
-            return array_intersect($product_types, $allowed_types);
+            return array_intersect($this->getAttr('product_types', []), $allowed_types);
         endif;
     }
 
@@ -206,6 +158,6 @@ abstract class Factory extends AppController
      */
     final public function __toString()
     {
-        return $this->getName();
+        return $this->getId();
     }
 }

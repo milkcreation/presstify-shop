@@ -3,10 +3,10 @@
 namespace tiFy\Plugins\Shop\Users;
 
 use LogicException;
-use tiFy\Query\Controller\AbstractUserQuery;
-use tiFy\User\Role\Role;
-use tiFy\User\SignIn\SignIn;
-use tiFy\User\TakeOver\TakeOver;
+use tiFy\Core\Query\Controller\AbstractUserQuery;
+use tiFy\Core\User\Login\Login;
+use tiFy\Core\User\Role\Role;
+use tiFy\Core\User\TakeOver\TakeOver;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -35,15 +35,15 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
 
     /**
      * Classe de rappel des l'interface d'authentification
-     * @var SignIn
+     * @var Login
      */
-    private static $SignIn = null;
+    private static $Login = null;
 
     /**
-     * Liste des classes de rappel des permissions de prise de contrôle de comptes utilisateurs.
+     * Liste des classes de rappel des permissions de prise de contrôle de comptes utilisateurs
      * @var TakeOver[]
      */
-    protected $takeOver = [];
+    private static $TakeOver = [];
 
     /**
      * Utilisateur courant
@@ -65,7 +65,7 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
 
         // Déclaration des événements
         $this->appAddAction('tify_user_role_register');
-        $this->appAddAction('tify_user_signin_register');
+        $this->appAddAction('tify_user_login_register');
         $this->appAddAction('tify_user_take_over_register');
     }
 
@@ -154,17 +154,15 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     }
 
     /**
-     * Déclaration des roles.
-     *
-     * @param Role $roleController Classe de rappel du controleur de gestion des rôles.
+     * Déclaration des roles
      *
      * @return void
      */
-    public function tify_user_role_register($roleController)
+    public function tify_user_role_register()
     {
         if ($roles = $this->config('roles', [])) :
-            foreach ($roles as $name => $attrs) :
-                self::$Role[$name] = $roleController->register($name, $attrs);
+            foreach ($roles as $role => $attrs) :
+                self::$Role[$role] = Role::register($role, $attrs);
             endforeach;
         endif;
     }
@@ -172,30 +170,26 @@ class Users extends AbstractUserQuery implements UsersInterface, ProvideTraitsIn
     /**
      * Déclaration de l'interface d'authentification
      *
-     * @param SignIn $signInController Classe de rappel du controleur d'interfaces de connexion.
-     *
      * @return void
      */
-    public function tify_user_signin_register($signinController)
+    public function tify_user_login_register()
     {
-        self::$SignIn = $signinController->register(
+        self::$Login = Login::register(
             '_tiFyShop',
-            $this->config('signin', [])
+            $this->config('login', [])
         );
     }
 
     /**
      * Déclaration des permissions de prise de contrôle de comptes utilisateurs
      *
-     * @param TakeOver $takeOverController Classe de rappel du controleur de prise de controle.
-     *
      * @return void
      */
-    public function tify_user_take_over_register($takeOverController)
+    public function tify_user_take_over_register()
     {
-        if ($take_over = $this->config('take_over', [])) :
-            foreach ($take_over as $name => $attrs) :
-                $this->takeOver[$name] = $takeOverController->register($name, $attrs);
+        if ($take_over = self::tFyAppConfig('take_over', [], 'tiFy\Plugins\Shop\Shop')) :
+            foreach ($take_over as $id => $attrs) :
+                self::$TakeOver[$id] = TakeOver::register($id, $attrs);
             endforeach;
         endif;
     }

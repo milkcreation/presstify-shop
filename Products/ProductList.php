@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Query\Controller\AbstractPostList;
+use tiFy\Core\Query\Controller\AbstractPostList;
 
 class ProductList extends AbstractPostList
 {

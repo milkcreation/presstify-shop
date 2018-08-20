@@ -2,15 +2,15 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Apps\AppController;
+use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Orders\OrderInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
-class OrderItems extends AppController implements ProvideTraitsInterface
+class OrderItems implements ProvideTraitsInterface
 {
-    use ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Classe de rappel de la commande associée.

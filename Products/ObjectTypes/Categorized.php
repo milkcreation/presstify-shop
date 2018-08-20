@@ -15,8 +15,9 @@
 namespace tiFy\Plugins\Shop\Products\ObjectTypes;
 
 use tiFy\Components;
-use tiFy\CustomType\CustomType;
-use tiFy\Taboox\Taboox;
+use tiFy\Components\CustomColumns\CustomColumns;
+use tiFy\Core\CustomType\CustomType;
+use tiFy\Core\Taboox\Taboox;
 use tiFy\Plugins\Shop\Shop;
 
 class Categorized extends Factory
@@ -37,6 +38,8 @@ class Categorized extends Factory
         // Déclaration des événements de déclenchement
         $this->appAddAction('tify_custom_taxonomy_register');
         $this->appAddAction('restrict_manage_posts', null, null, 2);
+        $this->appAddAction('tify_components_register');
+        $this->appAddAction('tify_custom_columns_register');
         $this->appAddAction('tify_taboox_register_box');
         $this->appAddAction('tify_taboox_register_node');
     }
@@ -78,13 +81,47 @@ class Categorized extends Factory
     /**
      * Déclaration des catégories type pour les gammes de produits multiple
      *
-     * @return \tiFy\CustomType\CustomType::registerTaxonomy()
+     * @return \tiFy\Core\CustomType\CustomType::registerTaxonomy()
      */
     final public function tify_custom_taxonomy_register()
     {
         return CustomType::registerTaxonomy(
             $this->getCat(),
             $this->getAttr('category', [])
+        );
+    }
+
+    /**
+     * Déclaration de composants
+     *
+     * @return void
+     */
+    final public function tify_components_register()
+    {
+        Components::register('CustomColumns');
+    }
+
+    /**
+     * Personnalisation des colonnes de l'interface d'administration
+     *
+     * @return void
+     */
+    final public function tify_custom_columns_register()
+    {
+        // Icône représentative de catégorie
+        CustomColumns::register(
+            'Icon',
+            [],
+            'taxonomy',
+            $this->getCat()
+        );
+
+        // Ordre d'affichage de catégorie
+        CustomColumns::register(
+            'Order',
+            [],
+            'taxonomy',
+            $this->getCat()
         );
     }
 
@@ -113,7 +150,7 @@ class Categorized extends Factory
             [
                 'id'    => $this->getCat() . '--icon',
                 'title' => __('Icône représentative', 'tify'),
-                'cb'    => 'tiFy\Taboox\Taxonomy\Icon\Admin\Icon',
+                'cb'    => 'tiFy\Core\Taboox\Taxonomy\Icon\Admin\Icon',
             ]
         );
         Taboox::registerNode(
@@ -121,7 +158,7 @@ class Categorized extends Factory
             [
                 'id'    => $this->getCat() . '--order',
                 'title' => __('Ordre d\'affichage', 'tify'),
-                'cb'    => 'tiFy\Taboox\Taxonomy\Order\Admin\Order',
+                'cb'    => 'tiFy\Core\Taboox\Taxonomy\Order\Admin\Order',
             ]
         );
     }

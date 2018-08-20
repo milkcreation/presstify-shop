@@ -15,7 +15,7 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use LogicException;
-use tiFy\Query\Controller\AbstractPostQuery;
+use tiFy\Core\Query\Controller\AbstractPostQuery;
 use tiFy\Plugins\Shop\Shop;
 
 class Products extends AbstractPostQuery implements ProductsInterface
@@ -124,7 +124,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
     }
 
     /**
-     * Récupération des données d'un produit existant.
+     * Récupération des données d'un client existant
      *
      * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
      *
@@ -153,12 +153,12 @@ class Products extends AbstractPostQuery implements ProductsInterface
         endif;
 
         $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appServiceHas($name)) :
+        if (! $this->appHasContainer($name)) :
             $controller = $this->getObjectType($post->post_type)->getItemController();
-            $this->appServiceAdd($name, new $controller($this->shop, $post));
+            $this->appAddContainer($name, new $controller($this->shop, $post));
         endif;
 
-        return $this->appServiceGet($name);
+        return $this->appGetContainer($name);
     }
 
     /**
@@ -239,7 +239,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
      */
     private function registerObjectTypes()
     {
-        foreach ($this->shop->appConfig('products', []) as $post_type => $attrs) :
+        foreach (self::tFyAppConfig('products', [], 'tiFy\Plugins\Shop\Shop') as $post_type => $attrs) :
             if (empty($attrs['category'])) :
                 return self::$ObjectTypes[$post_type] = new ObjectTypes\Uncategorized($this->shop, $post_type, $attrs);
             else :
@@ -271,7 +271,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
         endif;
 
         // Bypass - Si l'argument de requête renseignant l'indication de type de post est manquant
-        if (!$post_type = $this->appRequest('POST')->get('post_type', '')) :
+        if (!$post_type = self::tFyAppGetRequestVar('post_type', '', 'POST')) :
             return null;
         endif;
 

@@ -16,16 +16,16 @@ namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Arr;
 use LogicException;
-use tiFy\Apps\AppController;
+use tiFy\App\Traits\App as TraitsApp;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
 use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 
-class Gateways extends AppController implements GatewaysInterface, ProvideTraitsInterface
+class Gateways implements GatewaysInterface, ProvideTraitsInterface
 {
-    use ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -150,7 +150,7 @@ class Gateways extends AppController implements GatewaysInterface, ProvideTraits
             $this->add($id, $controller);
         endforeach;
 
-        $this->appEventTrigger('tify.plugins.shop.gateways.register', $this);
+        $this->appEmit('tify.plugins.shop.gateways.register', $this);
 
         $items = [];
         if ($this->registered) :

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use tiFy\Query\Controller\PostItemInterface;
+use tiFy\Core\Query\Controller\PostItemInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFeeInterface;
@@ -52,12 +52,6 @@ interface OrderInterface extends PostItemInterface
      * @return string
      */
     public function getStatus();
-
-    /**
-     * Récupération de l'intitulé de désignation du status.
-     * @return string
-     */
-    public function getStatusLabel();
 
     /**
      * Récupération de la valeur brute ou formatée de l'extrait.

@@ -14,7 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use tiFy\Query\Controller\AbstractPostList;
+use tiFy\Core\Query\Controller\AbstractPostList;
 
 class OrderList extends AbstractPostList implements OrderListInterface
 {

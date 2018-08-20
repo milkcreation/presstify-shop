@@ -18,16 +18,16 @@ use Illuminate\Support\Arr;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\Apps\AppController;
-use tiFy\Route\Route;
+use tiFy\App\Traits\App as TraitsApp;
+use tiFy\Core\Route\Route;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
 use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Orders\OrderInterface;
 
-class Checkout extends AppController implements CheckoutInterface, ProvideTraitsInterface
+class Checkout implements CheckoutInterface, ProvideTraitsInterface
 {
-    use ProvideTraits;
+    use TraitsApp, ProvideTraits;
 
     /**
      * Instance de la classe
@@ -106,16 +106,14 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
     }
 
     /**
-     * Déclaration du chemin des routes.
-     *
-     * @param Route $route Classe de rappel de traitement des routes.
+     * Déclaration du chemin des routes
      *
      * @return void
      */
-    final public function tify_route_register($route)
+    final public function tify_route_register()
     {
         // Ajout d'un produit au panier
-        $route->register(
+        Route::register(
             'tify.plugins.shop.checkout.process',
             [
                 'method' => 'post',
@@ -141,7 +139,7 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
      */
     public function processUrl()
     {
-        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.checkout.process');
+        return Route::url('tify.plugins.shop.checkout.process');
     }
 
     /**
@@ -391,9 +389,6 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
         foreach ($order_datas as $key => $value) :
             $order->set($key, $value);
         endforeach;
-
-        $this->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
-
         $order->create();
 
         $order->save();

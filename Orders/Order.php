@@ -17,7 +17,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use tiFy\Query\Controller\AbstractPostItem;
+use tiFy\Core\Query\Controller\AbstractPostItem;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
@@ -260,19 +260,13 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * {@inheritdoc}
+     * Récupération du statut de publication
+     *
+     * @return string
      */
     public function getStatus()
     {
         return (string)$this->get('status', $this->orders()->getDefaultStatus());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getStatusLabel()
-    {
-        return $this->orders()->getStatusLabel($this->getStatus());
     }
 
     /**

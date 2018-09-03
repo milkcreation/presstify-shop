@@ -2,11 +2,7 @@
 
 /**
  * @name Gateways
- * @desc Gestion des plateformes de paiement
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Gateways
- * @version 1.1
- * @since 1.3.1
+ * @desc Gestion des plateformes de paiement.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -16,123 +12,41 @@ namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Arr;
 use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
 use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\AbstractShopSingleton;
+use tiFy\Plugins\Shop\Contracts\GatewayInterface;
+use tiFy\Plugins\Shop\Contracts\GatewayListInterface;
+use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
 
-class Gateways extends AppController implements GatewaysInterface, ProvideTraitsInterface
+class Gateways extends AbstractShopSingleton implements GatewaysInterface
 {
-    use ProvideTraits;
-
     /**
-     * Instance de la classe
-     * @var Gateways
-     */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Controller de gestion de la liste des plateformes de paiement déclarées.
+     * Instance du controleur de gestion de la liste des plateformes de paiement déclarées.
      * @var GatewayListInterface
      */
-    protected $list_controller;
+    protected $list;
 
     /**
-     * Liste des plateformes par défaut.
-     * @var array
+     * Liste des identifiants de qualification des plateformes déclarées.
+     * @var string[]
      */
-    protected $defaults = [
-        'cash_on_delivery' => CashOnDeliveryGateway::class,
-        'cheque'           => ChequeGateway::class
+    protected $registered = [
+        'shop.gateways.cash_on_delivery',
+        'shop.gateways.cheque'
     ];
 
     /**
-     * Liste des plateformes déclarées.
-     * @var array
+     * {@inheritdoc}
      */
-    protected $registered = [];
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
+    public function boot()
     {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
-
-        // Définition de la liste des événement
-        $this->appAddAction('after_setup_tify');
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe.
-     *
-     * @param Shop $shop
-     *
-     * @return Gateways
-     */
-    final public static function make(Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        self::$instance = new self($shop);
-
-        if(! self::$instance instanceof Gateways) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
-                    Gateways::class
-                ),
-                500
-            );
-        endif;
-
-        return self::$instance;
-    }
-
-    /**
-     * A l'issue de l'initialisation de PresstiFy.
-     *
-     * @return void
-     */
-    final public function after_setup_tify()
-    {
-        // Définition de la liste des plateformes déclarées
-        $this->register();
+        $this->app->appAddAction(
+            'after_setup_tify',
+            function() {
+                $this->_register();
+            }
+        );
     }
 
     /**
@@ -140,69 +54,51 @@ class Gateways extends AppController implements GatewaysInterface, ProvideTraits
      *
      * @return GatewayListInterface
      */
-    private function register()
+    private function _register()
     {
-        if ($this->list_controller instanceof GatewayListInterface) :
-            return $this->list_controller;
-        endif;
-
-        foreach($this->defaults as $id => $controller) :
-            $this->add($id, $controller);
-        endforeach;
-
         $this->appEventTrigger('tify.plugins.shop.gateways.register', $this);
 
-        $items = [];
-        if ($this->registered) :
-            $gateways = $this->config('gateways', []);
+        $gateways = [];
+        foreach($this->config("gateways", []) as $id => $attrs) :
+            if (is_numeric($id)) :
+                $id = $attrs;
+                $attrs = [];
+            endif;
 
-            foreach($this->registered as $id => $class_name) :
-                $config = Arr::get($gateways, $id, []);
-                if ($config === false) :
-                    $attrs = ['enabled' => false];
-                elseif ($attrs = (array)Arr::get($gateways, $id, [])) :
-                    $attrs['enabled'] = isset($attrs['enabled']) ? (bool) $attrs['enabled'] : true;
-                elseif (in_array($id, $gateways)) :
-                    $attrs = ['enabled' => true];
-                else :
-                    $attrs = ['enabled' => false];
-                endif;
+            if ($attrs === false) :
+                $attrs = ['enabled' => false];
+            elseif (!isset($attrs['enabled'])) :
+                $attrs['enabled'] = true;
+            endif;
 
-                $items[$id] = $this->provide(
-                    "gateways.{$id}",
-                    [
-                        $id,
-                        $attrs,
-                        $this->shop
-                    ]
-                );
-            endforeach;
-        endif;
+            $gateways[$id] = $this->app(
+                "shop.gateway.{$id}",
+                [
+                    $id,
+                    $attrs,
+                    $this->shop
+                ]
+            );
+        endforeach;
 
-        return $this->list_controller = new GatewayList($items, $this->shop);
+        return $this->list = $this->app('shop.gateways.list', [$gateways, $this->shop]);
     }
 
     /**
-     * Ajout d'une déclaration de plateforme de paiement.
-     *
-     * @param string $id Identifiant de qualification de la plateforme de paiement.
-     * @param string $class_name Nom de la classe de rappel de traitement de la plateforme.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    final public function add($id, $class_name)
+    public function add($id, $concrete)
     {
-        if (! isset($this->registered[$id]) && class_exists($class_name)) :
-            $this->registered[$id] = $class_name;
+        $alias = "shop.gateway.{$id}";
 
-            $this->provider()->add("gateways.{$id}", $class_name);
+        if (!in_array($alias, $this->registered)) :
+            $this->app()->singleton($alias, $concrete);
+            array_push($this->registered, $alias);
         endif;
     }
 
     /**
-     * Récupération de la liste complète des plateforme de paiement déclarées
-     *
-     * @return GatewayInterface[]
+     * {@inheritdoc}
      */
     public function all()
     {
@@ -210,24 +106,18 @@ class Gateways extends AppController implements GatewaysInterface, ProvideTraits
     }
 
     /**
-     * Récupération de la liste des plateformes de paiement disponibles
-     *
-     * @return GatewayInterface[]
+     * {@inheritdoc}
      */
     public function available()
     {
-        return $this->list_controller->available();
+        return $this->list->available();
     }
 
     /**
-     * Récupération de la liste complète des plateforme de paiement déclarées
-     *
-     * @param string Identifiant de qualification de la plateforme de paiement
-     *
-     * @return null|GatewayInterface
+     * {@inheritdoc}
      */
     public function get($id)
     {
-        return $this->list_controller->get($id);
+        return $this->list->get($id);
     }
 }

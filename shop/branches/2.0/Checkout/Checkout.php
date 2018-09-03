@@ -18,141 +18,108 @@ use Illuminate\Support\Arr;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\Apps\AppController;
 use tiFy\Route\Route;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Orders\OrderInterface;
+use tiFy\Plugins\Shop\AbstractShopSingleton;
+use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
 
-class Checkout extends AppController implements CheckoutInterface, ProvideTraitsInterface
+class Checkout extends AbstractShopSingleton implements CheckoutInterface
 {
-    use ProvideTraits;
-
     /**
-     * Instance de la classe
-     * @var Checkout
+     * {@inheritdoc}
      */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * CONSTRUCTEUR
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
+    public function boot()
     {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
+        $this->app()->appAddAction(
+            'tify_route_register',
+            function($routeController) {
+                /** @var Route $routeController */
 
-        // Déclaration des événements
-        $this->appAddAction('tify_route_register', null, 0);
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe
-     *
-     * @param Shop $shop
-     *
-     * @return Checkout
-     */
-    public static function make(Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        self::$instance = new static($shop);
-
-        if(! self::$instance instanceof Checkout) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
-                    Checkout::class
-                ),
-                500
-            );
-        endif;
-
-        return self::$instance;
-    }
-
-    /**
-     * Déclaration du chemin des routes.
-     *
-     * @param Route $route Classe de rappel de traitement des routes.
-     *
-     * @return void
-     */
-    final public function tify_route_register($route)
-    {
-        // Ajout d'un produit au panier
-        $route->register(
-            'tify.plugins.shop.checkout.process',
-            [
-                'method' => 'post',
-                'path'   => '/commander',
-                'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                    $this->appAddAction(
-                        'wp_loaded',
-                        function () use ($psrRequest, $psrResponse) {
-                            call_user_func_array([$this, 'process'], [$psrRequest, $psrResponse]);
-                        },
-                        20
-                    );
-                }
-            ]
+                // Ajout d'un produit au panier
+                $routeController->register(
+                    'tify.plugins.shop.checkout.process',
+                    [
+                        'method' => 'post',
+                        'path'   => '/commander',
+                        'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
+                            $this->app->appAddAction(
+                                'wp_loaded',
+                                function () use ($psrRequest, $psrResponse) {
+                                    call_user_func_array([$this, 'process'], [$psrRequest, $psrResponse]);
+                                },
+                                20
+                            );
+                        }
+                    ]
+                );
+            },
+            0
         );
     }
 
     /**
-     * Url d'action d'exécution de la commande
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function processUrl()
+    public function createOrderItemsCoupon(OrderInterface $order)
     {
-        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.checkout.process');
+
     }
 
     /**
-     * Traitement de la commande
-     *
-     * @param ServerRequestInterface $psrRequest Requête HTTP Psr-7
-     * @param ResponseInterface $psrResponse Requête HTTP Psr-7
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    final public function process(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
+    public function createOrderItemsFee(OrderInterface $order)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createOrderItemsProduct(OrderInterface $order)
+    {
+        if ($lines = $this->cart()->lines()) :
+            foreach($lines as $line) :
+                $product = $line->getProduct();
+                $item = $order->createItemProduct();
+                $item
+                    ->set('name', $product->getTitle())
+                    ->set('quantity', $line->getQuantity())
+                    ->set('variation', '')
+                    ->set('subtotal', $line->getSubtotal())
+                    ->set('subtotal_tax', $line->getSubtotalTax())
+                    ->set('total', $line->getTotal())
+                    ->set('total_tax', $line->getTax())
+                    ->set('taxes', [])
+                    ->set('tax_class', '')
+                    ->set('product_id', $product->getId())
+                    ->set('variation_id', 0);
+
+                $order->addItem($item);
+            endforeach;
+        endif;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createOrderItemsShipping(OrderInterface $order)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createOrderItemsTax(OrderInterface $order)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function process(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
     {
         /**
          * Conversion de la requête PSR-7
@@ -392,7 +359,7 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
             $order->set($key, $value);
         endforeach;
 
-        $this->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
+        $this->app()->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
 
         $order->create();
 
@@ -411,81 +378,10 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
     }
 
     /**
-     * Ajout des élements du panier à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    public function createOrderItemsProduct(OrderInterface $order)
+    public function processUrl()
     {
-        if ($lines = $this->cart()->lines()) :
-            foreach($lines as $line) :
-                $product = $line->getProduct();
-                $item = $order->createItemProduct();
-                $item
-                    ->set('name', $product->getTitle())
-                    ->set('quantity', $line->getQuantity())
-                    ->set('variation', '')
-                    ->set('subtotal', $line->getSubtotal())
-                    ->set('subtotal_tax', $line->getSubtotalTax())
-                    ->set('total', $line->getTotal())
-                    ->set('total_tax', $line->getTax())
-                    ->set('taxes', [])
-                    ->set('tax_class', '')
-                    ->set('product_id', $product->getId())
-                    ->set('variation_id', 0);
-
-                $order->addItem($item);
-            endforeach;
-        endif;
-    }
-
-    /**
-     * Ajout des élements de promotion à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsFee(OrderInterface $order)
-    {
-
-    }
-
-    /**
-     * Ajout des élements de livraison à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsShipping(OrderInterface $order)
-    {
-
-    }
-
-    /**
-     * Ajout des élements de taxe à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsTax(OrderInterface $order)
-    {
-
-    }
-
-    /**
-     * Ajout des élements de bon de réduction à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsCoupon(OrderInterface $order)
-    {
-
+        return $this->app()->appServiceGet(Route::class)->url('tify.plugins.shop.checkout.process');
     }
 }

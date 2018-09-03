@@ -1,13 +1,8 @@
 <?php
 
-
 /**
  * @name ProductPurchasingOption
- * @desc Controleur de gestion d'une option d'achat
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Products
- * @version 1.1
- * @since 1.2.535
+ * @desc Controleur de gestion d'une option d'achat.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -16,37 +11,32 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use Illuminate\Support\Arr;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
+use tiFy\Plugins\Shop\Contracts\ProductPurchasingOptionInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasingOptionInterface
+class ProductPurchasingOption implements ProductPurchasingOptionInterface
 {
-    use ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Identifiant de qualification.
-     * @var string
-     */
-    protected $name = '';
-
-    /**
-     * Classe de rappel du produit associé.
-     * @var ProductItemInterface
-     */
-    protected $product;
+    use ShopResolverTrait;
 
     /**
      * Liste des attributs de configuration
      * @var array|mixed
      */
     protected $attributes = [];
+
+    /**
+     * Nom de qualification.
+     * @var string
+     */
+    protected $name = '';
+
+    /**
+     * Instance du controleur du produit associé.
+     * @var ProductItemInterface
+     */
+    protected $product;
 
     /**
      * Clé d'indice de l'option d'achat selectionnée.
@@ -65,29 +55,22 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
      */
     public function __construct($name, $product = null, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
+        $this->name = $name;
         $this->shop = $shop;
 
-        // Définition de l'identification
-        $this->name = $name;
-
-        // Définition du produit associé
         if ($product instanceof ProductItemInterface) :
             $this->product = $product;
         else :
             $this->product = $this->products()->get($product);
         endif;
 
-        // Définition des attributs de configuration
         $this->attributes = $this->product instanceof ProductItemInterface
             ? Arr::get($this->product->getMeta('_purchasing_options', true, []), $this->name, [])
             : [];
     }
 
     /**
-     * Vérification d'existance.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function exists()
     {
@@ -95,12 +78,7 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
     }
 
     /**
-     * Récupération d'attribut.
-     *
-     * @param string $key Clé d'index de l'attribut de configuration. Syntaxe à point permise.
-     * @param mixed $default Valeur de retour par defaut.
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
     public function get($key, $default = null)
     {
@@ -108,29 +86,7 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
     }
 
     /**
-     * Identifiant de qualification.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return (string)$this->name;
-    }
-
-    /**
-     * Classe de rappel du produit associé.
-     *
-     * @return null|ProductItemInterface
-     */
-    public function getProduct()
-    {
-        return $this->product;
-    }
-
-    /**
-     * Intitulé de qualification.
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function getLabel()
     {
@@ -138,31 +94,23 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
     }
 
     /**
-     * Intitulé de qualification.
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getValueList()
+    public function getName()
     {
-        return (array)$this->get('value', []);
+        return (string)$this->name;
     }
 
     /**
-     * Définition de la valeur de selection.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    public function setSelected($selected)
+    public function getProduct()
     {
-        $this->selected = $selected;
+        return $this->product;
     }
 
     /**
-     * Récupération de la valeur de selection.
-     *
-     * @param mixed $default Valeur de retour par défaut
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function getValue($default = null)
     {
@@ -171,5 +119,21 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
         endif;
 
         return Arr::get($this->getValueList(), $this->selected, $default);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getValueList()
+    {
+        return (array)$this->get('value', []);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSelected($selected)
+    {
+        $this->selected = $selected;
     }
 }

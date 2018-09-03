@@ -3,14 +3,11 @@
 namespace tiFy\Plugins\Shop\Users;
 
 use tiFy\Plugins\Shop\Orders\OrderListInterface;
-use tiFy\Plugins\Shop\Shop;
 
-class Customer extends AbstractUser implements CustomerInterface
+class Customer extends UserItem
 {
     /**
-     * Vérifie si un utilisateur est considéré en tant que client
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isCustomer()
     {

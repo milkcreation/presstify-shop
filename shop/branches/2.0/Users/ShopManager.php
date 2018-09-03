@@ -2,12 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
-class ShopManager extends AbstractUser implements ShopManagerInterface
+class ShopManager extends UserItem
 {
     /**
-     * Vérifie si un utilisateur est considéré en tant que client
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isShopManager()
     {

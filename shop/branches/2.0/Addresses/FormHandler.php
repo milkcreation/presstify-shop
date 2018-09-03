@@ -1,24 +1,30 @@
 <?php
 
+/**
+ * @name FormHandler
+ * @desc Traitement des formulaires d'adresses.
+ *
+ * @author Jordy Manner <jordy@tigreblanc.fr>
+ * @copyright Milkcreation
+ */
+
 namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Form\Addons\AbstractAddonController;
 use tiFy\Form\Forms\FormHandleController;
+use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class FormHandler extends AbstractAddonController implements FormHandlerInterface
+class FormHandler extends AbstractAddonController implements AddressFormHandlerInterface
 {
+    use ShopResolverTrait;
+
     /**
-     * Identifiant de qualification de l'addon
+     * Identifiant de qualification de l'addon.
      * @var string
      */
-    public $id = 'tify_shop_address_form_handler';
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    public $name = 'tify_shop_address_form_handler';
 
     /**
      * CONSTRUCTEUR.
@@ -29,19 +35,13 @@ class FormHandler extends AbstractAddonController implements FormHandlerInterfac
      */
     public function __construct(Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Définition des fonctions de callback
         $this->callbacks['handle_submit_request'] = [$this, 'cb_handle_submit_request'];
     }
 
     /**
-     * Traitement de la requête de formulaire.
-     *
-     * @param FormHandleController $handle Controleur de traitement des formulaires.
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function cb_handle_submit_request($handle)
     {

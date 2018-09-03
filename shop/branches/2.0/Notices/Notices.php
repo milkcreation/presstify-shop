@@ -14,29 +14,12 @@
 
 namespace tiFy\Plugins\Shop\Notices;
 
-use LogicException;
-use tiFy\Apps\AppController;
 use tiFy\Partial\Partial;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\AbstractShopSingleton;
+use tiFy\Plugins\Shop\Contracts\NoticesInterface;
 
-final class Notices extends AppController implements NoticesInterface, ProvideTraitsInterface
+class Notices extends AbstractShopSingleton implements NoticesInterface
 {
-    use ProvideTraits;
-
-    /**
-     * Instance de la classe
-     * @var Notices
-     */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
     /**
      * Liste des messages de notification à afficher
      * @var array
@@ -44,76 +27,30 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
     protected $notices = [];
 
     /**
-     * CONSTRUCTEUR
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    protected function __construct(Shop $shop)
+    public function boot()
     {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
-
-        // Déclaration des événements
-        $this->appAddAction('wp_loaded');
+        $this->app()->appAddAction(
+            'wp_loaded',
+            function() {
+                $this->notices = $this->session()->get('notices', []);
+            }
+        );
     }
 
     /**
-     * Court-circuitage de l'implémentation.
+     * Affichage des message de notification
      *
-     * @return void
+     * @return string
      */
-    private function __clone()
+    public function __toString()
     {
-
+        return $this->display();
     }
 
     /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe
-     *
-     * @param Shop $shop
-     *
-     * @return Notices
-     */
-    public static function make(Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        return self::$instance = new self($shop);
-    }
-
-    /**
-     * A l'issue du chargement de Wordpress
-     *
-     * @return void
-     */
-    final public function wp_loaded()
-    {
-        $this->notices = $this->session()->get('notices', []);
-    }
-
-    /**
-     * Ajout d'un message de notification
-     *
-     * @param string $message Intitulé du message de notification
-     * @param string $type Type de message de notification success (default)|warning|info|error
-     *
-     * @return void
-     *
-     * @throws LogicException
+     * {@inheritdoc}
      */
     public function add($message, $type = 'success')
     {
@@ -133,9 +70,7 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
     }
 
     /**
-     * Suppression de la liste des messages de notification
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function clear()
     {
@@ -144,9 +79,7 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
     }
 
     /**
-     * Affichage des messages de notification
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function display()
     {
@@ -164,22 +97,12 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
         $output = "";
         foreach ($this->notices as $type => $messages) :
             foreach($messages as $content) :
-                $output .= (string)Partial::Notice(compact('type', 'content'));
+                $output .= (string)partial('notice', compact('type', 'content'));
             endforeach;
         endforeach;
 
         $this->clear();
 
         return $output;
-    }
-
-    /**
-     * Affichage des message de notification
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->display();
     }
 }

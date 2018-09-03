@@ -2,11 +2,7 @@
 
 /**
  * @name OrderItemProduct
- * @desc Controleur d'une ligne d'article associée à une commande
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
+ * @desc Controleur d'une ligne d'article associée à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,7 +10,9 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Products\ProductItemInterface;
+use tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
+use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 
 class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
@@ -64,13 +62,19 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     ];
 
     /**
-     * Récupération du type d'élement associé à la commande.
+     * Récupération de la classe de rappel du produit associé.
      *
-     * @return string line_item
+     * @return null|ProductItemInterface
      */
-    public function getType()
+    public function getProduct()
     {
-        return 'line_item';
+        if ($this->product instanceof ProductItemInterface) :
+            return $this->product;
+        elseif ($id = $this->getProductId()) :
+            return $this->product = $this->app('shop.products.controller')->get($id);
+        else :
+            return null;
+        endif;
     }
 
     /**
@@ -84,16 +88,6 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de l'identifiant de qualification de la variation de produit associée.
-     *
-     * @return int
-     */
-    public function getVariationId()
-    {
-        return (int)$this->get('variation_id', 0);
-    }
-
-    /**
      * Récupération de la quantité d'article du produit associé.
      *
      * @return int
@@ -101,16 +95,6 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     public function getQuantity()
     {
         return (int)$this->get('quantity', 0);
-    }
-
-    /**
-     * Récupération de la classe de taxe appliqué à la commande.
-     *
-     * @return string
-     */
-    public function getTaxClass()
-    {
-        return (string)$this->get('tax_class', '');
     }
 
     /**
@@ -134,6 +118,26 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
+     * Récupération de la classe de taxe appliqué à la commande.
+     *
+     * @return string
+     */
+    public function getTaxClass()
+    {
+        return (string)$this->get('tax_class', '');
+    }
+
+    /**
+     * Récupération de la liste des taxes appliquées à la commande.
+     *
+     * @return array
+     */
+    public function getTaxes()
+    {
+        return (array)$this->get('taxes', []);
+    }
+
+    /**
      * Récupération du montant total de la commande.
      *
      * @return float
@@ -154,28 +158,22 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de la liste des taxes appliquées à la commande.
+     * Récupération du type d'élement associé à la commande.
      *
-     * @return array
+     * @return string line_item
      */
-    public function getTaxes()
+    public function getType()
     {
-        return (array)$this->get('taxes', []);
+        return 'line_item';
     }
 
     /**
-     * Récupération de la classe de rappel du produit associé.
+     * Récupération de l'identifiant de qualification de la variation de produit associée.
      *
-     * @return null|ProductItemInterface
+     * @return int
      */
-    public function getProduct()
+    public function getVariationId()
     {
-        if ($this->product instanceof ProductItemInterface) :
-            return $this->product;
-        elseif ($id = $this->getProductId()) :
-            return $this->product = $this->provide('products.controller')->get($id);
-        else :
-            return null;
-        endif;
+        return (int)$this->get('variation_id', 0);
     }
 }

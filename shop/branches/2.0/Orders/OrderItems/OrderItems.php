@@ -2,15 +2,14 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Apps\AppController;
-use tiFy\Plugins\Shop\Orders\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemsInterface;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class OrderItems extends AppController implements ProvideTraitsInterface
+class OrderItems extends AppController implements OrderItemsInterface
 {
-    use ProvideTraits;
+    use ShopResolverTrait;
 
     /**
      * Classe de rappel de la commande associée.
@@ -19,15 +18,8 @@ class OrderItems extends AppController implements ProvideTraitsInterface
     protected $order;
 
     /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
      * CONSTRUCTEUR.
      *
-     * @param int $id Identifiant de qualification.
      * @param OrderInterface $order Classe de rappel de la commande associée.
      * @param Shop $shop Classe de rappel de la boutique.
      *
@@ -35,23 +27,28 @@ class OrderItems extends AppController implements ProvideTraitsInterface
      */
     public function __construct(OrderInterface $order, Shop $shop)
     {
-        // Définition de la classe de rappel de la commande associée.
         $this->order = $order;
-
-        // Définition de la classe de rappel de la boutique.
         $this->shop = $shop;
     }
 
     /**
-     * Récupération d'un élément.
-     *
-     * @param int|object $id Identifiant de qualification de l'objet|Instance de l'objet.
-     *
-     * @return null|object|OrderItemTypeInterface
+     * {@inheritdoc}
      */
-    public function get($id = null)
+    public function getCollection($query_args = [])
     {
-        if ($id instanceof OrderItem) :
+        if($items = $this->query($query_args)) :
+            $items =  array_map([$this, 'get'], $items);
+        endif;
+
+        return $this->app('shop.orders.order_item_list', [$items, $this->shop]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getItem($id = null)
+    {
+        if ($id instanceof OrderItemInterface) :
             $item = $id;
         elseif ($item = $this->query(
                 [
@@ -67,7 +64,7 @@ class OrderItems extends AppController implements ProvideTraitsInterface
 
         switch($item->getType()) :
             case 'line_item' :
-                return $this->provide('orders.order_item_type_product', [$item, $this->order, $this->shop]);
+                return $this->app('shop.orders.order_item_type_product', [$item, $this->order, $this->shop]);
             break;
         endswitch;
 
@@ -75,27 +72,7 @@ class OrderItems extends AppController implements ProvideTraitsInterface
     }
 
     /**
-     * Récupération des données d'une liste d'éléments selon des critères de requête.
-     *
-     * @param array $query_args Liste des arguments de requête.
-     *
-     * @return array|object|OrderItemList|OrderItemTypeInterface[]
-     */
-    public function getList($query_args = [])
-    {
-        if($items = $this->query($query_args)) :
-            $items =  array_map([$this, 'get'], $items);
-        endif;
-
-        return $this->provide('orders.order_item_list', [$items, $this->shop]);
-    }
-
-    /**
-     * Requête de récupération d'une liste d'élément associés à une commande
-     *
-     * @param array $query_args Liste des arguments de requête.
-     *
-     * @return array|OrderItemInterface[]
+     * {@inheritdoc}
      */
     public function query($query_args = [])
     {
@@ -105,6 +82,11 @@ class OrderItems extends AppController implements ProvideTraitsInterface
             return [];
         endif;
 
-        return array_map(function($attributes){ return $this->provide('orders.order_item', [$attributes, $this->shop]);}, $items);
+        return array_map(
+            function($attributes){
+                return $this->app('shop.orders.order_item', [$attributes, $this->shop]);
+            },
+            $items
+        );
     }
 }

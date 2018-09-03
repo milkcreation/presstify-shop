@@ -3,10 +3,6 @@
 /**
  * @name OrderItemList
  * @desc Controleur des éléments de commande en base de données.
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -15,26 +11,20 @@
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use illuminate\Support\Collection;
-use tiFy\Apps\AppTrait;
+use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemListInterface;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class OrderItemList extends Collection implements ProvideTraitsInterface, OrderItemListInterface
+class OrderItemList extends Collection implements OrderItemListInterface
 {
-    use AppTrait, ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param OrderItem[] $items Liste des éléments.
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param OrderItemInterface[] $items Liste des éléments.
+     * @param Shop $shop Instrance de la boutique.
      *
      * @return void
      */

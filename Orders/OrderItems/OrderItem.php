@@ -3,10 +3,6 @@
 /**
  * @name OrderItem
  * @desc Controleur d'un élément de commande en base de données.
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -15,20 +11,13 @@
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use Illuminate\Support\Fluent;
-use tiFy\Apps\AppTrait;
+use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInterface
+class OrderItem extends Fluent implements OrderItemInterface
 {
-    use AppTrait, ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * CONSTRUCTEUR.
@@ -41,7 +30,7 @@ class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInter
      *      @var string $order_item_type
      *      @var string $order_id
      * }
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
@@ -54,24 +43,7 @@ class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInter
     }
 
     /**
-     * Récupération d'une metadonnée d'élement associé à la commande
-     *
-     * @param string $meta_key Clé d'index de la métadonnée à récupérer.
-     * @param bool $single Type de récupération. single|multi.
-     *
-     * @return mixed
-     */
-    public function getMeta($meta_key, $single = true)
-    {
-        return $this->orders()->getDb()->meta()->get($this->getId(), $meta_key, $single);
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification.
-     *
-     * @internal Identifiant de l'élément en base de données.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getId()
     {
@@ -79,9 +51,15 @@ class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInter
     }
 
     /**
-     * Récupération de l'intitulé de qualification.
-     *
-     * @return string
+     * {@inheritdoc}
+     */
+    public function getMeta($meta_key, $single = true)
+    {
+        return $this->orders()->getDb()->meta()->get($this->getId(), $meta_key, $single);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getName()
     {
@@ -89,22 +67,18 @@ class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInter
     }
 
     /**
-     * Récupération du type d'élement associé à la commande
-     *
-     * @return string coupon|fee|line_item|shipping|tax
-     */
-    public function getType()
-    {
-        return (string)$this->get('order_item_type', '');
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification de la commande.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getOrderId()
     {
         return (int)$this->get('order_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getType()
+    {
+        return (string)$this->get('order_item_type', '');
     }
 }

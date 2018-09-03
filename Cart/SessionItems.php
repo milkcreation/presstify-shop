@@ -2,11 +2,7 @@
 
 /**
  * @name SessionItems
- * @desc Gestion des données des éléments du panier d'achat portées par la session
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Cart
- * @version 1.1
- * @since 1.2.535
+ * @desc Gestion des données des éléments du panier d'achat portées par la session.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -16,33 +12,27 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Fluent;
-use tiFy\Apps\AppTrait;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\Contracts\CartInterface;
+use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class SessionItems extends Fluent implements SessionItemsInterface, ProvideTraitsInterface
+class SessionItems extends Fluent implements CartSessionItemsInterface
 {
-    use AppTrait, ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Classe de rappel de gestion des données des élements contenu dans le panier
+     * Instance du controleur de panier.
      * @var CartInterface
      */
     protected $cart;
 
     /**
-     * Définition des attributs par défaut du panier porté par la session
+     * Listes des attributs du panier porté par la session.
      *
      * @var array
      */
-    protected $defaults = [
+    protected $attributes = [
         'cart'                       => [],
         'cart_totals'                => [],
         'applied_coupons'            => [],
@@ -52,25 +42,39 @@ class SessionItems extends Fluent implements SessionItemsInterface, ProvideTrait
     ];
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
+     *
+     * @param CartInterface $cart Instance de gestion des données des élements contenu dans le panier.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, CartInterface $cart)
+    public function __construct(CartInterface $cart, Shop $shop)
     {
-        parent::__construct($this->defaults);
-
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-
-        // Définition du panier
         $this->cart = $cart;
+
+        parent::__construct($this->attributes);
     }
 
     /**
-     * Récupération des articles du panier portés par la session.
-     *
-     * @return void
+     * {@inheritdoc}
+     */
+    public function destroy($persistent = true)
+    {
+        foreach($this->all() as $key => $default) :
+            $this->session()->put($key, $default);
+        endforeach;
+        $this->session()->put('order_awaiting_payment', 0);
+        $this->session()->save();
+
+        if ($persistent) :
+            \delete_user_option($this->users()->get()->getId(), '_tify_shop_cart');
+        endif;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getCart()
     {
@@ -82,7 +86,7 @@ class SessionItems extends Fluent implements SessionItemsInterface, ProvideTrait
          * @var array $coupon_discount_tax_totals
          * @var array $removed_cart_contents
          */
-        foreach($this->defaults as $key => $default) :
+        foreach($this->all() as $key => $default) :
             ${$key} = $this->session()->get($key, $default);
         endforeach;
 
@@ -113,29 +117,7 @@ class SessionItems extends Fluent implements SessionItemsInterface, ProvideTrait
     }
 
     /**
-     * Détruit les données de session associées au panier.
-     *
-     * @param bool $persistent Active la suppression des données de panier relatives aux options utilisateur
-     *
-     * @return void
-     */
-    public function destroy($persistent = true)
-    {
-        foreach($this->defaults as $key => $default) :
-            $this->session()->put($key, $default);
-        endforeach;
-        $this->session()->put('order_awaiting_payment', 0);
-        $this->session()->save();
-
-        if ($persistent) :
-            \delete_user_option($this->users()->get()->getId(), '_tify_shop_cart');
-        endif;
-    }
-
-    /**
-     * Mise à jour des données des éléments du panier portées par la session.
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function update()
     {
@@ -152,7 +134,7 @@ class SessionItems extends Fluent implements SessionItemsInterface, ProvideTrait
 
         // Mise à jour des données de session
         $attributes = array_merge(
-            $this->defaults,
+            $this->all(),
             [
                 'cart'        => $cart,
                 'cart_totals' => $cart_totals

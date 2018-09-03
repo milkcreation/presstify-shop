@@ -9,7 +9,7 @@ use tiFy\Plugins\Shop\Shop;
  */
 function tify_shop_billing_form()
 {
-    echo Shop::get()->addresses()->billing()->form();
+    echo \app(Shop::class)->addresses()->billing()->form();
 }
 
 /**
@@ -22,7 +22,7 @@ function tify_shop_billing_form()
  */
 function tify_shop_cart_add_url($product)
 {
-    return Shop::get()->cart()->addUrl($product);
+    return \app(Shop::class)->cart()->addUrl($product);
 }
 
 /**
@@ -33,7 +33,7 @@ function tify_shop_cart_add_url($product)
  */
 function tify_shop_cart_update_url()
 {
-    return Shop::get()->cart()->updateUrl();
+    return \app(Shop::class)->cart()->updateUrl();
 }
 
 /**
@@ -45,7 +45,7 @@ function tify_shop_cart_update_url()
  */
 function tify_shop_cart_remove_url($key)
 {
-    return Shop::get()->cart()->removeUrl($key);
+    return \app(Shop::class)->cart()->removeUrl($key);
 }
 
 /**
@@ -56,7 +56,7 @@ function tify_shop_cart_remove_url($key)
  */
 function tify_shop_checkout_process_url()
 {
-    return Shop::get()->checkout()->processUrl();
+    return \app(Shop::class)->checkout()->processUrl();
 }
 
 /**
@@ -66,7 +66,7 @@ function tify_shop_checkout_process_url()
  */
 function tify_shop_notices()
 {
-    echo (string)Shop::get()->notices();
+    echo (string)\app(Shop::class)->notices();
 }
 
 /**
@@ -78,7 +78,7 @@ function tify_shop_notices()
  */
 function tify_shop_page_is($name)
 {
-    return Shop::get()->functions()->page()->is($name);
+    return \app(Shop::class)->functions()->page()->is($name);
 }
 
 /**
@@ -91,7 +91,7 @@ function tify_shop_page_is($name)
  */
 function tify_shop_price_html($price, $format = '')
 {
-    return Shop::get()->functions()->price()->html($price, $format);
+    return \app(Shop::class)->functions()->price()->html($price, $format);
 }
 
 /**
@@ -103,7 +103,7 @@ function tify_shop_price_html($price, $format = '')
  */
 function tify_shop_product($product)
 {
-    return Shop::get()->products()->get($product);
+    return \app(Shop::class)->products()->get($product);
 }
 
 /**
@@ -116,7 +116,7 @@ function tify_shop_product($product)
  */
 function tify_shop_setting($key, $default = '')
 {
-    return Shop::get()->settings()->get($key, $default);
+    return \app(Shop::class)->settings()->get($key, $default);
 }
 
 /**
@@ -128,5 +128,5 @@ function tify_shop_setting($key, $default = '')
  */
 function tify_shop_url($name)
 {
-    return Shop::get()->functions()->url()->page($name);
+    return \app(Shop::class)->functions()->url()->page($name);
 }

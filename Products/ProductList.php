@@ -2,11 +2,7 @@
 
 /**
  * @name ProductList
- * @desc Controleur de récupération de données d'un produit
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Products
- * @version 1.1
- * @since 1.2.535
+ * @desc Controleur de récupération des données d'un produit.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,9 +10,10 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Query\Controller\AbstractPostList;
+use tiFy\PostType\Query\PostQueryCollection;
+use tiFy\Plugins\Shop\Contracts\ProductListInterface;
 
-class ProductList extends AbstractPostList
+class ProductList extends PostQueryCollection implements ProductListInterface
 {
 
 }

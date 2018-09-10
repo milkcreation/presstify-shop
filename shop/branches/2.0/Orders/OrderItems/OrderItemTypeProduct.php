@@ -13,6 +13,7 @@ namespace tiFy\Plugins\Shop\Orders\OrderItems;
 use tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
+use tiFy\Plugins\Shop\Contracts\ProductsInterface;
 
 class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
@@ -71,7 +72,10 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
         if ($this->product instanceof ProductItemInterface) :
             return $this->product;
         elseif ($id = $this->getProductId()) :
-            return $this->product = $this->app('shop.products.controller')->get($id);
+            /** @var ProductsInterface $products */
+            $products = app('shop.products.controller');
+
+            return $this->product = $products->getItem($id);
         else :
             return null;
         endif;

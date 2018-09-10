@@ -16,6 +16,12 @@ use tiFy\User\Session\StoreInterface;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\SessionInterface;
 
+/**
+ * Class Session
+ * @package tiFy\Plugins\Shop\Session
+ *
+ * @mixin StoreInterface
+ */
 class Session extends AbstractShopSingleton implements SessionInterface
 {
     /**
@@ -29,7 +35,7 @@ class Session extends AbstractShopSingleton implements SessionInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'tify_user_session_register',
             function ($sessionController) {
                 /** @var tFyUserSession $sessionController */
@@ -37,6 +43,17 @@ class Session extends AbstractShopSingleton implements SessionInterface
             },
             0
         );
+    }
+
+    /**
+     *
+     * @return mixed
+     */
+    public function __call($name, $args)
+    {
+        if (method_exists($this->handler, $name)) :
+            return call_user_func_array([$this->handler, $name], $args);
+        endif;
     }
 
     /**

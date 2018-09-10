@@ -35,7 +35,7 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function date($time = 'now', $timezone = true)
     {
-        return $this->app('shop.functions.date', [$time, $timezone, $this->shop]);
+        return app('shop.functions.date', [$time, $timezone, $this->shop]);
     }
 
     /**
@@ -43,7 +43,7 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function page()
     {
-        return $this->app('shop.functions.page', [$this->shop]);
+        return app('shop.functions.page', [$this->shop]);
     }
 
     /**
@@ -51,7 +51,7 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function price()
     {
-        return $this->app('shop.functions.price', [$this->shop]);
+        return app('shop.functions.price', [$this->shop]);
     }
 
     /**
@@ -59,6 +59,6 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function url()
     {
-        return $this->app('shop.functions.url', [$this->shop]);
+        return app('shop.functions.url', [$this->shop]);
     }
 }

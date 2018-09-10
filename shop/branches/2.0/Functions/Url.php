@@ -15,7 +15,7 @@ use tiFy\Plugins\Shop\Contracts\FunctionsUrlInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Url extends AppController implements FunctionsUrlInterface
+class Url implements FunctionsUrlInterface
 {
     use ShopResolverTrait;
 

@@ -59,13 +59,6 @@ interface OrdersInterface extends BootableControllerInterface, PostQueryInterfac
     public function getItemBy($key = 'name', $value);
 
     /**
-     * Récupération du controleur de données d'un élément.
-     *
-     * @return string
-     */
-    public function getItemController();
-
-    /**
      * Récupération de la liste des statuts nécessitant un paiement.
      *
      * @return array

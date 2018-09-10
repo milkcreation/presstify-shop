@@ -14,7 +14,7 @@ use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
 use tiFy\Plugins\Shop\Contracts\NoticesInterface;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
 use tiFy\Plugins\Shop\Contracts\ProductsInterface;
-use tiFy\Plugins\Shop\Contracts\SessionInterface;
+use tiFy\Plugins\Shop\Contracts\SessionResolvedInterface;
 use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -32,7 +32,7 @@ trait ShopResolverTrait
      */
     public function addresses()
     {
-        return $this->app('shop.addresses.controller');
+        return app('shop.addresses.controller');
     }
 
     /**
@@ -48,7 +48,7 @@ trait ShopResolverTrait
      */
     public function cart()
     {
-        return $this->app('shop.cart.controller');
+        return app('shop.cart.controller');
     }
 
     /**
@@ -56,7 +56,7 @@ trait ShopResolverTrait
      */
     public function checkout()
     {
-        return $this->app('shop.checkout.controller');
+        return app('shop.checkout.controller');
     }
 
     /**
@@ -72,7 +72,7 @@ trait ShopResolverTrait
      */
     public function functions()
     {
-        return $this->app('shop.functions.controller');
+        return app('shop.functions.controller');
     }
 
     /**
@@ -80,7 +80,7 @@ trait ShopResolverTrait
      */
     public function gateways()
     {
-        return $this->app('shop.gateways.controller');
+        return app('shop.gateways.controller');
     }
 
     /**
@@ -88,7 +88,7 @@ trait ShopResolverTrait
      */
     public function orders()
     {
-        return $this->app('shop.orders.controller');
+        return app('shop.orders.controller');
     }
 
     /**
@@ -96,7 +96,7 @@ trait ShopResolverTrait
      */
     public function products()
     {
-        return $this->app('shop.products.controller');
+        return app('shop.products.controller');
     }
 
     /**
@@ -104,15 +104,15 @@ trait ShopResolverTrait
      */
     public function notices()
     {
-        return $this->app('shop.notices.controller');
+        return app('shop.notices.controller');
     }
 
     /**
-     * @return SessionInterface
+     * @return SessionResolvedInterface
      */
     public function session()
     {
-        return $this->app('shop.session.controller');
+        return app('shop.session.controller');
     }
 
     /**
@@ -120,7 +120,7 @@ trait ShopResolverTrait
      */
     public function settings()
     {
-        return $this->app('shop.settings.controller');
+        return app('shop.settings.controller');
     }
 
     /**
@@ -128,6 +128,6 @@ trait ShopResolverTrait
      */
     public function users()
     {
-        return $this->app('shop.users.controller');
+        return app('shop.users.controller');
     }
 }

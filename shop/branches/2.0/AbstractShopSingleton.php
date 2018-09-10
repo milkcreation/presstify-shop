@@ -25,10 +25,10 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
     use ShopResolverTrait;
 
     /**
-     * Instance de la classe.
-     * @var static
+     * Liste des instances existantes.
+     * @var array
      */
-    protected static $instance;
+    protected static $instances = [];
 
     /**
      * CONSTRUCTEUR.
@@ -63,18 +63,19 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
-     * @param Shop $shop
+     * @param string $alias Nom de qualification de la classe.
+     * @param Shop $shop Instance de la boutique
      *
-     * @return AddressesInterface
+     * @return static
      */
-    public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
-        if (self::$instance) :
-            return self::$instance;
+        if (isset(self::$instances[$alias])) :
+            return self::$instances[$alias];
         endif;
 
-        return self::$instance = new static($shop);
+        return self::$instances[$alias] = new static($shop);
     }
 }

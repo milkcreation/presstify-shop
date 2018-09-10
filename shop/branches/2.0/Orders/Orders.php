@@ -80,13 +80,13 @@ class Orders extends PostQuery implements OrdersInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
      * @param Shop $shop
      *
      * @return AddressesInterface
      */
-    public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
@@ -100,12 +100,10 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function boot()
     {
-        // Intialisation de la base de données
         $this->_initDb();
 
-        // Déclaration des événments
-        $this->app()->appAddAction('init', [$this, 'onInit']);
-        $this->app()->appAddAction('get_header', [$this, 'onReceived']);
+        add_action('init', [$this, 'onInit']);
+        add_action('get_header', [$this, 'onReceived']);
     }
 
     /**
@@ -115,7 +113,10 @@ class Orders extends PostQuery implements OrdersInterface
      */
     private function _initDb()
     {
-        $this->db = $this->app()->appServiceGet(Db::class)->register(
+        /** @var DB $dbController */
+        $dbController = app(Db::class);
+
+        $this->db = $dbController->register(
             '_tiFyShopOrderItems',
             [
                 'install'    => false,
@@ -183,14 +184,6 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * {@inheritdoc}
      */
-    public function getCollectionController()
-    {
-        return $this->app('shop.orders.list');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getDb()
     {
         if ($this->db instanceof DbControllerInterface) :
@@ -235,14 +228,17 @@ class Orders extends PostQuery implements OrdersInterface
             return null;
         endif;
 
-        $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appServiceHas($name)) :
-            $controller = $this->getItemController();
-
-            $this->appServiceAdd($name, new $controller($post, $this->shop));
+        $alias = 'shop.orders.order.' . $post->ID;
+        if (!app()->has($alias)) :
+            app()->singleton(
+                $alias,
+                function() use ($post) {
+                    return $this->resolveItem($post);
+                }
+            );
         endif;
 
-        return $this->appServiceGet($name);
+        return app()->resolve($alias);
     }
 
     /**
@@ -251,14 +247,6 @@ class Orders extends PostQuery implements OrdersInterface
     public function geItemBy($key = 'name', $value)
     {
         return parent::getBy($key, $value);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getItemController()
-    {
-        return $this->app('shop.orders.order');
     }
 
     /**
@@ -441,7 +429,7 @@ class Orders extends PostQuery implements OrdersInterface
      *
      * @return void
      */
-    final public function onInit()
+    public function onInit()
     {
         // Déclaration de la liste des statuts de commande
         foreach ($this->getRegisteredStatuses() as $order_status => $values) :
@@ -454,10 +442,10 @@ class Orders extends PostQuery implements OrdersInterface
      *
      * @return void
      */
-    final public function onReceived()
+    public function onReceived()
     {
-        if ($order_id = $this->appRequest('get')->getInt('order-received', 0)) :
-            $order_key = $this->appRequest('get')->get('key', '');
+        if ($order_id = request()->getProperty('GET')->getInt('order-received', 0)) :
+            $order_key = request()->getProperty('GET')->get('key', '');
 
             if (($order = $this->orders()->get($order_id)) && ($order->getOrderKey() === $order_key)) :
                 $this->cart()->destroy();
@@ -469,5 +457,21 @@ class Orders extends PostQuery implements OrdersInterface
                 $this->cart()->destroy();
             endif;
         endif;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function resolveCollection($items)
+    {
+        return app('shop.orders.list', [$items]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function resolveItem($wp_post)
+    {
+        return app('shop.orders.order', [$wp_post, $this->shop]);
     }
 }

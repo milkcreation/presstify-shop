@@ -11,9 +11,24 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use tiFy\PostType\Query\PostQueryCollection;
+use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 use tiFy\Plugins\Shop\Contracts\ProductListInterface;
+use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
 class ProductList extends PostQueryCollection implements ProductListInterface
 {
+    use ShopResolverTrait;
 
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @param null|OrderInterface[] $items
+     */
+    public function __construct($items = [])
+    {
+        $this->shop = app(Shop::class);
+
+        parent::__construct($items);
+    }
 }

@@ -21,6 +21,7 @@ use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
 use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
+use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 
 class Cart extends AbstractShopSingleton implements CartInterface
 {
@@ -53,7 +54,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'after_setup_tify',
             function () {
                 $this->sessionItems();
@@ -61,7 +62,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
             }
         );
 
-        $this->app()->appAddAction(
+        add_action(
             'tify_route_register',
             function($routeController) {
                 /** @var Route $routeController */
@@ -77,7 +78,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
                             ServerRequestInterface $psrRequest,
                             ResponseInterface $psrResponse
                         ) {
-                            $this->appAddAction(
+                            add_action(
                                 'wp_loaded',
                                 function () use ($product_name, $psrRequest, $psrResponse) {
                                     call_user_func_array([$this, 'addHandler'], [$product_name, $psrRequest, $psrResponse]);
@@ -95,7 +96,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
                         'method' => 'post',
                         'path'   => '/mise-a-jour-du-panier',
                         'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                            $this->appAddAction(
+                            add_action(
                                 'wp_loaded',
                                 function () use ($psrRequest, $psrResponse) {
                                     call_user_func_array([$this, 'updateHandler'], [$psrRequest, $psrResponse]);
@@ -113,7 +114,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
                         'method' => ['get', 'post'],
                         'path'   => '/supprimer-du-panier/{line_key}',
                         'cb'     => function ($line_key, ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                            $this->appAddAction(
+                            add_action(
                                 'wp_loaded',
                                 function () use ($line_key, $psrRequest, $psrResponse) {
                                     call_user_func_array([$this, 'removeHandler'], [$line_key, $psrRequest, $psrResponse]);
@@ -126,7 +127,8 @@ class Cart extends AbstractShopSingleton implements CartInterface
             },
             0
         );
-        $this->app()->appAddAction(
+
+        add_action(
             'wp_loaded',
             function() {
                 $this->sessionItems()->getCart();
@@ -148,7 +150,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     {
         return $this->lines()->put(
             $key,
-            $this->app(
+            app(
                 'cart.line',
                 [$attributes, $this, $this->shop]
             )
@@ -216,12 +218,13 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function addUrl($product)
     {
-        if (!$product instanceof \tiFy\Plugins\Shop\Products\ProductItemInterface) :
+        if (!$product instanceof ProductItemInterface) :
             $product = $this->products()->get($product);
-        endif;
+        elseif ($product instanceof ProductItemInterface) :
+            /** @var Route $route */
+            $route = app(Route::class);
 
-        if ($product instanceof \tiFy\Plugins\Shop\Products\ProductItemInterface) :
-            return $this->appServiceGet(Route::class)->url('tify.plugins.shop.cart.add', [$product->getSlug()]);
+            return $route->url('tify.plugins.shop.cart.add', [$product->getSlug()]);
         else :
             return '';
         endif;
@@ -232,7 +235,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function calculate()
     {
-        return $this->totals = $this->app('shop.cart.total', [$this, $this->shop]);
+        return $this->totals = app('shop.cart.total', [$this, $this->shop]);
     }
 
     /**
@@ -266,7 +269,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function flush()
     {
-        $this->lines = $this->app('shop.cart.line_list');
+        $this->lines = app('shop.cart.line_list', [[]]);
     }
 
     /**
@@ -344,7 +347,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     public function lines()
     {
         if (is_null($this->lines)) :
-            $this->lines = $this->app('shop.cart.line_list');
+            $this->lines = app('shop.cart.line_list', [[]]);
         endif;
 
         return $this->lines;
@@ -412,7 +415,10 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function removeUrl($key)
     {
-        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.cart.remove', [$key]);
+        /** @var Route $route */
+        $route = app(Route::class);
+
+        return $route->url('tify.plugins.shop.cart.remove', [$key]);
     }
 
     /**
@@ -420,7 +426,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function sessionItems()
     {
-        return $this->app('shop.cart.session_items', [$this, $this->shop]);
+        return app('shop.cart.session_items', [$this, $this->shop]);
     }
 
     /**
@@ -444,7 +450,10 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function updateUrl()
     {
-        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.cart.update');
+        /** @var Route $route */
+        $route = app(Route::class);
+
+        return $route->url('tify.plugins.shop.cart.update');
     }
 
     /**

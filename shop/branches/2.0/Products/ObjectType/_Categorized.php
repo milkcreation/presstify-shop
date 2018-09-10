@@ -25,11 +25,10 @@ class Categorized extends AbstractObjectType implements ProductObjectType
     {
         parent::boot();
 
-        $this->app()->appAddAction('restrict_manage_posts', null, null, 2);
-        $this->app()->appAddAction('tify_custom_taxonomy_register');
-
-        $this->app()->appAddAction('tify_taboox_register_box');
-        $this->app()->appAddAction('tify_taboox_register_node');
+        add_action('restrict_manage_posts', [$this, 'restrict_manage_posts'], 10, 2);
+        add_action('tify_custom_taxonomy_register', [$this, 'tify_custom_taxonomy_register']);
+        add_action('tify_taboox_register_box', [$this, 'tify_taboox_register_box']);
+        add_action('tify_taboox_register_node', [$this, 'tify_taboox_register_node']);
     }
 
     /**

@@ -2,7 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
-class ShopManager extends UserItem
+use tiFy\Plugins\Shop\Contracts\UserShopManagerInterface;
+
+class ShopManager extends UserItem implements UserShopManagerInterface
 {
     /**
      * {@inheritdoc}

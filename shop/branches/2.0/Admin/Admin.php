@@ -24,16 +24,17 @@ class Admin extends AbstractShopSingleton implements AdminInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'init',
-            function(){
+            function() {
                 if ($object_types = $this->shop->products()->getObjectTypeList()) :
                     foreach ($object_types as $id => $object_type) :
-                        new ListTable\ListTable($this->shop, $object_type);
-                        new Edit\Edit($this->shop, $object_type);
+                        new ListTable\ListTable($object_type, $this->shop);
+                        new Edit\Edit($object_type, $this->shop);
                     endforeach;
                 endif;
-            }
+            },
+            0
         );
     }
 }

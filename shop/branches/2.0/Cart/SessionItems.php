@@ -86,7 +86,7 @@ class SessionItems extends Fluent implements CartSessionItemsInterface
          * @var array $coupon_discount_tax_totals
          * @var array $removed_cart_contents
          */
-        foreach($this->all() as $key => $default) :
+        foreach($this->toArray() as $key => $default) :
             ${$key} = $this->session()->get($key, $default);
         endforeach;
 

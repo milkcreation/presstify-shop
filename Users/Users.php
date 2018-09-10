@@ -84,7 +84,7 @@ class Users extends UserQuery implements UsersInterface
      *
      * @return Users
      */
-    public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
@@ -98,7 +98,7 @@ class Users extends UserQuery implements UsersInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'tify_user_role_register',
             function ($roleController) {
                 /** @var Role $roleController */
@@ -110,7 +110,7 @@ class Users extends UserQuery implements UsersInterface
             }
         );
 
-        $this->app()->appAddAction(
+        add_action(
             'tify_user_signin_register',
             function ($signInController) {
                 /** @var SignIn $signInController */
@@ -121,7 +121,7 @@ class Users extends UserQuery implements UsersInterface
             }
         );
 
-        $this->app()->appAddAction(
+        add_action(
             'tify_user_take_over_register',
             function ($takeOverController) {
                 /** @var TakeOver $takeOverController */
@@ -170,15 +170,15 @@ class Users extends UserQuery implements UsersInterface
     public function getItem($user = null)
     {
         if (!$item = parent::get($user)) :
-            return $this->app('shop.users.logged_out');
+            return app('shop.users.logged_out');
         endif;
 
         $roles = $item->getRoles();
 
         if (in_array('shop_manager', $roles)) :
-            return $this->app('shop.users.shop_manager', [$item->getUser(), $this->shop]);
+            return app('shop.users.shop_manager', [$item->getUser(), $this->shop]);
         elseif (in_array('customer', $roles)) :
-            return $this->app('shop.users.customer', [$item->getUser(), $this->shop]);
+            return app('shop.users.customer', [$item->getUser(), $this->shop]);
         else :
             return $item;
         endif;

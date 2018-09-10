@@ -75,13 +75,13 @@ class Products extends PostQuery implements ProductsInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
      * @param Shop $shop
      *
      * @return AddressesInterface
      */
-    public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
@@ -97,7 +97,7 @@ class Products extends PostQuery implements ProductsInterface
     {
         $this->_registerObjectTypes();
 
-        $this->app()->appAddAction('save_post', [$this, 'save_post'], 10, 2);
+        add_action('save_post', [$this, 'save_post'], 10, 2);
     }
 
     /**
@@ -109,12 +109,12 @@ class Products extends PostQuery implements ProductsInterface
     {
         foreach ($this->config('products', []) as $post_type => $attrs) :
             if (empty($attrs['category'])) :
-                return self::$objectTypes[$post_type] = $this->app(
+                return self::$objectTypes[$post_type] = app(
                         'shop.products.type.uncategorized',
                         [$post_type, $attrs, $this->shop]
                     );
             else :
-                return self::$objectTypes[$post_type] = $this->app(
+                return self::$objectTypes[$post_type] = app(
                         'shop.products.type.categorized',
                         [$post_type, $attrs, $this->shop]
                     );
@@ -146,17 +146,7 @@ class Products extends PostQuery implements ProductsInterface
             $items = [];
         endif;
 
-        $controller = $this->getListController();
-
         return new $controller($items);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCollectionController()
-    {
-        return $this->app('shop.products.list');
     }
 
     /**
@@ -184,13 +174,17 @@ class Products extends PostQuery implements ProductsInterface
             return null;
         endif;
 
-        $alias = 'tify.query.post.' . $post->ID;
-        if (! app()->has($alias)) :
-            $controller = $this->getObjectType($post->post_type)->getItemController();
-            app()->singleton($alias, new $controller($post, $this->shop));
+        $alias = 'shop.products.item.' . $post->ID;
+        if (!app()->has($alias)) :
+            app()->singleton(
+                $alias,
+                function() use ($post) {
+                    return $this->resolveItem($post);
+                }
+            );
         endif;
 
-        return $this->app($alias);
+        return app()->resolve($alias);
     }
 
     /**
@@ -326,7 +320,7 @@ class Products extends PostQuery implements ProductsInterface
         endif;
 
         // Bypass - Si l'argument de requête renseignant l'indication de type de post est manquant
-        if (!$post_type = $this->app()->appRequest('POST')->get('post_type', '')) :
+        if (!$post_type = request()->getProperty('POST')->get('post_type', '')) :
             return null;
         endif;
 
@@ -356,5 +350,23 @@ class Products extends PostQuery implements ProductsInterface
         $this->get($post)->save();
 
         return $post;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function resolveCollection($items)
+    {
+        return app('shop.products.list', [$items]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function resolveItem($wp_post)
+    {
+        $concrete = $this->getObjectType($wp_post->post_type)->getItemController();
+
+        return new $concrete($wp_post, $this->shop);
     }
 }

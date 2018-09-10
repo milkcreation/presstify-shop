@@ -53,7 +53,7 @@ interface ProductItemInterface extends PostQueryItemInterface
      *
      * @param string $name Identifiant de qualification de l'option d'achat.
      *
-     * @return ProductPurchasingOption
+     * @return ProductPurchasingOptionInterface
      */
     public function getPurchasingOption($name);
 

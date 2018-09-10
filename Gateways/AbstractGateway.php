@@ -207,7 +207,7 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface
             return;
         endif;
 
-        $logger = $this->appLog();
+        $logger = app()->appLog();
         $levels = $logger::getLevels();
 
         $logger->addRecord($levels[$Type], $message, $context);

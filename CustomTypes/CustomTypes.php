@@ -22,12 +22,12 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'tify_taxonomy_register',
             function($taxonomyController) {
                 /** @var Taxonomy $taxonomyController */
 
-                // Récupération de la liste des identifiant de qualification des gamme de produits déclarés
+                // Récupération de la liste des identifiant de qualification des gamme de produits déclarés.
                 $product_object_types = $this->products()->getObjectTypes();
 
                 // Type de produit
@@ -89,7 +89,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
             }
         );
 
-        $this->app()->appAddAction(
+        add_action(
             'tify_post_type_register',
             function($postTypeController) {
                 /** @var PostType $postTypeController */

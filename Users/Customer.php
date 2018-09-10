@@ -2,9 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
+use tiFy\Plugins\Shop\Contracts\UserCustomerInterface;
 use tiFy\Plugins\Shop\Orders\OrderListInterface;
 
-class Customer extends UserItem
+class Customer extends UserItem implements UserCustomerInterface
 {
     /**
      * {@inheritdoc}

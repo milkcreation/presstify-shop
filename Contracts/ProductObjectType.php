@@ -3,7 +3,6 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use Illuminate\Support\Arr;
-use tiFy\Apps\AppController;
 use tiFy\PostType\PostType;
 use tiFy\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
@@ -50,13 +49,6 @@ interface ProductObjectType extends ShopResolverInterface
      * @return boolean
      */
     public function has($key);
-
-    /**
-     * Récupération du controleur de récupération de données d'un produit
-     *
-     * @return string
-     */
-    public function getItemController();
 
     /**
      * Récupération de la liste des types de produit

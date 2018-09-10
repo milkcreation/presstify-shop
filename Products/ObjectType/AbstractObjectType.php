@@ -3,7 +3,6 @@
 namespace tiFy\Plugins\Shop\Products\ObjectType;
 
 use Illuminate\Support\Arr;
-use tiFy\Apps\AppController;
 use tiFy\PostType\PostType;
 use tiFy\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
@@ -63,7 +62,7 @@ abstract class AbstractObjectType implements ProductObjectType
         ];
 
         /** @var MetadataPost $postMetaController */
-        $postMetaController = $this->app(MetadataPost::class);
+        $postMetaController = app(MetadataPost::class);
 
         foreach ($single_meta_keys as $single_meta_key) :
             $postMetaController->register($this->getName(), $single_meta_key, true);
@@ -87,7 +86,7 @@ abstract class AbstractObjectType implements ProductObjectType
     {
         $this->_registerMetas();
 
-        $this->app()->appAddAction(
+        add_action(
             'tify_post_type_register',
             function ($postTypeController) {
                 /** @var  PostType $postTypeController */

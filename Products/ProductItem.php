@@ -108,7 +108,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function getPurchasingOption($name)
     {
-        return $this->app('shop.products.purchasing_option', [$name, $this, $this->shop]);
+        return app('shop.products.purchasing_option', [$name, $this, $this->shop]);
     }
 
     /**
@@ -204,7 +204,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     {
         // -----------------------------------------------------------
         // TYPE DE PRODUIT
-        $product_type = $this->app()->appRequest('POST')->get('product-type', 'simple');
+        $product_type = request()->getProperty('POST')->get('product-type', 'simple');
         \wp_set_post_terms($this->getId(), $product_type, 'product_type');
 
         // -----------------------------------------------------------
@@ -212,7 +212,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
         $visibility = [];
 
         // Mise en avant
-        $featured = $this->app()->appRequest('POST')->get('_featured', 'off');
+        $featured = request()->getProperty('POST')->get('_featured', 'off');
         if ($featured === 'on') :
             array_push($visibility, 'featured');
         endif;

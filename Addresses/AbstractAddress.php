@@ -52,7 +52,7 @@ abstract class AbstractAddress implements AddressInterface
         $this->shop = $shop;
         $this->addresses = $addresses;
 
-        $this->app()->appAddAction(
+        add_action(
             'tify_form_register',
             function ($formController) {
                 $this->user = $this->shop->users()->get();
@@ -180,7 +180,7 @@ abstract class AbstractAddress implements AddressInterface
      */
     public function getId()
     {
-        return $this->id ?: strtolower($this->appShortname());
+        return $this->id ?: Str::lower(class_info($this)->getShortName());
     }
 
     /**

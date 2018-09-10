@@ -7,7 +7,7 @@ use tiFy\Plugins\Shop\Contracts\OrderItemsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class OrderItems extends AppController implements OrderItemsInterface
+class OrderItems implements OrderItemsInterface
 {
     use ShopResolverTrait;
 
@@ -40,7 +40,7 @@ class OrderItems extends AppController implements OrderItemsInterface
             $items =  array_map([$this, 'get'], $items);
         endif;
 
-        return $this->app('shop.orders.order_item_list', [$items, $this->shop]);
+        return app('shop.orders.order_item_list', [$items, $this->shop]);
     }
 
     /**
@@ -64,7 +64,7 @@ class OrderItems extends AppController implements OrderItemsInterface
 
         switch($item->getType()) :
             case 'line_item' :
-                return $this->app('shop.orders.order_item_type_product', [$item, $this->order, $this->shop]);
+                return app('shop.orders.order_item_type_product', [$item, $this->order, $this->shop]);
             break;
         endswitch;
 
@@ -84,7 +84,7 @@ class OrderItems extends AppController implements OrderItemsInterface
 
         return array_map(
             function($attributes){
-                return $this->app('shop.orders.order_item', [$attributes, $this->shop]);
+                return app('shop.orders.order_item', [$attributes, $this->shop]);
             },
             $items
         );

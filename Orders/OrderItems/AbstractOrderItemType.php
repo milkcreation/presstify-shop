@@ -74,7 +74,7 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
             $this->setDatas($item);
             $this->setMetas($item);
         elseif (is_numeric($item) && $item > 0) :
-            $item = $this->app('shop.orders.order_items', [$this->order, $this->shop])->get($item);
+            $item = app('shop.orders.order_items', [$this->order, $this->shop])->get($item);
             $this->setDatas($item);
             $this->setMetas($item);
         else :

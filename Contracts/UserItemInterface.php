@@ -89,6 +89,7 @@ interface UserItemInterface extends UserQueryItemInterface
      * @return bool
      */
     public function isCustomer();
+
     /**
      * Vérifie si un utilisateur est considéré en tant que client.
      *

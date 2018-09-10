@@ -146,7 +146,7 @@ class Settings extends Fluent implements SettingsInterface
      *
      * @return self
      */
-    public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;

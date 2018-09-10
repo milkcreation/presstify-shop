@@ -24,7 +24,7 @@ use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShippingInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTaxInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
-use \WP_Post;
+use WP_Post;
 
 class Order extends PostQueryItem implements OrderInterface
 {
@@ -221,7 +221,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function createItemCoupon()
     {
-        return $this->app('shop.orders.item_coupon', [0, $this, $this->shop]);
+        return app('shop.orders.item_coupon', [0, $this, $this->shop]);
     }
 
     /**
@@ -229,7 +229,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function createItemFee()
     {
-        return $this->app('shop.orders.item_fee', [0, $this, $this->shop]);
+        return app('shop.orders.item_fee', [0, $this, $this->shop]);
     }
 
     /**
@@ -237,7 +237,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function createItemProduct()
     {
-        return $this->app('shop.orders.order_item_type_product', [0, $this, $this->shop]);
+        return app('shop.orders.order_item_type_product', [0, $this, $this->shop]);
     }
 
     /**
@@ -245,7 +245,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function createItemShipping()
     {
-        return $this->app('shop.orders.item_shipping', [0, $this, $this->shop]);
+        return app('shop.orders.item_shipping', [0, $this, $this->shop]);
     }
 
     /**
@@ -253,7 +253,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function createItemTax()
     {
-        return $this->app('shop.orders.item_tax', [0, $this, $this->shop]);
+        return app('shop.orders.item_tax', [0, $this, $this->shop]);
     }
 
     /**

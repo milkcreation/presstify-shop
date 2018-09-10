@@ -1,44 +1,40 @@
 <?php
+
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
-use tiFy\Apps\AppController;
 use tiFy\Field\Field;
 use tiFy\TabMetabox\TabMetabox;
+use tiFy\Plugins\Shop\Contracts\ProductObjectType;
+use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
+use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Products\ObjectTypes\Factory;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Edit extends AppController
+class Edit
 {
+    use ShopResolverTrait;
+
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-    
-    /**
-     * Classe de rappel d'un produit
-     * @var \tiFy\Plugins\Shop\Products\ObjectTypes\Categorized|\tiFy\Plugins\Shop\Products\ObjectTypes\Uncategorized
+     * Instance du type de produit.
+     * @var Categorized|Uncategorized
      */
     private $objectType;
 
     /**
      * CONSTRUCTEUR
      *
-     * @param string $id Identifiant de qualification du type de post du produit
-     * @param array $attrs Attributs de configuration
+     * @param ProductObjectType $object_type Instance du type de produit.
+     * @param Shop $shop Attributs de configuration.
      *
      * @return void
      */
-    public function __construct(Shop $shop, Factory $ObjectType)
+    public function __construct(ProductObjectType $object_type, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
+        $this->objectType = $object_type;
 
-        $this->objectType = $ObjectType;
-
-        // Déclaration des événements de déclenchement
-        $this->appAddAction('tify_tabmetabox_register');
-        $this->appAddAction('current_screen');
+        add_action('tify_tabmetabox_register', [$this, 'tify_tabmetabox_register']);
+        add_action('current_screen', [$this, 'current_screen']);
     }
 
     /**
@@ -48,7 +44,7 @@ class Edit extends AppController
      *
      * @return void
      */
-    final public function tify_tabmetabox_register($tabMetabox)
+    public function tify_tabmetabox_register($tabMetabox)
     {
         $tabMetabox->registerBox(
             "{$this->objectType}@post_type",
@@ -56,6 +52,7 @@ class Edit extends AppController
                 'title' => [$this, 'panelHeader'],
             ]
         );
+
         // Définition des onglets de saisie par défaut
         $default_tabs = [
             'general'    => [
@@ -128,38 +125,32 @@ class Edit extends AppController
      *
      * @return void
      */
-    final public function current_screen($current_screen)
+    public function current_screen($current_screen)
     {
         if ($current_screen->id !== (string)$this->objectType) :
             return;
         endif;
 
-        // Déclenchement de la mise en file des scripts de l'interface d'administration
-        $this->appAddAction('admin_enqueue_scripts');
-    }
+        add_action(
+            'admin_enqueue_scripts',
+            function() {
+                Field::SelectJs()->enqueue_scripts();
+                Field::ToggleSwitch()->enqueue_scripts();
 
-    /**
-     * Mise en file des scripts de l'interface d'administration
-     *
-     * @return void
-     */
-    final public function admin_enqueue_scripts()
-    {
-        $this->appServiceGet(Field::class)->enqueue('SelectJs');
-
-        \wp_enqueue_script(
-            'tiFyPluginShopAdminEdit',
-            $this->appUrl(get_class()) . '/Edit.js',
-            ['jquery'],
-            171219,
-            true
-        );
-        \wp_enqueue_style(
-            'tiFyPluginShopAdminEdit',
-            $this->appUrl(get_class()) . '/Edit.css',
-            [],
-            171219
-        );
+                \wp_enqueue_script(
+                    'ShopAdminEdit',
+                    class_info($this)->getUrl() . '/Edit.js',
+                    ['jquery'],
+                    171219,
+                    true
+                );
+                \wp_enqueue_style(
+                    'ShopAdminEdit',
+                    class_info($this)->getUrl() . '/Edit.css',
+                    [],
+                    171219
+                );
+            });
     }
 
     /**
@@ -167,9 +158,9 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function panelHeader($post)
+    public function panelHeader($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
         $product_type_selector = '';
         if ($product_types = $product->getProductTypes()) :
@@ -205,14 +196,13 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function generalPanel($post)
+    public function generalPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'general',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('general', compact('post', 'product'));
     }
 
     /**
@@ -222,14 +212,13 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function inventoryPanel($post)
+    public function inventoryPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'inventory',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('inventory', compact('post', 'product'));
     }
 
     /**
@@ -239,14 +228,13 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function shippingPanel($post)
+    public function shippingPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'shipping',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('shipping', compact('post', 'product'));
     }
 
     /**
@@ -256,14 +244,13 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function linkedPanel($post)
+    public function linkedPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'linked',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('linked', compact('post', 'product'));
     }
 
     /**
@@ -273,14 +260,13 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function attributesPanel($post)
+    public function attributesPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'attributes',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('attributes', compact('post', 'product'));
     }
 
     /**
@@ -290,14 +276,13 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function variationsPanel($post)
+    public function variationsPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'variations',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('variations', compact('post', 'product'));
     }
 
     /**
@@ -307,13 +292,12 @@ class Edit extends AppController
      *
      * @return string
      */
-    final public function advancedPanel($post)
+    public function advancedPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop->products()->getItem($post);
 
-        return $this->appTemplateRender(
-            'advanced',
-            compact('post', 'product')
-        );
+        return view()
+            ->setDirectory(__DIR__ . '/views')
+            ->render('advanced', compact('post', 'product'));
     }
 }

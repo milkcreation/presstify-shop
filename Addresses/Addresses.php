@@ -21,14 +21,14 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'tify_form_addon_register',
             function($addonsController){
                 /** @var AddonsController $addonsController */
                 $addonsController->register(
                     'tify_shop_address_form_handler',
                     function () {
-                        return $this->app('shop.addresses.form_handler', [$this, 'shop']);
+                        return app('shop.addresses.form_handler', [$this, 'shop']);
                     }
                 );
             }
@@ -40,7 +40,7 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
      */
     public function billing()
     {
-        return $this->app('shop.addresses.billing', [$this, $this->shop]);
+        return app('shop.addresses.billing', [$this, $this->shop]);
     }
 
     /**
@@ -138,6 +138,6 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
      */
     public function shipping()
     {
-        return $this->app('shop.addresses.shipping', [$this, $this->shop]);
+        return app('shop.addresses.shipping', [$this, $this->shop]);
     }
 }

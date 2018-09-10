@@ -30,7 +30,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
      */
     public function boot()
     {
-        $this->app()->appAddAction(
+        add_action(
             'tify_route_register',
             function($routeController) {
                 /** @var Route $routeController */
@@ -42,7 +42,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                         'method' => 'post',
                         'path'   => '/commander',
                         'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                            $this->app->appAddAction(
+                            add_action(
                                 'wp_loaded',
                                 function () use ($psrRequest, $psrResponse) {
                                     call_user_func_array([$this, 'process'], [$psrRequest, $psrResponse]);
@@ -359,7 +359,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             $order->set($key, $value);
         endforeach;
 
-        $this->app()->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
+        app()->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
 
         $order->create();
 
@@ -382,6 +382,9 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
      */
     public function processUrl()
     {
-        return $this->app()->appServiceGet(Route::class)->url('tify.plugins.shop.checkout.process');
+        /** @var Route $route */
+        $route = app(Route::class);
+
+        return $route->url('tify.plugins.shop.checkout.process');
     }
 }

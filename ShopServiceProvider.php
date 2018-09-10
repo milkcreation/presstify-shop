@@ -2,8 +2,10 @@
 
 namespace tiFy\Plugins\Shop;
 
+use App\Json\ProductItem;
 use \LogicException;
 use tiFy\App\Container\AppServiceProvider;
+use tiFy\Plugins\Shop\Products\ProductList;
 use tiFy\Plugins\Shop\Shop;
 
 /**
@@ -101,6 +103,9 @@ class ShopServiceProvider extends AppServiceProvider
         AddressesFormHandler::class,
         AddressesShipping::class,
         CartSessionItems::class,
+        FunctionsPage::class,
+        FunctionsPrice::class,
+        FunctionsUrl::class,
         GatewaysCachOnDelivery::class,
         GatewaysCheque::class,
         GatewaysList::class,
@@ -114,6 +119,20 @@ class ShopServiceProvider extends AppServiceProvider
         CartLine::class,
         CartLineList::class,
         CartTotal::class,
+        FunctionsDate::class,
+        Order::class,
+        OrderItem::class,
+        OrderItems::class,
+        OrderItemList::class,
+        OrderItemTypeCoupon::class,
+        OrderItemTypeFee::class,
+        OrderItemTypeProduct::class,
+        OrderItemTypeShipping::class,
+        OrderItemTypeTax::class,
+        OrderList::class,
+        ProductItem::class,
+        ProductList::class,
+        ProductPurchasingOption::class,
         ProductsObjectTypeCategorized::class,
         ProductsObjectTypeUncategorized::class,
         UsersCustomer::class,
@@ -174,6 +193,26 @@ class ShopServiceProvider extends AppServiceProvider
     ];
 
     /**
+     * Listes des noms de qualification de services instanciés automatiquement au démarrage.
+     * @var array
+     */
+    protected $bootables = [
+        'shop.addresses.controller',
+        'shop.admin.controller',
+        'shop.cart.controller',
+        'shop.checkout.controller',
+        'shop.custom_types.controller',
+        'shop.functions.controller',
+        'shop.gateways.controller',
+        'shop.notices.controller',
+        'shop.orders.controller',
+        'shop.products.controller',
+        'shop.session.controller',
+        'shop.settings.controller',
+        'shop.users.controller'
+    ];
+
+    /**
      * Listes des interfaces requises par les classe de surchage.
      * @var array
      */
@@ -211,23 +250,42 @@ class ShopServiceProvider extends AppServiceProvider
     ];
 
     /**
-     * Listes des services instanciés automatiquement au démarrage.
+     * Listes des noms de qualification de services instanciés de manière différée.
      * @var array
      */
-    protected $bootables = [
-        Addresses::class,
-        Admin::class,
-        Cart::class,
-        Checkout::class,
-        CustomTypes::class,
-        Functions::class,
-        Gateways::class,
-        Notices::class,
-        Orders::class,
-        Products::class,
-        Session::class,
-        Settings::class,
-        Users::class
+    protected $deferred = [
+        'shop.addresses.billing',
+        'shop.addresses.form_handler',
+        'shop.addresses.shipping',
+        'shop.cart.line',
+        'shop.cart.line_list',
+        'shop.cart.session_items',
+        'shop.cart.total',
+        'shop.functions.date',
+        'shop.functions.page',
+        'shop.functions.price',
+        'shop.functions.url',
+        'shop.gateway.cash_on_delivery',
+        'shop.gateway.cheque',
+        'shop.gateways.list',
+        'shop.orders.order',
+        'shop.orders.order_item',
+        'shop.orders.order_items',
+        'shop.orders.order_item_list',
+        'shop.orders.order_item_type_coupon',
+        'shop.orders.order_item_type_fee',
+        'shop.orders.order_item_type_product',
+        'shop.orders.order_item_type_shipping',
+        'shop.orders.order_item_type_tax',
+        'shop.orders.list',
+        'shop.products.item',
+        'shop.products.list',
+        'shop.products.purchasing_option',
+        'shop.products.type.categorized',
+        'shop.products.type.uncategorized',
+        'shop.users.customer',
+        'shop.users.logged_out',
+        'shop.users.shop_manager'
     ];
 
     /**
@@ -251,31 +309,27 @@ class ShopServiceProvider extends AppServiceProvider
 
         $this->customs = config('shop.service_provider');
 
-        foreach($this->bootables as $concrete) :
-            $alias = $this->getContainer()->getAlias($concrete);
-
-            $resolved = $this->app
+        foreach($this->bootables as $abstract) :
+            $this->app
                 ->singleton(
-                    $alias,
-                    function ($app) use ($alias) {
-                        if (!$concrete = $this->getConcrete($alias)) :
-                            return;
-                        endif;
+                    $abstract,
+                    function ($app) use ($abstract) {
+                        $concrete = $this->getConcrete($abstract);
 
                         try {
-                            $resolved = $concrete::make($this->shop);
+                            $resolved = $concrete::make($abstract, $this->shop);
                         } catch (\Exception $e) {
                             wp_die();
                         }
 
-                        if (isset($this->contracts[$alias])) :
+                        if (isset($this->contracts[$abstract])) :
                             try {
-                                $concrete instanceof $this->contracts[$alias];
+                                $resolved instanceof $this->contracts[$abstract];
                             } catch (\Exception $e) {
                                 throw new LogicException(
                                     sprintf(
                                         __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
-                                        $this->contracts[$alias]
+                                        $this->contracts[$abstract]
                                     ),
                                     500
                                 );
@@ -284,8 +338,9 @@ class ShopServiceProvider extends AppServiceProvider
 
                         return $resolved;
                     }
-                )
-                ->build();
+                );
+
+            $resolved = $this->app->resolve($abstract);
 
             if ($resolved instanceof BootableControllerInterface) :
                 add_action('tify_app_boot', [$resolved, 'boot'], 11);
@@ -300,10 +355,14 @@ class ShopServiceProvider extends AppServiceProvider
      *
      * @return string
      */
-    public function getConcrete($alias)
+    public function getConcrete($abstract)
     {
-        return isset($this->customs["shop.{$alias}"])
-            ? $this->customs["shop.{$alias}"]
-            : $this->aliases[$alias];
+        return isset($this->customs["shop.{$abstract}"])
+            ? $this->customs["shop.{$abstract}"]
+            : (
+                isset($this->aliases[$abstract])
+                ? $this->aliases[$abstract]
+                : $abstract
+            );
     }
 }

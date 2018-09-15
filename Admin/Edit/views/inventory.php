@@ -7,26 +7,28 @@
 
 <table class="form-table">
     <tbody>
-        <tr>
-            <th>
+    <tr>
+        <th>
             <?php
-                echo tify_field_label(
-                    [
-                        'content' => __('UGS', 'tify')
-                    ]
-                );
+            echo field(
+                'label',
+                [
+                    'content' => __('UGS', 'tify'),
+                ]
+            );
             ?>
-            </th>
-            <td>
+        </th>
+        <td>
             <?php
-                echo tify_field_text(
-                    [
-                        'name' => '_sku',
-                        'value' => get_post_meta($post->ID, '_sku', true)
-                    ]
-                );
+            echo field(
+                'text',
+                [
+                    'name'  => '_sku',
+                    'value' => get_post_meta($post->ID, '_sku', true),
+                ]
+            );
             ?>
-            </td>
-        </tr>
+        </td>
+    </tr>
     </tbody>
 </table>

@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use Illuminate\Support\Arr;
 use tiFy\PostType\PostType;
-use tiFy\Metadata\Post as MetadataPost;
+use tiFy\PostType\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
 use tiFy\Plugins\Shop\Products\ProductItem;
 

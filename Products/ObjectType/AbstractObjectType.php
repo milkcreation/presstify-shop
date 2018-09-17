@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Products\ObjectType;
 
 use Illuminate\Support\Arr;
 use tiFy\PostType\PostType;
-use tiFy\Metadata\Post as MetadataPost;
+use tiFy\PostType\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ProductItem;
 use tiFy\Plugins\Shop\Shop;
@@ -87,9 +87,11 @@ abstract class AbstractObjectType implements ProductObjectType
         $this->_registerMetas();
 
         add_action(
-            'tify_post_type_register',
-            function ($postTypeController) {
-                /** @var  PostType $postTypeController */
+            'init',
+            function () {
+                /** @var PostType $postTypeController */
+                $postTypeController = app(PostType::class);
+
                 $postTypeController->register(
                     $this->getName(),
                     $this->all()

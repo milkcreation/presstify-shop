@@ -10,6 +10,7 @@
 
 namespace tiFy\Plugins\Shop\CustomTypes;
 
+use tiFy\Field\ToggleSwitch\ToggleSwitch;
 use tiFy\PostType\PostType;
 use tiFy\Taxonomy\Taxonomy;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
@@ -23,9 +24,10 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
     public function boot()
     {
         add_action(
-            'tify_taxonomy_register',
-            function($taxonomyController) {
+            'init',
+            function () {
                 /** @var Taxonomy $taxonomyController */
+                $taxonomyController = app(Taxonomy::class);
 
                 // Récupération de la liste des identifiant de qualification des gamme de produits déclarés.
                 $product_object_types = $this->products()->getObjectTypes();
@@ -41,8 +43,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                         'query_var'         => is_admin(),
                         'rewrite'           => false,
                         'public'            => false,
-
-                        'object_type' => $product_object_types,
+                        'object_type'       => $product_object_types,
                     ]
                 );
 
@@ -57,8 +58,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                         'query_var'         => is_admin(),
                         'rewrite'           => false,
                         'public'            => false,
-
-                        'object_type' => array_merge($product_object_types, ['product_variation']),
+                        'object_type'       => array_merge($product_object_types, ['product_variation']),
                     ]
                 );
 
@@ -66,10 +66,10 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 $taxonomyController->register(
                     'product_cat',
                     [
-                        'hierarchical'          => true,
-                        'singular'              => __('categorie', 'tify'),
-                        'plural'                => __('categories', 'tify'),
-                        'show_ui'               => true
+                        'hierarchical' => true,
+                        'singular'     => __('categorie', 'tify'),
+                        'plural'       => __('categories', 'tify'),
+                        'show_ui'      => true,
                     ]
                 );
 
@@ -77,22 +77,18 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 $taxonomyController->register(
                     'product_tag',
                     [
-                        'hierarchical'          => false,
-                        'singular'              => __('étiquette', 'tify'),
-                        'plural'                => __('étiquettes', 'tify'),
-                        'show_ui'               => true
+                        'hierarchical' => false,
+                        'singular'     => __('étiquette', 'tify'),
+                        'plural'       => __('étiquettes', 'tify'),
+                        'show_ui'      => true,
                     ]
                 );
 
                 // Classes de livraison
                 // @todo
-            }
-        );
 
-        add_action(
-            'tify_post_type_register',
-            function($postTypeController) {
                 /** @var PostType $postTypeController */
+                $postTypeController = app(PostType::class);
 
                 // Produits
                 // @todo

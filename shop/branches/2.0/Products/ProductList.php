@@ -27,7 +27,7 @@ class ProductList extends PostQueryCollection implements ProductListInterface
      */
     public function __construct($items = [])
     {
-        $this->shop = app(Shop::class);
+        $this->shop = app('shop');
 
         parent::__construct($items);
     }

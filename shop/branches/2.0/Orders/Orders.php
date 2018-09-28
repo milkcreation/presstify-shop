@@ -13,7 +13,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use tiFy\Db\Db;
-use tiFy\Db\DbControllerInterface;
+use tiFy\Contracts\Db\DbItemInterface;
 use tiFy\PostType\Query\PostQuery;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -100,23 +100,9 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function boot()
     {
-        $this->_initDb();
-
-        add_action('init', [$this, 'onInit']);
-        add_action('get_header', [$this, 'onReceived']);
-    }
-
-    /**
-     * Initialisation de la table de base de données.
-     *
-     * @return DbControllerInterface
-     */
-    private function _initDb()
-    {
-        /** @var DB $dbController */
+        /** @var Db $dbController */
         $dbController = app(Db::class);
-
-        $this->db = $dbController->register(
+        $dbController->add(
             '_tiFyShopOrderItems',
             [
                 'install'    => false,
@@ -152,9 +138,9 @@ class Orders extends PostQuery implements OrdersInterface
                 'keys'       => ['order_id' => ['cols' => 'order_id', 'type' => 'INDEX']],
             ]
         );
-        $this->db->install();
 
-        return $this->db;
+        add_action('init', [$this, 'onInit']);
+        add_action('get_header', [$this, 'onReceived']);
     }
 
     /**
@@ -186,8 +172,12 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function getDb()
     {
-        if ($this->db instanceof DbControllerInterface) :
+        if ($this->db instanceof DbItemInterface) :
             return $this->db;
+        else :
+            /** @var Db $dbController */
+            $dbController = app(Db::class);
+            $this->db = $dbController->get('_tiFyShopOrderItems');
         endif;
 
         return null;

@@ -4,6 +4,7 @@ namespace tiFy\Plugins\Shop;
 
 use tiFy\Contracts\App\AppInterface;
 use tiFy\Contracts\Container\ContainerInterface;
+use tiFy\Contracts\Views\ViewsInterface;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Contracts\AdminInterface;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
@@ -32,15 +33,7 @@ trait ShopResolverTrait
      */
     public function addresses()
     {
-        return app('shop.addresses.controller');
-    }
-
-    /**
-     * @return AppInterface|ContainerInterface
-     */
-    public function app($abstract = null, $args = [])
-    {
-        return $this->shop->app($abstract, $args);
+        return resolve('shop.addresses.controller');
     }
 
     /**
@@ -48,7 +41,7 @@ trait ShopResolverTrait
      */
     public function cart()
     {
-        return app('shop.cart.controller');
+        return resolve('shop.cart.controller');
     }
 
     /**
@@ -56,7 +49,7 @@ trait ShopResolverTrait
      */
     public function checkout()
     {
-        return app('shop.checkout.controller');
+        return resolve('shop.checkout.controller');
     }
 
     /**
@@ -72,7 +65,7 @@ trait ShopResolverTrait
      */
     public function functions()
     {
-        return app('shop.functions.controller');
+        return resolve('shop.functions.controller');
     }
 
     /**
@@ -80,7 +73,7 @@ trait ShopResolverTrait
      */
     public function gateways()
     {
-        return app('shop.gateways.controller');
+        return resolve('shop.gateways.controller');
     }
 
     /**
@@ -88,7 +81,7 @@ trait ShopResolverTrait
      */
     public function orders()
     {
-        return app('shop.orders.controller');
+        return resolve('shop.orders.controller');
     }
 
     /**
@@ -96,7 +89,7 @@ trait ShopResolverTrait
      */
     public function products()
     {
-        return app('shop.products.controller');
+        return resolve('shop.products.controller');
     }
 
     /**
@@ -104,7 +97,7 @@ trait ShopResolverTrait
      */
     public function notices()
     {
-        return app('shop.notices.controller');
+        return resolve('shop.notices.controller');
     }
 
     /**
@@ -112,7 +105,7 @@ trait ShopResolverTrait
      */
     public function session()
     {
-        return app('shop.session.controller');
+        return resolve('shop.session.controller');
     }
 
     /**
@@ -120,7 +113,31 @@ trait ShopResolverTrait
      */
     public function settings()
     {
-        return app('shop.settings.controller');
+        return resolve('shop.settings.controller');
+    }
+
+    /**
+     * @return SettingsInterface
+     */
+    public function shop()
+    {
+        return resolve('shop');
+    }
+
+    /**
+     * @return string
+     */
+    public function resourcesDir($path = '')
+    {
+        return ;
+    }
+
+    /**
+     * @return string
+     */
+    public function resourcesUrl($path = '')
+    {
+        return resolve('shop.settings.controller');
     }
 
     /**
@@ -128,6 +145,21 @@ trait ShopResolverTrait
      */
     public function users()
     {
-        return app('shop.users.controller');
+        return resolve('shop.users.controller');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function viewer($view = null, $data = [])
+    {
+        /** @var ViewsInterface $viewer */
+        $viewer = resolve('shop.viewer');
+
+        if (func_num_args() === 0) :
+            return $viewer;
+        endif;
+
+        return $viewer->make("_override::{$view}", $data);
     }
 }

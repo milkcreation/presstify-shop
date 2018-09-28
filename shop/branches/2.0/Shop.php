@@ -4,17 +4,16 @@
  * @name Shop
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
- * @package presstiFy
+ * @package presstify-plugins/shop
  * @namespace \tiFy\Plugins\Shop
  * @version 2.0.0
  */
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\App\Dependency\AbstractAppDependency;
 use tiFy\Contracts\App\AppInterface;
 use tiFy\Contracts\Container\ContainerInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
+use tiFy\Plugins\Shop\Contracts\ShopInterface;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
 
@@ -46,34 +45,17 @@ use tiFy\Plugins\Shop\ShopResolverTrait;
  * Dans le dossier de config, créer le fichier shop.php
  * @see /vendor/presstify-plugins/shop/Resources/config/shop.php Exemple de configuration
  */
-final class Shop extends AbstractAppDependency implements ShopResolverInterface
+final class Shop implements ShopInterface
 {
     use ShopResolverTrait;
 
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR.
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct()
     {
         $this->shop = $this;
-    }
-
-    /**
-     * Récupération d'une instance de l'application ou d'un service fourni par celle-ci.
-     * {@internal Si $abstract est null > Retourne l'instance de l'appication.}
-     * {@internal Si $abstract est qualifié > Retourne la résolution du service qualifié.}
-     *
-     * @param null|string $abstract Nom de qualification du service.
-     * @param array $args Liste des variables passé en arguments lors de la résolution du service.
-     *
-     * @return object|AppInterface|AppContainer
-     */
-    public function app($abstract = null, $args = [])
-    {
-        if (is_null($abstract)) :
-            return $this->app;
-        endif;
-
-        return $this->app->resolve($abstract, $args);
     }
 }

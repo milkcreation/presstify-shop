@@ -2,8 +2,8 @@
 
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
-use tiFy\Components\Columns\PostType\PostThumbnail;
 use tiFy\Column\Column;
+use tiFy\PostType\Column\PostThumbnail\PostThumbnail;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
 use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
@@ -13,6 +13,12 @@ use tiFy\Plugins\Shop\ShopResolverTrait;
 class ListTable
 {
     use ShopResolverTrait;
+
+    /**
+     * Nom de qualification du type de post associé.
+     * @var string
+     */
+    private $objectName = '';
 
     /**
      * Instance du type de produit.
@@ -32,49 +38,55 @@ class ListTable
     {
         $this->shop = $shop;
         $this->objectType = $object_type;
+        $this->objectName = $this->objectType->getName();
 
-        Column::make('post_type', (string)$this->objectType)
+        /** @var Column $columnController */
+        $columnController = app(Column::class);
+        $columnController
             ->add(
-                'thumb',
-                new PostThumbnail(
-                    [
-                        'position'  => 1
-                    ]
-                )
-            )
-            ->add(
-                'sku',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => __('UGS', 'tify'),
-                    'position'  => 3,
-                    'content'   => [$this, 'columnSku']
+                    'name'     => 'thumb',
+                    'position' => 1,
+                    'content'  => PostThumbnail::class
                 ]
             )
             ->add(
-                'price',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => __('Prix', 'tify'),
-                    'position'  => 4,
-                    'content'   => [$this, 'columnPrice']
+                    'name'     => 'sku',
+                    'title'    => __('UGS', 'tify'),
+                    'position' => 3,
+                    'content'  => [$this, 'columnSku']
                 ]
             )
             ->add(
-                'featured',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => "<span class=\"dashicons dashicons-star-half\"></span>",
-                    'position'  => 5,
-                    'content'   => [$this, 'columnFeatured']
+                    'name'     => 'price',
+                    'title'    => __('Prix', 'tify'),
+                    'position' => 4,
+                    'content'  => [$this, 'columnPrice']
                 ]
             )
             ->add(
-                'product_type',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => __('Type', 'tify'),
-                    'position'  => 6,
-                    'content'   => [$this, 'columnProductType']
+                    'name'     => 'featured',
+                    'title'    => "<span class=\"dashicons dashicons-star-half\"></span>",
+                    'position' => 5,
+                    'content'  => [$this, 'columnFeatured']
+                ]
+            )
+            ->add(
+                "{$this->objectName}@post_type",
+                [
+                    'name'     => 'product_type',
+                    'title'    => __('Type', 'tify'),
+                    'position' => 6,
+                    'content'  => [$this, 'columnProductType']
                 ]
             );
-
     }
 
     /**

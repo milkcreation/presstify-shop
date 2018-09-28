@@ -6,6 +6,7 @@ use tiFy\User\Query\UserQueryItem;
 use tiFy\Plugins\Shop\Contracts\UserItemInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
+use \WP_User;
 
 class UserItem extends UserQueryItem implements UserItemInterface
 {

@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
 use tiFy\Field\Field;
-use tiFy\TabMetabox\TabMetabox;
+use tiFy\Metabox\Metabox;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
 use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
@@ -13,6 +13,12 @@ use tiFy\Plugins\Shop\ShopResolverTrait;
 class Edit
 {
     use ShopResolverTrait;
+
+    /**
+     * Nom de qualification du type de post associé.
+     * @var string
+     */
+    private $objectName = '';
 
     /**
      * Instance du type de produit.
@@ -32,67 +38,93 @@ class Edit
     {
         $this->shop = $shop;
         $this->objectType = $object_type;
+        $this->objectName = $this->objectType->getName();
 
-        add_action('tify_tabmetabox_register', [$this, 'tify_tabmetabox_register']);
-        add_action('current_screen', [$this, 'current_screen']);
-    }
+        add_action(
+            'current_screen',
+            function ($wp_screen)
+            {
+                if ($wp_screen->id !== (string)$this->objectName) :
+                    return;
+                endif;
 
-    /**
-     * Déclaration de la liste des organes de saisie.
-     *
-     * @param TabMetabox $tabMetabox Controleur des boites à onglet de saisie.
-     *
-     * @return void
-     */
-    public function tify_tabmetabox_register($tabMetabox)
-    {
+                add_action(
+                    'admin_enqueue_scripts',
+                    function() {
+                        field('select-js')->enqueue_scripts();
+                        field('toggle-switch')->enqueue_scripts();
+
+                        wp_enqueue_script(
+                            'ShopAdminEdit',
+                            class_info($this)->getUrl() . '/Edit.js',
+                            ['jquery'],
+                            171219,
+                            true
+                        );
+
+                        wp_enqueue_style(
+                            'ShopAdminEdit',
+                            class_info($this)->getUrl() . '/Edit.css',
+                            [],
+                            171219
+                        );
+                    }
+                );
+            }
+        );
+
+        /** @var Metabox $metaboxController */
+        $metaboxController = resolve(Metabox::class);
+
+        /*
         $tabMetabox->registerBox(
             "{$this->objectType}@post_type",
             [
                 'title' => [$this, 'panelHeader'],
             ]
         );
+        */
 
         // Définition des onglets de saisie par défaut
         $default_tabs = [
             'general'    => [
-                'name'     => "tFyShopProduct-generalOptions--{$this->objectType}",
+                'name'     => "ShopProduct-generalOptions--{$this->objectType}",
                 'title'    => __('Général', 'tify'),
                 'content'  => [$this, 'generalPanel'],
                 'position' => 1,
             ],
             'inventory'  => [
-                'name'     => "tFyShopProduct-inventoryOptions--{$this->objectType}",
+                'name'     => "ShopProduct-inventoryOptions--{$this->objectType}",
                 'title'    => __('Inventaire', 'tify'),
                 'content'  => [$this, 'inventoryPanel'],
                 'position' => 2,
             ],
             'shipping'   => [
-                'name'     => "tFyShopProduct-shippingOptions--{$this->objectType}",
+                'name'     => "ShopProduct-shippingOptions--{$this->objectType}",
                 'title'    => __('Expédition', 'tify'),
                 'content'  => [$this, 'shippingPanel'],
                 'position' => 3,
             ],
             'linked'     => [
-                'name'     => "tFyShopProduct-linkedOptions--{$this->objectType}",
+                'name'     => "ShopProduct-linkedOptions--{$this->objectType}",
                 'title'    => __('Produits liés', 'tify'),
                 'content'  => [$this, 'linkedPanel'],
                 'position' => 4,
             ],
             'attributes' => [
-                'name'     => "tFyShopProduct-attributesOptions--{$this->objectType}",
+                'name'     => "ShopProduct-attributesOptions--{$this->objectType}",
                 'title'    => __('Attributs', 'tify'),
                 'content'  => [$this, 'attributesPanel'],
                 'position' => 5,
             ],
             'variations' => [
-                'name'     => "tFyShopProduct-variationsOptions--{$this->objectType}",
+                'name'     => "ShopProduct-variationsOptions--{$this->objectType}",
                 'title'    => __('Variations', 'tify'),
                 'content'  => [$this, 'variationsPanel'],
                 'position' => 6,
             ],
             'advanced'   => [
-                'name'     => "tFyShopProduct-advancedOptions--{$this->objectType}",
+                'name'     => "ShopProduct-advancedOptions--{$this->objectType}",
                 'title'    => __('Avancé', 'tify'),
                 'content'  => [$this, 'advancedPanel'],
                 'position' => 7,
@@ -113,44 +145,11 @@ class Edit
         endforeach;
 
         foreach ($custom_tabs as $attrs) :
-            $tabMetabox->registerNode(
+            $metaboxController->add(
                 "{$this->objectType}@post_type",
                 $attrs
             );
         endforeach;
-    }
-
-    /**
-     * Affichage de l'écran courant
-     *
-     * @return void
-     */
-    public function current_screen($current_screen)
-    {
-        if ($current_screen->id !== (string)$this->objectType) :
-            return;
-        endif;
-
-        add_action(
-            'admin_enqueue_scripts',
-            function() {
-                Field::SelectJs()->enqueue_scripts();
-                Field::ToggleSwitch()->enqueue_scripts();
-
-                \wp_enqueue_script(
-                    'ShopAdminEdit',
-                    class_info($this)->getUrl() . '/Edit.js',
-                    ['jquery'],
-                    171219,
-                    true
-                );
-                \wp_enqueue_style(
-                    'ShopAdminEdit',
-                    class_info($this)->getUrl() . '/Edit.css',
-                    [],
-                    171219
-                );
-            });
     }
 
     /**
@@ -170,7 +169,8 @@ class Edit
             endforeach;
 
             $product_type_selector .= '<b> — </b>';
-            $product_type_selector .= Field::Select(
+            $product_type_selector .= field(
+                'select',
                 [
                     'name'     => 'product-type',
                     'value'    => $product->getProductType(),
@@ -178,7 +178,8 @@ class Edit
                 ]
             );
         else :
-            $product_type_selector .= Field::Hidden(
+            $product_type_selector .= field(
+                'hidden',
                 [
                     'name'    => 'product-type',
                     'options' => 'simple'
@@ -200,9 +201,7 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('general', compact('post', 'product'));
+        return $this->viewer('admin/edit/general', compact('post', 'product'));
     }
 
     /**
@@ -216,9 +215,7 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('inventory', compact('post', 'product'));
+        return $this->viewer('admin/edit/inventory', compact('post', 'product'));
     }
 
     /**
@@ -232,9 +229,7 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('shipping', compact('post', 'product'));
+        return $this->viewer('admin/edit/shipping', compact('post', 'product'));
     }
 
     /**
@@ -248,9 +243,7 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('linked', compact('post', 'product'));
+        return $this->viewer('admin/edit/linked', compact('post', 'product'));
     }
 
     /**
@@ -264,9 +257,7 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('attributes', compact('post', 'product'));
+        return $this->viewer('admin/edit/attributes', compact('post', 'product'));
     }
 
     /**
@@ -280,9 +271,7 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('variations', compact('post', 'product'));
+        return $this->viewer('admin/edit/variations', compact('post', 'product'));
     }
 
     /**
@@ -296,8 +285,6 @@ class Edit
     {
         $product = $this->shop->products()->getItem($post);
 
-        return view()
-            ->setDirectory(__DIR__ . '/views')
-            ->render('advanced', compact('post', 'product'));
+        return $this->viewer('admin/edit/advanced', compact('post', 'product'));
     }
 }

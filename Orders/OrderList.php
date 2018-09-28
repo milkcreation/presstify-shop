@@ -27,7 +27,7 @@ class OrderList extends PostQueryCollection implements OrderListInterface
      */
     public function __construct($items = [])
     {
-        $this->shop = app(Shop::class);
+        $this->shop = resolve('shop');
 
         parent::__construct($items);
     }

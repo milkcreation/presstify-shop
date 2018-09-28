@@ -169,7 +169,7 @@ class Users extends UserQuery implements UsersInterface
      */
     public function getItem($user = null)
     {
-        if (!$item = parent::get($user)) :
+        if (!$item = parent::getItem($user)) :
             return app('shop.users.logged_out');
         endif;
 

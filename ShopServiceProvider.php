@@ -56,6 +56,7 @@ use tiFy\Plugins\Shop\Users\Users;
 use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
 use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
 use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
+use tiFy\Plugins\Shop\ShopViewController;
 
 /**
  * CONTRACTS
@@ -94,52 +95,6 @@ use tiFy\Plugins\Shop\Contracts\UsersInterface;
 
 class ShopServiceProvider extends AppServiceProvider
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected $singletons = [
-        Shop::class,
-        AddressesBilling::class,
-        AddressesFormHandler::class,
-        AddressesShipping::class,
-        CartSessionItems::class,
-        FunctionsPage::class,
-        FunctionsPrice::class,
-        FunctionsUrl::class,
-        GatewaysCachOnDelivery::class,
-        GatewaysCheque::class,
-        GatewaysList::class,
-    ];
-
-    /**
-     * Liste des services à instance multiples auto-déclarés.
-     * @var array|string[]
-     */
-    protected $bindings = [
-        CartLine::class,
-        CartLineList::class,
-        CartTotal::class,
-        FunctionsDate::class,
-        Order::class,
-        OrderItem::class,
-        OrderItems::class,
-        OrderItemList::class,
-        OrderItemTypeCoupon::class,
-        OrderItemTypeFee::class,
-        OrderItemTypeProduct::class,
-        OrderItemTypeShipping::class,
-        OrderItemTypeTax::class,
-        OrderList::class,
-        ProductItem::class,
-        ProductList::class,
-        ProductPurchasingOption::class,
-        ProductsObjectTypeCategorized::class,
-        ProductsObjectTypeUncategorized::class,
-        UsersCustomer::class,
-        UsersLoggedOut::class,
-        UsersShopManager::class
-    ];
-
     /**
      * Liste des alias de qualification des services fournis.
      * @var array
@@ -189,7 +144,7 @@ class ShopServiceProvider extends AppServiceProvider
         'shop.users.controller'                => Users::class,
         'shop.users.customer'                  => UsersCustomer::class,
         'shop.users.logged_out'                => UsersLoggedOut::class,
-        'shop.users.shop_manager'              => UsersShopManager::class,
+        'shop.users.shop_manager'              => UsersShopManager::class
     ];
 
     /**
@@ -305,9 +260,27 @@ class ShopServiceProvider extends AppServiceProvider
      */
     public function boot()
     {
-        $this->shop = $this->app->resolve(Shop::class);
+        $this->shop = $this->app->singleton('shop', Shop::class)->build();
 
-        $this->customs = config('shop.service_provider');
+        $this->app->singleton(
+            'shop.viewer',
+            function () {
+                $cinfo = class_info($this->shop);
+                $default_dir = $cinfo->getDirname() . '/Resources/views';
+                $viewer = view()
+                    ->setDirectory($default_dir)
+                    ->setController(config('shop.viewer.controller') ? : ShopViewController::class)
+                    ->setOverrideDir(($dir = config('shop.viewer.override_dir')) && is_dir($dir)
+                            ? $override_dir
+                            : $default_dir
+                    )
+                    ->set('shop', $this->shop);
+
+                return $viewer;
+            }
+        );
+
+        $this->customs = config('shop.service_provider', []);
 
         foreach($this->bootables as $abstract) :
             $this->app
@@ -346,6 +319,54 @@ class ShopServiceProvider extends AppServiceProvider
                 add_action('tify_app_boot', [$resolved, 'boot'], 11);
             endif;
         endforeach;
+
+        $singletons = [
+            AddressesBilling::class,
+            AddressesFormHandler::class,
+            AddressesShipping::class,
+            CartSessionItems::class,
+            FunctionsPage::class,
+            FunctionsPrice::class,
+            FunctionsUrl::class,
+            GatewaysCachOnDelivery::class,
+            GatewaysCheque::class,
+            GatewaysList::class
+        ];
+        foreach($singletons as $concrete) :
+            $abstract = $this->getContainer()->getAlias($concrete);
+            $concrete = $this->getConcrete($abstract);
+            $this->app->singleton($abstract, $concrete);
+        endforeach;
+
+        $bindings = [
+            CartLine::class,
+            CartLineList::class,
+            CartTotal::class,
+            FunctionsDate::class,
+            Order::class,
+            OrderItem::class,
+            OrderItems::class,
+            OrderItemList::class,
+            OrderItemTypeCoupon::class,
+            OrderItemTypeFee::class,
+            OrderItemTypeProduct::class,
+            OrderItemTypeShipping::class,
+            OrderItemTypeTax::class,
+            OrderList::class,
+            ProductItem::class,
+            ProductList::class,
+            ProductPurchasingOption::class,
+            ProductsObjectTypeCategorized::class,
+            ProductsObjectTypeUncategorized::class,
+            UsersCustomer::class,
+            UsersLoggedOut::class,
+            UsersShopManager::class
+        ];
+        foreach($bindings as $concrete) :
+            $abstract = $this->getContainer()->getAlias($concrete);
+            $concrete = $this->getConcrete($abstract);
+            $this->app->bind($abstract, $concrete);
+        endforeach;
     }
 
     /**
@@ -357,8 +378,10 @@ class ShopServiceProvider extends AppServiceProvider
      */
     public function getConcrete($abstract)
     {
-        return isset($this->customs["shop.{$abstract}"])
-            ? $this->customs["shop.{$abstract}"]
+        $_abstract = trim($abstract, 'shop.');
+
+        return isset($this->customs[$_abstract])
+            ? $this->customs[$_abstract]
             : (
                 isset($this->aliases[$abstract])
                 ? $this->aliases[$abstract]

@@ -201,12 +201,5 @@ return [
     // @var array $settings Déclaration des options de la boutique
     'settings'         => [
         'decimal_separator' => ',',
-    ],
-
-    'take_over' => [
-        '_tiFyPluginShopAdmin'   => [
-            'auth_roles'    => ['administrator'],
-            'allowed_roles' => ['shop_manager', 'customer'],
-        ]
     ]
 ];

@@ -158,7 +158,7 @@ class Order extends PostQueryItem implements OrderInterface
             return 0;
         endif;
 
-        if (($user = $this->users()->get()) && $user->can('edit_shop_order', $this->getId()) && $by_user) :
+        if (($user = $this->users()->getItem()) && $user->can('edit_shop_order', $this->getId()) && $by_user) :
             $comment_author       = $user->getDisplayName();
             $comment_author_email = $user->getEmail();
         else :
@@ -180,7 +180,7 @@ class Order extends PostQueryItem implements OrderInterface
             'comment_approved'     => 1,
         ];
 
-        $comment_id = \wp_insert_comment($commentdata);
+        $comment_id = wp_insert_comment($commentdata);
 
         if ($is_customer) :
             \add_comment_meta($comment_id, 'is_customer_note', 1);
@@ -462,7 +462,7 @@ class Order extends PostQueryItem implements OrderInterface
         $this->set('customer_note', $this->getExcerpt(true));
 
         // Récupération de la liste des éléments associé à la commande, enregistré en base de donnée.
-        foreach($this->order_items->getList() as $item) :
+        foreach($this->order_items->getCollection() as $item) :
             /** @var OrderItemTypeInterface $item */
             $this->items[$item->getType()][$item->getId()] = $item;
         endforeach;
@@ -485,7 +485,7 @@ class Order extends PostQueryItem implements OrderInterface
             'post_modified'     => $this->functions()->date()->get(),
             'post_modified_gmt' => $this->functions()->date()->utc(),
         ];
-        \wp_update_post($post_data);
+        wp_update_post($post_data);
 
         // Sauvegarde des métadonnées
         $this->saveMetas();

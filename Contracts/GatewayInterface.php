@@ -2,9 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use tiFy\Contracts\Kernel\ParametersBagIteratorInterface;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 
-interface GatewayInterface
+interface GatewayInterface extends ParametersBagIteratorInterface
 {
     /**
      * Formulaire de paiement de la commande.

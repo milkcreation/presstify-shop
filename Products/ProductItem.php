@@ -73,7 +73,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function getProductTags()
     {
-        return \wp_get_post_terms($this->getId(), 'product_tag');
+        return wp_get_post_terms($this->getId(), 'product_tag');
     }
 
     /**
@@ -156,7 +156,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function isFeatured()
     {
-        if (!$terms = \wp_get_post_terms($this->getId(), 'product_visibility', ['fields' => 'names'])) :
+        if (!$terms = wp_get_post_terms($this->getId(), 'product_visibility', ['fields' => 'names'])) :
             return false;
         elseif (is_wp_error($terms)) :
             return false;
@@ -204,19 +204,19 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     {
         // -----------------------------------------------------------
         // TYPE DE PRODUIT
-        $product_type = request()->getProperty('POST')->get('product-type', 'simple');
-        \wp_set_post_terms($this->getId(), $product_type, 'product_type');
+        $product_type = request()->post('product-type', 'simple');
+        wp_set_post_terms($this->getId(), $product_type, 'product_type');
 
         // -----------------------------------------------------------
         // VISIBILITE PRODUIT
         $visibility = [];
 
         // Mise en avant
-        $featured = request()->getProperty('POST')->get('_featured', 'off');
+        $featured = request()->post('_featured', 'off');
         if ($featured === 'on') :
             array_push($visibility, 'featured');
         endif;
 
-        \wp_set_post_terms($this->getId(), $visibility, 'product_visibility');
+        wp_set_post_terms($this->getId(), $visibility, 'product_visibility');
     }
 }

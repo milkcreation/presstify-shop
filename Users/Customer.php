@@ -38,6 +38,6 @@ class Customer extends UserItem implements UserCustomerInterface
             ]
         ];
         
-        return $this->orders()->getList($query_args);
+        return $this->orders()->getCollection($query_args);
     }
 }

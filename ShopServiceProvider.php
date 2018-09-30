@@ -353,8 +353,8 @@ class ShopServiceProvider extends AppServiceProvider
             OrderItemTypeShipping::class,
             OrderItemTypeTax::class,
             OrderList::class,
-            ProductItem::class,
-            ProductList::class,
+            ProductsItem::class,
+            ProductsList::class,
             ProductPurchasingOption::class,
             ProductsObjectTypeCategorized::class,
             ProductsObjectTypeUncategorized::class,
@@ -378,7 +378,7 @@ class ShopServiceProvider extends AppServiceProvider
      */
     public function getConcrete($abstract)
     {
-        $_abstract = trim($abstract, 'shop.');
+        $_abstract = preg_replace('#^shop\.#', '', $abstract);
 
         return isset($this->customs[$_abstract])
             ? $this->customs[$_abstract]

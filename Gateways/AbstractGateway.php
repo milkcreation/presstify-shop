@@ -3,12 +3,12 @@
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Str;
-use Illuminate\Support\Fluent;
+use tiFy\Kernel\Parameters\AbstractParametersBagIterator;
 use tiFy\Plugins\Shop\Contracts\GatewayInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-abstract class AbstractGateway extends Fluent implements GatewayInterface
+abstract class AbstractGateway extends AbstractParametersBagIterator implements GatewayInterface
 {
     use ShopResolverTrait;
 
@@ -39,12 +39,7 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface
         $this->id = $id;
         $this->shop = $shop;
 
-        parent::__construct(
-            array_merge(
-                $this->defaults(),
-                $attrs
-            )
-        );
+        parent::__construct($attrs);
     }
 
     /**
@@ -61,7 +56,6 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface
     public function defaults()
     {
         return [
-            'id'                   => $this->id ?? Str::lower(class_info($this)->getShortName()),
             'order_button_text'    => '',
             'enabled'              => true,
             'title'                => '',
@@ -102,7 +96,7 @@ abstract class AbstractGateway extends Fluent implements GatewayInterface
      */
     public function getId()
     {
-        return $this->get('id');
+        return $this->id;
     }
 
     /**

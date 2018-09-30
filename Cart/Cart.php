@@ -129,10 +129,16 @@ class Cart extends AbstractShopSingleton implements CartInterface
         );
 
         add_action(
-            'wp_loaded',
+            'init',
             function() {
                 $this->sessionItems()->getCart();
+            },
+            999999
+        );
 
+        add_action(
+            'wp_loaded',
+            function () {
                 if ($this->functions()->page()->isCart() && ! $this->getList() && ($message = $this->getNotice('is_empty'))) :
                     $this->notices()->add(
                         $message,
@@ -148,10 +154,10 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function add($key, $attributes)
     {
-        return $this->lines()->put(
+        $this->lines()->put(
             $key,
             app(
-                'cart.line',
+                'shop.cart.line',
                 [$attributes, $this, $this->shop]
             )
         );
@@ -166,7 +172,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
          * Vérification d'existance du produit et récupération
          * @var \tiFy\Plugins\Shop\Products\ProductItemInterface $product
          */
-        if (!$product = $this->products()->get($product_name)) :
+        if (!$product = $this->products()->getItem($product_name)) :
             return;
         endif;
 
@@ -206,10 +212,10 @@ class Cart extends AbstractShopSingleton implements CartInterface
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
         elseif ($redirect = $product->getPermalink()) :
         else :
-            $redirect = \wp_get_referer();
+            $redirect = wp_get_referer();
         endif;
 
-        \wp_redirect(($redirect ?: \get_home_url()));
+        wp_redirect(($redirect ?: get_home_url()));
         exit;
     }
 
@@ -219,7 +225,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     public function addUrl($product)
     {
         if (!$product instanceof ProductItemInterface) :
-            $product = $this->products()->get($product);
+            $product = $this->products()->getItem($product);
         elseif ($product instanceof ProductItemInterface) :
             /** @var Route $route */
             $route = app(Route::class);
@@ -403,10 +409,10 @@ class Cart extends AbstractShopSingleton implements CartInterface
         if ($redirect = $request->get('_wp_http_referer', '')) :
         elseif ($redirect = $this->functions()->url()->cartPage()) :
         else :
-            $redirect = \wp_get_referer();
+            $redirect = wp_get_referer();
         endif;
 
-        \wp_redirect(($redirect ?: \get_home_url()));
+        wp_redirect(($redirect ?: get_home_url()));
         exit;
     }
 
@@ -486,10 +492,10 @@ class Cart extends AbstractShopSingleton implements CartInterface
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
         elseif ($redirect = $this->functions()->url()->cartPage()) :
         else :
-            $redirect = \wp_get_referer();
+            $redirect = wp_get_referer();
         endif;
 
-        \wp_redirect(($redirect ?: \get_home_url()));
+        wp_redirect(($redirect ?: get_home_url()));
         exit;
     }
 }

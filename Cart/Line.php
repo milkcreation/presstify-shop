@@ -11,6 +11,7 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
+use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
 use tiFy\Plugins\Shop\Products\ProductItemInterface;
 use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
@@ -41,11 +42,11 @@ class Line extends Fluent implements CartLineInterface
         $this->cart = $cart;
         $this->shop = $shop;
 
+        parent::__construct($attributes);
+
         if ($this->getProduct()) :
             $this['product_id'] = $this->getProductId();
         endif;
-
-        parent::__construct($attributes);
     }
 
     /**

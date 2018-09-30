@@ -16,6 +16,7 @@ use tiFy\Db\Db;
 use tiFy\Contracts\Db\DbItemInterface;
 use tiFy\PostType\Query\PostQuery;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
@@ -148,11 +149,11 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function create()
     {
-        if (! $id = \wp_insert_post(['post_type' => $this->objectName])) :
+        if (! $id = wp_insert_post(['post_type' => $this->objectName])) :
             return null;
         endif;
 
-        return $this->get($id);
+        return $this->getItem($id);
     }
 
     /**
@@ -177,7 +178,7 @@ class Orders extends PostQuery implements OrdersInterface
         else :
             /** @var Db $dbController */
             $dbController = app(Db::class);
-            $this->db = $dbController->get('_tiFyShopOrderItems');
+            return $this->db = $dbController->get('_tiFyShopOrderItems');
         endif;
 
         return null;
@@ -199,7 +200,7 @@ class Orders extends PostQuery implements OrdersInterface
         if (is_numeric($id) && $id > 0) :
             $post = $id;
         elseif (is_string($id)) :
-            return self::getBy('name', $id);
+            return self::getItemBy('name', $id);
         elseif (! $id) :
             $post = $this->session()->get('order_awaiting_payment', 0);
         else :
@@ -236,7 +237,7 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function geItemBy($key = 'name', $value)
     {
-        return parent::getBy($key, $value);
+        return parent::getItemBy($key, $value);
     }
 
     /**
@@ -435,15 +436,15 @@ class Orders extends PostQuery implements OrdersInterface
     public function onReceived()
     {
         if ($order_id = request()->getProperty('GET')->getInt('order-received', 0)) :
-            $order_key = request()->getProperty('GET')->get('key', '');
+            $order_key = request()->query('key', '');
 
-            if (($order = $this->orders()->get($order_id)) && ($order->getOrderKey() === $order_key)) :
+            if (($order = $this->orders()->getItem($order_id)) && ($order->getOrderKey() === $order_key)) :
                 $this->cart()->destroy();
             endif;
         endif;
 
         if ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) :
-            if (($order = $this->orders()->get($order_awaiting_payment)) && ! $order->hasStatus($this->getNotEmptyCartStatus())) :
+            if (($order = $this->orders()->getItem($order_awaiting_payment)) && ! $order->hasStatus($this->getNotEmptyCartStatus())) :
                 $this->cart()->destroy();
             endif;
         endif;

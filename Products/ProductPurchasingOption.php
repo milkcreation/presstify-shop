@@ -61,7 +61,7 @@ class ProductPurchasingOption implements ProductPurchasingOptionInterface
         if ($product instanceof ProductItemInterface) :
             $this->product = $product;
         else :
-            $this->product = $this->products()->get($product);
+            $this->product = $this->products()->getItem($product);
         endif;
 
         $this->attributes = $this->product instanceof ProductItemInterface

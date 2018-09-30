@@ -13,26 +13,34 @@ namespace tiFy\Plugins\Shop\Addresses;
 use tiFy\Form\Addons\AddonsController;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
+use tiFy\Plugins\Shop\Shop;
 
 class Addresses extends AbstractShopSingleton implements AddressesInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
+        parent::__construct($shop);
+
         add_action(
             'tify_form_addon_register',
             function($addonsController){
                 /** @var AddonsController $addonsController */
                 $addonsController->register(
                     'tify_shop_address_form_handler',
-                    function () {
-                        return app('shop.addresses.form_handler', [$this, 'shop']);
-                    }
+                    $this->provider()->getConcrete('shop.addresses.form_handler'),
+                    $this->shop
                 );
             }
         );
+    }
+
+    public function boot()
+    {
+        $this->billing();
+        $this->shipping();
     }
 
     /**

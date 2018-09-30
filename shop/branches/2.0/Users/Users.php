@@ -5,7 +5,6 @@ namespace tiFy\Plugins\Shop\Users;
 use tiFy\User\Query\UserQuery;
 use tiFy\User\Role\Role;
 use tiFy\User\SignIn\SignIn;
-use tiFy\User\TakeOver\TakeOver;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
 use tiFy\Plugins\Shop\Contracts\UserItemInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -38,12 +37,6 @@ class Users extends UserQuery implements UsersInterface
      * @var SignIn
      */
     private static $signIn;
-
-    /**
-     * Liste des classes de rappel des permissions de prise de contrôle de comptes utilisateurs.
-     * @var TakeOver[]
-     */
-    protected $takeOver = [];
 
     /**
      * CONSTRUCTEUR.
@@ -118,18 +111,6 @@ class Users extends UserQuery implements UsersInterface
                     '_tiFyShop',
                     $this->config('signin', [])
                 );
-            }
-        );
-
-        add_action(
-            'tify_user_take_over_register',
-            function ($takeOverController) {
-                /** @var TakeOver $takeOverController */
-                if ($take_over = $this->config('take_over', [])) :
-                    foreach ($take_over as $name => $attrs) :
-                        $this->takeOver[$name] = $takeOverController->register($name, $attrs);
-                    endforeach;
-                endif;
             }
         );
     }

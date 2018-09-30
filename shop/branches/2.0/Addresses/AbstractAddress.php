@@ -55,7 +55,7 @@ abstract class AbstractAddress implements AddressInterface
         add_action(
             'tify_form_register',
             function ($formController) {
-                $this->user = $this->shop->users()->get();
+                $this->user = $this->shop->users()->getItem();
 
                 /**
                  * Traitement de la liste des champs.

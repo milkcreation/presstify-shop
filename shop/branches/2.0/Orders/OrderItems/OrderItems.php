@@ -3,6 +3,7 @@
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
@@ -37,7 +38,7 @@ class OrderItems implements OrderItemsInterface
     public function getCollection($query_args = [])
     {
         if($items = $this->query($query_args)) :
-            $items =  array_map([$this, 'get'], $items);
+            $items =  array_map([$this, 'getItem'], $items);
         endif;
 
         return app('shop.orders.order_item_list', [$items, $this->shop]);

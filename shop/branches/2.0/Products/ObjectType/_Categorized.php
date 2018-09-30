@@ -51,8 +51,12 @@ class Categorized extends AbstractObjectType implements ProductObjectType
             'singular'     => _x('catégorie de produits', 'taxonomy singular name', 'tify'),
             'hierarchical' => true,
         ];
-        $attrs['category'] = isset($attrs['category']) ? \wp_parse_args($attrs['category'],
-            $defaults_category) : $defaults_category;
+        $attrs['category'] = isset($attrs['category'])
+            ? array_merge(
+                $defaults_category,
+                $attrs['category']
+            )
+            : $defaults_category;
 
         if (is_string($attrs['category']['object_type'])) :
             $attrs['category']['object_type'] = (array)$attrs['category']['object_type'];

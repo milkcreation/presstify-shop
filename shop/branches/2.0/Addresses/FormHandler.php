@@ -62,7 +62,7 @@ class FormHandler extends AbstractAddonController implements AddressFormHandlerI
         $this->shop->session()->save();
 
         // Sauvegarde des données de compte utilisateur
-        $current_user = $this->shop->users()->get();
+        $current_user = $this->shop->users()->getItem();
         if ($current_user->isLoggedIn()) :
             foreach($user_data as $key => $v) :
                 \update_user_meta($current_user->getId(), $key, $v);

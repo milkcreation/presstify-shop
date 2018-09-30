@@ -85,6 +85,14 @@ trait ShopResolverTrait
     }
 
     /**
+     * @return \tiFy\Plugins\Shop\ShopServiceProvider
+     */
+    public function provider()
+    {
+        return resolve(\tiFy\Plugins\Shop\ShopServiceProvider::class);
+    }
+
+    /**
      * @return ProductsInterface
      */
     public function products()

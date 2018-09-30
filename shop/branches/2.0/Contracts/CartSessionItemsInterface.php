@@ -2,7 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface CartSessionItemsInterface
+use tiFy\Contracts\Kernel\ParametersBagIteratorInterface;
+
+interface CartSessionItemsInterface extends ParametersBagIteratorInterface
 {
     /**
      * Détruit les données de session associées au panier.

@@ -41,12 +41,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
      */
     public function boot()
     {
-        add_action(
-            'after_setup_tify',
-            function() {
-                $this->_register();
-            }
-        );
+        $this->_register();
     }
 
     /**
@@ -56,7 +51,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
      */
     private function _register()
     {
-        app()->appEventTrigger('tify.plugins.shop.gateways.register', $this);
+        events()->trigger('tify.plugins.shop.gateways.register', $this);
 
         $gateways = [];
         foreach($this->config("gateways", []) as $id => $attrs) :
@@ -92,6 +87,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
         $alias = "shop.gateway.{$id}";
 
         if (!in_array($alias, $this->registered)) :
+            $concrete = $this->provider()->getConcrete($alias);
             app()->singleton($alias, $concrete);
             array_push($this->registered, $alias);
         endif;

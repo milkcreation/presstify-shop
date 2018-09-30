@@ -118,7 +118,7 @@ if (!function_exists('shop_product')) :
      */
     function shop_product($product)
     {
-        return resolve('shop')->products()->get($product);
+        return resolve('shop')->products()->getItem($product);
     }
 endif;
 

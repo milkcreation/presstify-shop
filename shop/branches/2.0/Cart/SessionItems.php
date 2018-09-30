@@ -11,13 +11,13 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Fluent;
+use tiFy\Kernel\Parameters\AbstractParametersBagIterator;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class SessionItems extends Fluent implements CartSessionItemsInterface
+class SessionItems extends AbstractParametersBagIterator implements CartSessionItemsInterface
 {
     use ShopResolverTrait;
 
@@ -69,7 +69,7 @@ class SessionItems extends Fluent implements CartSessionItemsInterface
         $this->session()->save();
 
         if ($persistent) :
-            \delete_user_option($this->users()->get()->getId(), '_tify_shop_cart');
+            \delete_user_option($this->users()->getItem()->getId(), '_tify_shop_cart');
         endif;
     }
 
@@ -98,7 +98,7 @@ class SessionItems extends Fluent implements CartSessionItemsInterface
 
         if ($cart) :
             foreach ($cart as $key => $line) :
-                $product = $this->products()->get($line['product_id']);
+                $product = $this->products()->getItem($line['product_id']);
                 $quantity = $line['quantity'];
 
                 if (!$product || ($quantity < 0)) :

@@ -131,16 +131,16 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         // Définition de l'url de redirection
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
         elseif ($redirect = $this->functions()->url()->checkoutPage()) :
-        elseif (!$redirect = \wp_get_referer()) :
+        elseif (!$redirect = wp_get_referer()) :
             $redirect = get_home_url();
         endif;
 
         // Vérification de la validité de la requête
-        if (!\wp_verify_nonce($request->request->get('_wpnonce', ''), 'tify_shop-process_checkout')) :
+        if (!wp_verify_nonce($request->request->get('_wpnonce', ''), 'tify_shop-process_checkout')) :
             $this->notices()->add(__('Impossible de procéder à votre commande, merci de réessayer.', 'tify'),
                 'error');
 
-            \wp_redirect($redirect);
+            wp_redirect($redirect);
             exit;
         endif;
 
@@ -148,7 +148,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         if ($this->cart()->isEmpty()) :
             $this->notices()->add(__('Désolé, il semblerait votre session ait expirée.', 'tify'), 'error');
 
-            \wp_redirect($redirect);
+            wp_redirect($redirect);
             exit;
         endif;
 
@@ -256,7 +256,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                 $this->notices()->add($error, 'error');
             endforeach;
 
-            \wp_redirect($redirect);
+            wp_redirect($redirect);
             exit;
         endif;
 
@@ -267,7 +267,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             $this->notices()->add(__('Veuillez prendre connaissance et accepter les conditions générales de vente.',
                 'tify'), 'error');
 
-            \wp_redirect($redirect);
+            wp_redirect($redirect);
             exit;
         endif;
 
@@ -275,7 +275,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         if ($this->cart()->needShipping()) :
             $this->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
 
-            \wp_redirect($redirect);
+            wp_redirect($redirect);
             exit;
         endif;
 
@@ -284,33 +284,33 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                 $this->notices()->add(__('Merci de bien vouloir sélectionner votre mode de paiement.',
                     'tify'), 'error');
 
-                \wp_redirect($redirect);
+                wp_redirect($redirect);
                 exit;
             elseif (!$gateway = $this->gateways()->get($data['payment_method'])) :
                 $this->notices()->add(__('Désolé, le mode de paiement choisie n\'est pas valide dans cette boutique.',
                     'tify'), 'error');
 
-                \wp_redirect($redirect);
+                wp_redirect($redirect);
                 exit;
             endif;
         endif;
 
         /** @var OrderInterface $order */
         $order = ($order_id = $this->session()->get('order_awaiting_payment', 0))
-            ? $this->orders()->get($order_id)
+            ? $this->orders()->getItem($order_id)
             : $this->orders()->create();
 
         if (!$this->orders()->is($order)) :
             $this->notices()->add(__('Désolé, impossible de procéder à votre commande, veuillez réessayer.',
                 'tify'), 'error');
 
-            \wp_redirect($redirect);
+            wp_redirect($redirect);
             exit;
         endif;
 
         $created_via = 'checkout';
         $cart_hash = md5(json_encode($this->cart()->getList()) . $this->cart()->getTotals());
-        $customer_id = $this->users()->get()->getId();
+        $customer_id = $this->users()->getItem()->getId();
         $currency = $this->settings()->currency();
         $prices_include_tax = $this->settings()->isPricesIncludeTax();
         $customer_ip_address = $request->getClientIp();
@@ -359,7 +359,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             $order->set($key, $value);
         endforeach;
 
-        app()->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
+        events()->trigger('tify.plugins.shop.checkout.create_order', $this);
 
         $order->create();
 
@@ -373,7 +373,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             $result = $gateway->processPayment($order);
         endif;
 
-        \wp_redirect(Arr::get($result, 'redirect', $redirect));
+        wp_redirect(Arr::get($result, 'redirect', $redirect));
         exit;
     }
 

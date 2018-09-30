@@ -141,12 +141,12 @@ class Products extends PostQuery implements ProductsInterface
         $posts = $wp_query->query($query_args);
 
         if ($posts) :
-            $items =  array_map([$this, 'get'], $posts);
+            $items =  array_map([$this, 'getItem'], $posts);
         else :
             $items = [];
         endif;
 
-        return new $controller($items);
+        return $this->resolveCollection($items);
     }
 
     /**
@@ -320,7 +320,7 @@ class Products extends PostQuery implements ProductsInterface
         endif;
 
         // Bypass - Si l'argument de requête renseignant l'indication de type de post est manquant
-        if (!$post_type = request()->getProperty('POST')->get('post_type', '')) :
+        if (!$post_type = request()->post('post_type', '')) :
             return null;
         endif;
 
@@ -347,7 +347,7 @@ class Products extends PostQuery implements ProductsInterface
             return null;
         endif;
 
-        $this->get($post)->save();
+        $this->getItem($post)->save();
 
         return $post;
     }

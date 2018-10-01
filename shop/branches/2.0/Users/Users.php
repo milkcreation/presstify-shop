@@ -6,7 +6,6 @@ use tiFy\User\Query\UserQuery;
 use tiFy\User\Role\Role;
 use tiFy\User\SignIn\SignIn;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
-use tiFy\Plugins\Shop\Contracts\UserItemInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
@@ -31,12 +30,6 @@ class Users extends UserQuery implements UsersInterface
      * @var Role[]
      */
     private static $role = [];
-
-    /**
-     * Classe de rappel des l'interface d'authentification.
-     * @var SignIn
-     */
-    private static $signIn;
 
     /**
      * CONSTRUCTEUR.
@@ -102,23 +95,13 @@ class Users extends UserQuery implements UsersInterface
                 endif;
             }
         );
-
-        add_action(
-            'tify_user_signin_register',
-            function ($signInController) {
-                /** @var SignIn $signInController */
-                self::$signIn = $signInController->register(
-                    '_tiFyShop',
-                    $this->config('signin', [])
-                );
-            }
-        );
+        /** @var SignIn $signInController */
+        $signInController = app(SignIn::class);
+        $signInController->add('_tiFyShop', $this->config('signin', []));
     }
 
     /**
-     * Récupération de l'object utilisateur courant de Wordpress.
-     *
-     * @return null|\WP_User
+     * {@inheritdoc}
      */
     public function current()
     {
@@ -142,11 +125,7 @@ class Users extends UserQuery implements UsersInterface
     }
 
     /**
-     * Récupération des données d'un ulisateur
-     *
-     * @param string|int|\WP_User|null $user Identifiant pixvert|ID de l'utilisateur WP|Objet User WP|Utilisateur courant WP.
-     *
-     * @return object|UserItemInterface|Customer|ShopManager|LoggedOut.
+     * {@inheritdoc}
      */
     public function getItem($user = null)
     {
@@ -163,5 +142,16 @@ class Users extends UserQuery implements UsersInterface
         else :
             return $item;
         endif;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function signin()
+    {
+        /** @var SignIn $signInController */
+        $signInController = app(SignIn::class);
+
+        return $signInController->get('_tiFyShop');
     }
 }

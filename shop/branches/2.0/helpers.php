@@ -1,5 +1,7 @@
 <?php
 
+use tiFy\Plugins\Shop\Shop;
+
 if (!function_exists('shop_cart_add_url')) :
     /**
      * Url de l'action d'un formulaire d'ajout d'un produit au panier d'achat
@@ -124,7 +126,7 @@ endif;
 
 if (!function_exists('shop_setting')) :
     /**
-     * Récupération d'une option de configuration
+     * Récupération d'une option de configuration.
      *
      * @param string $key Identifiant de qualification de l'option
      * @param string $default Valeur de retour par défaut
@@ -134,6 +136,24 @@ if (!function_exists('shop_setting')) :
     function shop_setting($key, $default = '')
     {
         return resolve('shop')->settings()->get($key, $default);
+    }
+endif;
+
+if (!function_exists('shop_signin')) :
+    /**
+     * Récupération de l'authentification à la boutique.
+     *
+     * @param string $key Identifiant de qualification de l'option
+     * @param string $default Valeur de retour par défaut
+     *
+     * @return \tiFy\Contracts\User\UserSignInItemInterface
+     */
+    function shop_signin()
+    {
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->users()->signin();
     }
 endif;
 

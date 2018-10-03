@@ -5,6 +5,8 @@ namespace tiFy\Plugins\Shop\Users;
 use tiFy\User\Query\UserQuery;
 use tiFy\User\Role\Role;
 use tiFy\User\SignIn\SignIn;
+use tiFy\Layout\Layout;
+use tiFy\Layout\Admin\WpUserListTable\WpUserListTable;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
@@ -24,12 +26,6 @@ class Users extends UserQuery implements UsersInterface
      * @var \WP_User
      */
     private static $current;
-
-    /**
-     * Liste des classes de rappel des roles utilisateurs.
-     * @var Role[]
-     */
-    private static $role = [];
 
     /**
      * CONSTRUCTEUR.
@@ -84,17 +80,12 @@ class Users extends UserQuery implements UsersInterface
      */
     public function boot()
     {
-        add_action(
-            'tify_user_role_register',
-            function ($roleController) {
-                /** @var Role $roleController */
-                if ($roles = $this->config('roles', [])) :
-                    foreach ($roles as $name => $attrs) :
-                        self::$role[$name] = $roleController->register($name, $attrs);
-                    endforeach;
-                endif;
-            }
-        );
+        /** @var Role $roleController */
+        $roleController = app(Role::class);
+        foreach ($this->config('roles', []) as $name => $attrs) :
+            $roleController->add($name, $attrs);
+        endforeach;
+
         /** @var SignIn $signInController */
         $signInController = app(SignIn::class);
         $signInController->add('_tiFyShop', $this->config('signin', []));

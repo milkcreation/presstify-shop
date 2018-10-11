@@ -101,9 +101,9 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function boot()
     {
-        /** @var Db $dbController */
-        $dbController = app(Db::class);
-        $dbController->add(
+        /** @var Db $db */
+        $db = app('db');
+        $db->add(
             '_tiFyShopOrderItems',
             [
                 'install'    => false,
@@ -176,8 +176,8 @@ class Orders extends PostQuery implements OrdersInterface
         if ($this->db instanceof DbItemInterface) :
             return $this->db;
         else :
-            /** @var Db $dbController */
-            $dbController = app(Db::class);
+            /** @var Db $db */
+            $db = app('db');
             return $this->db = $dbController->get('_tiFyShopOrderItems');
         endif;
 

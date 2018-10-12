@@ -2,90 +2,98 @@
 
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
-use tiFy\Apps\AppController;
-use tiFy\Components\Columns\PostType\PostThumbnail;
 use tiFy\Column\Column;
+use tiFy\PostType\Column\PostThumbnail\PostThumbnail;
+use tiFy\Plugins\Shop\Contracts\ProductObjectType;
+use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
+use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Products\ObjectTypes\Factory as ObjectTypesFactory;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class ListTable extends AppController
+class ListTable
 {
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel d'un produit
-     * @var \tiFy\Plugins\Shop\Products\ObjectTypes\Categorized|\tiFy\Plugins\Shop\Products\ObjectTypes\Uncategorized
+     * Nom de qualification du type de post associé.
+     * @var string
+     */
+    private $objectName = '';
+
+    /**
+     * Instance du type de produit.
+     * @var Categorized|Uncategorized
      */
     private $objectType;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param string $id Identifiant de qualification du type de post du produit
-     * @param array $attrs Attributs de configuration
+     * @param ProductObjectType $object_type Instance du type de produit.
+     * @param Shop $shop Attributs de configuration.
      *
      * @return void
      */
-    public function __construct(Shop $shop, ObjectTypesFactory $ObjectType)
+    public function __construct(ProductObjectType $object_type, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-        
-        $this->objectType = $ObjectType;
+        $this->objectType = $object_type;
+        $this->objectName = $this->objectType->getName();
 
-        // Définition des colonnes
-        Column::make('post_type', (string)$this->objectType)
+        /** @var Column $columnController */
+        $columnController = app(Column::class);
+        $columnController
             ->add(
-                'thumb',
-                new PostThumbnail(
-                    [
-                        'position'  => 1
-                    ]
-                )
-            )
-            ->add(
-                'sku',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => __('UGS', 'tify'),
-                    'position'  => 3,
-                    'content'   => [$this, 'columnSku']
+                    'name'     => 'thumb',
+                    'position' => 1,
+                    'content'  => PostThumbnail::class
                 ]
             )
             ->add(
-                'price',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => __('Prix', 'tify'),
-                    'position'  => 4,
-                    'content'   => [$this, 'columnPrice']
+                    'name'     => 'sku',
+                    'title'    => __('UGS', 'tify'),
+                    'position' => 3,
+                    'content'  => [$this, 'columnSku']
                 ]
             )
             ->add(
-                'featured',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => "<span class=\"dashicons dashicons-star-half\"></span>",
-                    'position'  => 5,
-                    'content'   => [$this, 'columnFeatured']
+                    'name'     => 'price',
+                    'title'    => __('Prix', 'tify'),
+                    'position' => 4,
+                    'content'  => [$this, 'columnPrice']
                 ]
             )
             ->add(
-                'product_type',
+                "{$this->objectName}@post_type",
                 [
-                    'title'     => __('Type', 'tify'),
-                    'position'  => 6,
-                    'content'   => [$this, 'columnProductType']
+                    'name'     => 'featured',
+                    'title'    => "<span class=\"dashicons dashicons-star-half\"></span>",
+                    'position' => 5,
+                    'content'  => [$this, 'columnFeatured']
+                ]
+            )
+            ->add(
+                "{$this->objectName}@post_type",
+                [
+                    'name'     => 'product_type',
+                    'title'    => __('Type', 'tify'),
+                    'position' => 6,
+                    'content'  => [$this, 'columnProductType']
                 ]
             );
     }
 
     /**
-     * Contenu des éléments de la colonne "Unité de Gestion de Stock" (sku
+     * Contenu des éléments de la colonne "Unité de Gestion de Stock" (sku).
      *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
      *
      * @return void
      */
@@ -95,10 +103,10 @@ class ListTable extends AppController
     }
 
     /**
-     * Contenu des éléments de la colonne "Prix"
+     * Contenu des éléments de la colonne "Prix".
      *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
      *
      * @return void
      */
@@ -108,16 +116,16 @@ class ListTable extends AppController
     }
 
     /**
-     * Contenu des éléments de la colonne "Mise en avant"
+     * Contenu des éléments de la colonne "Mise en avant".
      *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
      *
      * @return void
      */
     public function columnFeatured($column_name, $post_id)
     {
-        $product = $this->shop->products()->get($post_id);
+        $product = $this->shop->products()->getItem($post_id);
 
         echo $product->isFeatured()
             ? "<span class=\"dashicons dashicons-star-filled\"></span>"
@@ -125,16 +133,16 @@ class ListTable extends AppController
     }
 
     /**
-     * Contenu des éléments de la colonne "Type de produit"
+     * Contenu des éléments de la colonne "Type de produit".
      *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
      *
      * @return void
      */
     public function columnProductType($column_name, $post_id)
     {
-        $product = $this->shop->products()->get($post_id);
+        $product = $this->shop->products()->getItem($post_id);
 
         echo $this->shop->products()->getProductTypeIcon($product->getProductType());
     }

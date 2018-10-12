@@ -2,11 +2,7 @@
 
 /**
  * @name Order
- * @desc Controleur de commande
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders
- * @version 1.1
- * @since 1.4.2
+ * @desc Controleur de commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -17,7 +13,8 @@ namespace tiFy\Plugins\Shop\Orders;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use tiFy\Query\Controller\AbstractPostItem;
+use tiFy\PostType\Query\PostQueryItem;
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
@@ -25,20 +22,13 @@ use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFeeInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShippingInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTaxInterface;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
-use \WP_Post;
+use tiFy\Plugins\Shop\ShopResolverTrait;
+use WP_Post;
 
-class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInterface
+class Order extends PostQueryItem implements OrderInterface
 {
-    use ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * Classe de rappel de traitement de la liste des éléments associés à la commande.
@@ -53,12 +43,11 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     protected $items = [];
 
     /**
-     * Liste des données de commande par défaut
+     * Liste des données de commande par défaut.
      *
      * @var array
      */
     protected $defaults = [
-        // Abstract order props
         'parent_id'            => 0,
         'status'               => '',
         'currency'             => '',
@@ -144,13 +133,12 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
      * CONSTRUCTEUR.
      *
      * @param WP_Post $post Objet post Wordpress.
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
     public function __construct(WP_Post $post, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique.
         $this->shop = $shop;
 
         parent::__construct($post);
@@ -162,214 +150,7 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Récupération de la liste des attributs.
-     *
-     * @return void
-     */
-    public function read()
-    {
-        $this->attributes = array_merge($this->defaults, $this->attributes);
-
-        if (! $id = $this->getId()) :
-            return;
-        endif;
-
-        foreach($this->metas_map as $attr_key => $meta_key) :
-            $this->set($attr_key, \get_post_meta($id, $meta_key, true) ? : $this->get($attr_key, Arr::get($this->defaults, $attr_key)));
-        endforeach;
-
-        foreach(['billing', 'shipping'] as $address_type) :
-            if (!$address_data = $this->get($address_type, [])) :
-                continue;
-            endif;
-            foreach($address_data as $key => $value) :
-                $this->set("{$address_type}.{$key}", \get_post_meta($id, "_{$address_type}_{$key}", true));
-            endforeach;
-        endforeach;
-
-        $this->set('parent_id', $this->getParentId());
-        $this->set('date_created', $this->getDate(true));
-        $this->set('date_modified', $this->getModified(true));
-        $this->set('status', $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
-        $this->set('customer_note', $this->getExcerpt(true));
-
-        // Récupération de la liste des éléments associé à la commande, enregistré en base de donnée.
-        foreach($this->order_items->getList() as $item) :
-            /** @var OrderItemTypeInterface $item */
-            $this->items[$item->getType()][$item->getId()] = $item;
-        endforeach;
-    }
-
-    /**
-     *
-     */
-    public function create()
-    {
-        $this->set('order_key', uniqid('order_'));
-    }
-
-    /**
-     * Récupération de la liste des attributs.
-     *
-     * @return array
-     */
-    public function all()
-    {
-        return $this->toArray();
-    }
-
-    /**
-     * Définition d'un attribut.
-     *
-     * @param string $key Identifiant de qualification déclaré.
-     * @param mixed $value Valeur de définition de l'attribut.
-     *
-     * @return $this
-     */
-    public function set($key, $value)
-    {
-        Arr::set($this->attributes, $key, $value);
-
-        return $this;
-    }
-
-    /**
-     * Définition d'un attribut de l'adresse de facturation.
-     *
-     * @param string $key Identifiant de qualification de l'attribut.
-     * @param mixed $value Valeur de définition de l'attribut.
-     *
-     * @return mixed
-     */
-    public function setBillingAttr($key, $value)
-    {
-        return $this->set('billing', array_merge($this->get('billing', []), [$key => $value]));
-    }
-
-    /**
-     * Définition d'un attribut de l'adresse de livraison.
-     *
-     * @param string $key Identifiant de qualification de l'attribut.
-     * @param mixed $value Valeur de définition de l'attribut.
-     *
-     * @return mixed
-     */
-    public function setShippingAttr($key, $value)
-    {
-        return $this->set('shipping', array_merge($this->get('shipping', []), [$key => $value]));
-    }
-
-    /**
      * {@inheritdoc}
-     */
-    public function getStatus()
-    {
-        return (string)$this->get('status', $this->orders()->getDefaultStatus());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getStatusLabel()
-    {
-        return $this->orders()->getStatusLabel($this->getStatus());
-    }
-
-    /**
-     * Récupération de la clé d'identification de la commande.
-     *
-     * @return string
-     */
-    public function getOrderKey()
-    {
-        return (string)$this->get('order_key', '');
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification du client associé à la commande.
-     *
-     * @return int
-     */
-    public function getCustomerId()
-    {
-        return (int)$this->get('customer_id', 0);
-    }
-
-    /**
-     * Récupération d'un attribut pour un type d'adresse.
-     *
-     * @param string $key Clé d'identification de l'attribut à retourner.
-     * @param string $type Type d'adresse. billing|shipping.
-     * @param mixed $default Valeur de retour par défaut.
-     *
-     * @return mixed
-     */
-    public function getAddressAttr($key, $type = 'billing', $default = '')
-    {
-        return $this->get("{$type}.{$key}", $default);
-    }
-
-    /**
-     * Récupération du montant total de la commande.
-     *
-     * @return float
-     */
-    public function getTotal()
-    {
-        return (float)$this->get('total', 0);
-    }
-
-    /**
-     * Vérification de correspondance du client associé à la commande.
-     *
-     * @param int $customer_id Identifiant de qualification de l'utilisateur à contrôler.
-     *
-     * @return bool
-     */
-    public function isCustomer($customer_id)
-    {
-        return (bool)($this->getCustomerId() === (int) $customer_id);
-    }
-
-    /**
-     * Nombre de produit contenu dans la commande.
-     *
-     * @return int
-     */
-    public function productCount()
-    {
-        return (int)count($this->getItems('line_item'));
-    }
-
-    /**
-     * Nombre total d'articles commandé.
-     * @internal Calcul le cumul des quantités produits.
-     *
-     * @return int
-     */
-    public function quantityProductCount()
-    {
-        return (int) (new Collection($this->getItems('line_item')))->sum('quantity');
-    }
-
-    /**
-     * Récupération de la méthode de paiement.
-     *
-     * @return string
-     */
-    public function getPaymentMethod()
-    {
-        return (string)$this->get('payment_method', '');
-    }
-
-    /**
-     * Ajout d'une note à la commande.
-     *
-     * @param string $note Message de la note.
-     * @param bool $is_customer Définie si la note est à destination du client.
-     * @param bool $by_user Lorsque la note provient de l'utilisateur.
-     *
-     * @return int
      */
     public function addNote($note, $is_customer = false, $by_user = false)
     {
@@ -377,7 +158,7 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
             return 0;
         endif;
 
-        if (($user = $this->users()->get()) && $user->can('edit_shop_order', $this->getId()) && $by_user) :
+        if (($user = $this->users()->getItem()) && $user->can('edit_shop_order', $this->getId()) && $by_user) :
             $comment_author       = $user->getDisplayName();
             $comment_author_email = $user->getEmail();
         else :
@@ -399,7 +180,7 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
             'comment_approved'     => 1,
         ];
 
-        $comment_id = \wp_insert_comment($commentdata);
+        $comment_id = wp_insert_comment($commentdata);
 
         if ($is_customer) :
             \add_comment_meta($comment_id, 'is_customer_note', 1);
@@ -409,11 +190,162 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Vérification de correspondance du statut de la commande.
-     *
-     * @param string|array $status Statut unique ou liste de statuts de contrôle de correspondance.
-     *
-     * @return bool
+     * {@inheritdoc}
+     */
+    public function addItem($item)
+    {
+        $type = $item->getType();
+
+        $count = isset($this->items[$type]) ? count($this->items[$type]) : 0;
+        $this->items = Arr::add($this->items, $type . '.new:' . $type . $count, $item);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function all()
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function create()
+    {
+        $this->set('order_key', uniqid('order_'));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createItemCoupon()
+    {
+        return app('shop.orders.item_coupon', [0, $this, $this->shop]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createItemFee()
+    {
+        return app('shop.orders.item_fee', [0, $this, $this->shop]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createItemProduct()
+    {
+        return app('shop.orders.order_item_type_product', [0, $this, $this->shop]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createItemShipping()
+    {
+        return app('shop.orders.item_shipping', [0, $this, $this->shop]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createItemTax()
+    {
+        return app('shop.orders.item_tax', [0, $this, $this->shop]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAddressAttr($key, $type = 'billing', $default = '')
+    {
+        return $this->get("{$type}.{$key}", $default);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCheckoutOrderReceivedUrl()
+    {
+        return $this->functions()->url()->checkoutOrderReceivedPage([
+            'order-received' => $this->getId(),
+            'key'            => $this->getOrderKey()
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCheckoutPaymentUrl()
+    {
+        return $this->functions()->url()->checkoutOrderPayPage([
+            'order-pay' => $this->getId(),
+            'key'       => $this->getOrderKey()
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCustomerId()
+    {
+        return (int)$this->get('customer_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getItems($type = null)
+    {
+        $items = $type ? Arr::get($this->items, $type) : $this->items;
+
+        return new Collection($items);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getOrderKey()
+    {
+        return (string)$this->get('order_key', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPaymentMethod()
+    {
+        return (string)$this->get('payment_method', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getStatus()
+    {
+        return (string)$this->get('status', $this->orders()->getDefaultStatus());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getStatusLabel()
+    {
+        return $this->orders()->getStatusLabel($this->getStatus());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTotal()
+    {
+        return (float)$this->get('total', 0);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function hasStatus($status)
     {
@@ -421,38 +353,40 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Mise à jour du statut et enregistrement immédiat.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function updateStatus($new_status)
+    public function isCustomer($customer_id)
     {
-        if (! $this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) :
-            return false;
-        endif;
-
-        $this->set('status', $new_status);
-        // @todo status_transition
-
-        if (! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
-            $this->set('date_paid', $this->functions()->date()->utc('U'));
-        endif;
-
-        if (! $this->get('date_completed') && $this->hasStatus('completed')) :
-            $this->set('date_completed', $this->functions()->date()->utc('U'));
-        endif;
-
-        $this->save();
-
-        return true;
+        return (bool)($this->getCustomerId() === (int) $customer_id);
     }
 
     /**
-     * Action appelée à l'issue du processus de paiement.
-     *
-     * @param string $transaction_id Optional Identifiant de qualification de la transaction.
-     *
-     * @return bool
+     * {@inheritdoc}
+     */
+    public function needPayment()
+    {
+        return $this->hasStatus($this->orders()->getNeedPaymentStatuses()) && ($this->getTotal() > 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function needProcessing()
+    {
+        if (! $line_items = $this->getItems('line_item')) :
+            return false;
+        endif;
+
+        $virtual_and_downloadable = $line_items->filter(function($line_item) {
+            /** @var OrderItemTypeProductInterface $line_item */
+            return $line_item->getProduct()->isDownloadable() &&  $line_item->getProduct()->isVirtual();
+        });
+
+        return count($virtual_and_downloadable) === 0;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function paymentComplete($transaction_id = '')
     {
@@ -482,88 +416,60 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Création d'une ligne de coupon de réduction.
-     *
-     * @return null|object|OrderItemTypeCouponInterface
+     * {@inheritdoc}
      */
-    public function createItemCoupon()
+    public function productCount()
     {
-        return $this->provide('orders.item_coupon', [0, $this, $this->shop]);
+        return (int)count($this->getItems('line_item'));
     }
 
     /**
-     * Création d'une ligne de promotion.
-     *
-     * @return null|object|OrderItemTypeFeeInterface
+     * {@inheritdoc}
      */
-    public function createItemFee()
+    public function quantityProductCount()
     {
-        return $this->provide('orders.item_fee', [0, $this, $this->shop]);
+        return (int) (new Collection($this->getItems('line_item')))->sum('quantity');
     }
 
     /**
-     * Création d'une ligne de produit.
-     *
-     * @return null|object|OrderItemTypeProductInterface
+     * {@inheritdoc}
      */
-    public function createItemProduct()
+    public function read()
     {
-        return $this->provide('orders.order_item_type_product', [0, $this, $this->shop]);
+        $this->attributes = array_merge($this->defaults, $this->attributes);
+
+        if (! $id = $this->getId()) :
+            return;
+        endif;
+
+        foreach($this->metas_map as $attr_key => $meta_key) :
+            $this->set($attr_key, \get_post_meta($id, $meta_key, true) ? : $this->get($attr_key, Arr::get($this->defaults, $attr_key)));
+        endforeach;
+
+        foreach(['billing', 'shipping'] as $address_type) :
+            if (!$address_data = $this->get($address_type, [])) :
+                continue;
+            endif;
+            foreach($address_data as $key => $value) :
+                $this->set("{$address_type}.{$key}", \get_post_meta($id, "_{$address_type}_{$key}", true));
+            endforeach;
+        endforeach;
+
+        $this->set('parent_id', $this->getParentId());
+        $this->set('date_created', $this->getDate(true));
+        $this->set('date_modified', $this->getModified(true));
+        $this->set('status', $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
+        $this->set('customer_note', $this->getExcerpt(true));
+
+        // Récupération de la liste des éléments associé à la commande, enregistré en base de donnée.
+        foreach($this->order_items->getCollection() as $item) :
+            /** @var OrderItemTypeInterface $item */
+            $this->items[$item->getType()][$item->getId()] = $item;
+        endforeach;
     }
 
     /**
-     * Création d'une ligne de livraison.
-     *
-     * @return null|object|OrderItemTypeShippingInterface
-     */
-    public function createItemShipping()
-    {
-        return $this->provide('orders.item_shipping', [0, $this, $this->shop]);
-    }
-
-    /**
-     * Création d'une ligne de taxe.
-     *
-     * @return null|object|OrderItemTypeTaxInterface
-     */
-    public function createItemTax()
-    {
-        return $this->provide('orders.item_tax', [0, $this, $this->shop]);
-    }
-
-    /**
-     * Ajout d'une ligne d'élément associé à la commande.
-     *
-     * @param OrderItemTypeInterface $item
-     *
-     * @return void
-     */
-    public function addItem($item)
-    {
-        $type = $item->getType();
-
-        $count = isset($this->items[$type]) ? count($this->items[$type]) : 0;
-        $this->items = Arr::add($this->items, $type . '.new:' . $type . $count, $item);
-    }
-
-    /**
-     * Récupération de la liste des éléments associés à la commande.
-     *
-     * @param string $type Type d'éléments à récupérer. null pour tous par défaut|coupon|fee|line_item (product)|shipping|tax.
-     *
-     * @return Collection
-     */
-    public function getItems($type = null)
-    {
-        $items = $type ? Arr::get($this->items, $type) : $this->items;
-
-        return new Collection($items);
-    }
-
-    /**
-     * Sauvegarde de la commande
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function save()
     {
@@ -579,7 +485,7 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
             'post_modified'     => $this->functions()->date()->get(),
             'post_modified_gmt' => $this->functions()->date()->utc(),
         ];
-        \wp_update_post($post_data);
+        wp_update_post($post_data);
 
         // Sauvegarde des métadonnées
         $this->saveMetas();
@@ -589,9 +495,24 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Enregistrement de la liste des métadonnées déclarées.
-     *
-     * @return void
+     * {@inheritdoc}
+     */
+    public function saveItems()
+    {
+        if (! $this->items) :
+            return;
+        endif;
+
+        foreach ($this->items as $group => $group_items) :
+            foreach ($group_items as $item_key => $item) :
+                /** @var OrderItemTypeInterface $item */
+                $item->save();
+            endforeach;
+        endforeach;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function saveMetas()
     {
@@ -628,78 +549,53 @@ class Order extends AbstractPostItem implements OrderInterface, ProvideTraitsInt
     }
 
     /**
-     * Sauvegarde de la liste des éléments.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    public function saveItems()
+    public function set($key, $value)
     {
-        if (! $this->items) :
-            return;
-        endif;
+        Arr::set($this->attributes, $key, $value);
 
-        foreach ($this->items as $group => $group_items) :
-            foreach ($group_items as $item_key => $item) :
-                /** @var OrderItemTypeInterface $item */
-                $item->save();
-            endforeach;
-        endforeach;
+        return $this;
     }
 
     /**
-     * Vérifie si une commande nécessite un paiement.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function needPayment()
+    public function setBillingAttr($key, $value)
     {
-        return $this->hasStatus($this->orders()->getNeedPaymentStatuses()) && ($this->getTotal() > 0);
+        return $this->set('billing', array_merge($this->get('billing', []), [$key => $value]));
     }
 
     /**
-     * Vérifie si une commande nécessite une intervention avant d'être complétée.
-     * @internal Seul les produits téléchargeable et dématerialisé ne nécessite aucune intervention.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function needProcessing()
+    public function setShippingAttr($key, $value)
     {
-        if (! $line_items = $this->getItems('line_item')) :
+        return $this->set('shipping', array_merge($this->get('shipping', []), [$key => $value]));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function updateStatus($new_status)
+    {
+        if (! $this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) :
             return false;
         endif;
 
-        $virtual_and_downloadable = $line_items->filter(function($line_item) {
-            /** @var OrderItemTypeProductInterface $line_item */
-            return $line_item->getProduct()->isDownloadable() &&  $line_item->getProduct()->isVirtual();
-        });
+        $this->set('status', $new_status);
+        // @todo status_transition
 
-        return count($virtual_and_downloadable) === 0;
-    }
+        if (! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
+            $this->set('date_paid', $this->functions()->date()->utc('U'));
+        endif;
 
-    /**
-     * Récupération de l'url vers la page d'invitation au paiement de la commande.
-     *
-     * @return string
-     */
-    public function getCheckoutPaymentUrl()
-    {
-        return $this->functions()->url()->checkoutOrderPayPage([
-            'order-pay' => $this->getId(),
-            'key'       => $this->getOrderKey()
-        ]);
-    }
+        if (! $this->get('date_completed') && $this->hasStatus('completed')) :
+            $this->set('date_completed', $this->functions()->date()->utc('U'));
+        endif;
 
-    /**
-     * Récupération de l'url vers la page de paiement reçu.
-     * @internal Lorsque le paiement a été accepté.
-     *
-     * @return string
-     */
-    public function getCheckoutOrderReceivedUrl()
-    {
-        return $this->functions()->url()->checkoutOrderReceivedPage([
-            'order-received' => $this->getId(),
-            'key'            => $this->getOrderKey()
-        ]);
+        $this->save();
+
+        return true;
     }
 }

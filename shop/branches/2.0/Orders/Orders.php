@@ -104,9 +104,9 @@ class Orders extends PostQuery implements OrdersInterface
         /** @var Db $db */
         $db = app('db');
         $db->add(
-            '_tiFyShopOrderItems',
+            'shop.order.items',
             [
-                'install'    => false,
+                'install'    => true,
                 'name'       => 'tify_shop_order_items',
                 'primary'    => 'order_item_id',
                 'col_prefix' => 'order_item_',
@@ -178,7 +178,7 @@ class Orders extends PostQuery implements OrdersInterface
         else :
             /** @var Db $db */
             $db = app('db');
-            return $this->db = $dbController->get('_tiFyShopOrderItems');
+            return $this->db = $dbController->get('shop.order.items');
         endif;
 
         return null;

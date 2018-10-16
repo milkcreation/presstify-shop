@@ -31,7 +31,7 @@ abstract class AbstractAddress implements AddressInterface
      * Instance de la classe de gestion du formulaire.
      * @var FormBaseController
      */
-    protected $form;
+    protected $form = null;
 
     /**
      * Instance de la classe de l'utilisateur courant.
@@ -53,8 +53,8 @@ abstract class AbstractAddress implements AddressInterface
         $this->addresses = $addresses;
 
         add_action(
-            'tify_form_register',
-            function ($formController) {
+            'init',
+            function () {
                 $this->user = $this->shop->users()->getItem();
 
                 /**
@@ -79,15 +79,7 @@ abstract class AbstractAddress implements AddressInterface
 
                 $attrs['addons']['tify_shop_address_form_handler'] = ['controller' => $this];
 
-                /** @var Form $formController */
-                if (
-                    $form = $formController->register(
-                        '_tiFyShop-formAddress--' . $this->getId(),
-                        $attrs
-                    )
-                ) :
-                    $this->form = $form;
-                endif;
+                form()->add('ShopFormAddress-' . $this->getId(), $attrs);
             }
         );
     }
@@ -136,8 +128,10 @@ abstract class AbstractAddress implements AddressInterface
      */
     public function form()
     {
-        if ($this->form instanceof FormBaseController) :
-            return $this->form->display();
+        if (is_null($this->form)) :
+            return $this->form = form()->get('ShopFormAddress-' . $this->getId());
+        elseif ($this->form instanceof FormBaseController) :
+            return $this->form;
         else :
             return '';
         endif;

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
-use tiFy\Column\Column;
+use tiFy\Contracts\Column\Column;
 use tiFy\PostType\Column\PostThumbnail\PostThumbnail;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
@@ -40,21 +40,21 @@ class ListTable
         $this->objectType = $object_type;
         $this->objectName = $this->objectType->getName();
 
-        /** @var Column $columnController */
-        $columnController = app(Column::class);
-        $columnController
+        /** @var Column $column */
+        $column = app('column');
+        $column
             ->add(
                 "{$this->objectName}@post_type",
+                'thumb',
                 [
-                    'name'     => 'thumb',
                     'position' => 1,
                     'content'  => PostThumbnail::class
                 ]
             )
             ->add(
                 "{$this->objectName}@post_type",
+                'sku',
                 [
-                    'name'     => 'sku',
                     'title'    => __('UGS', 'tify'),
                     'position' => 3,
                     'content'  => [$this, 'columnSku']
@@ -62,8 +62,8 @@ class ListTable
             )
             ->add(
                 "{$this->objectName}@post_type",
+                'price',
                 [
-                    'name'     => 'price',
                     'title'    => __('Prix', 'tify'),
                     'position' => 4,
                     'content'  => [$this, 'columnPrice']
@@ -71,8 +71,8 @@ class ListTable
             )
             ->add(
                 "{$this->objectName}@post_type",
+                'featured',
                 [
-                    'name'     => 'featured',
                     'title'    => "<span class=\"dashicons dashicons-star-half\"></span>",
                     'position' => 5,
                     'content'  => [$this, 'columnFeatured']
@@ -80,8 +80,8 @@ class ListTable
             )
             ->add(
                 "{$this->objectName}@post_type",
+                'product_type',
                 [
-                    'name'     => 'product_type',
                     'title'    => __('Type', 'tify'),
                     'position' => 6,
                     'content'  => [$this, 'columnProductType']
@@ -112,7 +112,9 @@ class ListTable
      */
     public function columnPrice($column_name, $post_id)
     {
-        echo get_post_meta($post_id, '_regular_price', true);
+        echo ($price = get_post_meta($post_id, '_regular_price', true))
+            ? $this->functions()->price()->html($price)
+            : '--';
     }
 
     /**

@@ -190,7 +190,7 @@ abstract class AbstractObjectType implements ProductObjectType
         );
 
         if (($tag = $this->get('tag', false)) && $tag === true) :
-            $this->set('taxonomies', 'product_tag');
+            $this->set('taxonomies', ['product_tag']);
         endif;
     }
 

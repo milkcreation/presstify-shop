@@ -51,7 +51,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
      */
     private function _register()
     {
-        events()->trigger('tify.plugins.shop.gateways.register', $this);
+        events()->trigger('tify.plugins.shop.gateways.register', [&$this]);
 
         $gateways = [];
         foreach($this->config("gateways", []) as $id => $attrs) :

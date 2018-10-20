@@ -2,7 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
-use tiFy\Field\Field;
 use tiFy\Metabox\Metabox;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ObjectType\Categorized;

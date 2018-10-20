@@ -14,7 +14,6 @@
 
 namespace tiFy\Plugins\Shop\Notices;
 
-use tiFy\Partial\Partial;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\NoticesInterface;
 

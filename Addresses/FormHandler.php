@@ -10,13 +10,13 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Form\Addons\AbstractAddonController;
+use tiFy\Form\AddonController;
 use tiFy\Form\Forms\FormHandleController;
 use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class FormHandler extends AbstractAddonController implements AddressFormHandlerInterface
+class FormHandler extends AddonController implements AddressFormHandlerInterface
 {
     use ShopResolverTrait;
 

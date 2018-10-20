@@ -80,15 +80,15 @@ class Users extends UserQuery implements UsersInterface
      */
     public function boot()
     {
-        /** @var Role $roleController */
-        $roleController = app(Role::class);
+        /** @var Role $role */
+        $role = app('user.role');
         foreach ($this->config('roles', []) as $name => $attrs) :
-            $roleController->add($name, $attrs);
+            $role->add($name, $attrs);
         endforeach;
 
-        /** @var SignIn $signInController */
-        $signInController = app(SignIn::class);
-        $signInController->add('_tiFyShop', $this->config('signin', []));
+        /** @var SignIn $signIn */
+        $signIn = app('user.signin');
+        $signIn->add('_tiFyShop', $this->config('signin', []));
     }
 
     /**
@@ -140,9 +140,9 @@ class Users extends UserQuery implements UsersInterface
      */
     public function signin()
     {
-        /** @var SignIn $signInController */
-        $signInController = app(SignIn::class);
+        /** @var SignIn $signIn */
+        $signIn = app('user.signin');
 
-        return $signInController->get('_tiFyShop');
+        return $signIn->get('_tiFyShop');
     }
 }

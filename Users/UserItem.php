@@ -29,7 +29,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingAddress()
     {
-        return get_user_meta($this->getId(), '_billing_address', true) ? : [];
+        $value = is_multisite()
+            ? get_user_option('_billing_address', $this->getId())
+            : get_user_meta($this->getId(), '_billing_address');
+
+        return $value ? : [];
     }
 
     /**
@@ -37,7 +41,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingAddress1()
     {
-        return get_user_meta($this->getId(), 'billing_address_1', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_address_1', $this->getId())
+            : get_user_meta($this->getId(), 'billing_address_1');
+
+        return $value ? : '';
     }
 
     /**
@@ -45,7 +53,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingAddress2()
     {
-        return get_user_meta($this->getId(), 'billing_address_2', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_address_2', $this->getId())
+            : get_user_meta($this->getId(), 'billing_address_2');
+
+        return $value ? : '';
     }
 
     /**
@@ -53,7 +65,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingCity()
     {
-        return get_user_meta($this->getId(), 'billing_city', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_city', $this->getId())
+            : get_user_meta($this->getId(), 'billing_city');
+
+        return $value ? : '';
     }
 
     /**
@@ -61,7 +77,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingCompany()
     {
-        return get_user_meta($this->getId(), 'billing_company', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_company', $this->getId())
+            : get_user_meta($this->getId(), 'billing_company');
+
+        return $value ? : '';
     }
 
     /**
@@ -69,7 +89,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingCountry()
     {
-        return get_user_meta($this->getId(), 'billing_country', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_country', $this->getId())
+            : get_user_meta($this->getId(), 'billing_country');
+
+        return $value ? : '';
     }
 
     /**
@@ -77,7 +101,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingEmail()
     {
-        return get_user_meta($this->getId(), 'billing_email', true) ? : $this->getEmail();
+        $value = is_multisite()
+            ? get_user_option('billing_email', $this->getId())
+            : get_user_meta($this->getId(), 'billing_email');
+
+        return $value ? : '';
     }
 
     /**
@@ -85,7 +113,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingFirstName()
     {
-        return get_user_meta($this->getId(), 'billing_first_name', true) ? : $this->getFirstName();
+        $value = is_multisite()
+            ? get_user_option('billing_first_name', $this->getId())
+            : get_user_meta($this->getId(), 'billing_first_name');
+
+        return $value ? : '';
     }
 
     /**
@@ -93,7 +125,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingLastName()
     {
-        return get_user_meta($this->getId(), 'billing_last_name', true) ? : $this->getLastName();
+        $value = is_multisite()
+            ? get_user_option('billing_last_name', $this->getId())
+            : get_user_meta($this->getId(), 'billing_last_name');
+
+        return $value ? : '';
     }
 
     /**
@@ -101,7 +137,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingPhone()
     {
-        return get_user_meta($this->getId(), 'billing_phone', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_phone', $this->getId())
+            : get_user_meta($this->getId(), 'billing_phone');
+
+        return $value ? : '';
     }
 
     /**
@@ -109,7 +149,11 @@ class UserItem extends UserQueryItem implements UserItemInterface
      */
     public function getBillingPostcode()
     {
-        return get_user_meta($this->getId(), 'billing_postcode', true) ? : '';
+        $value = is_multisite()
+            ? get_user_option('billing_postcode', $this->getId())
+            : get_user_meta($this->getId(), 'billing_postcode');
+
+        return $value ? : '';
     }
 
     /**

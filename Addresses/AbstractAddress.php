@@ -63,8 +63,8 @@ abstract class AbstractAddress implements AddressInterface
                  */
                 $attrs = $this->formAttrs();
                 foreach ($attrs['fields'] as $slug => &$fattrs) :
-                    if (!isset($fattrs['slug'])) :
-                        $fattrs['slug'] = $this->getId() . '_' . $slug;
+                    if (!isset($fattrs['name'])) :
+                        $fattrs['name'] = $this->getId() . '_' . $slug;
                     endif;
 
                     if (!isset($fattrs['value'])) :
@@ -77,7 +77,7 @@ abstract class AbstractAddress implements AddressInterface
                     endif;
                 endforeach;
 
-                $attrs['addons']['tify_shop_address_form_handler'] = ['controller' => $this];
+                $attrs['addons']['shop.addresses.form_handler'] = ['controller' => $this];
 
                 form()->add('ShopFormAddress-' . $this->getId(), $attrs);
             }
@@ -143,23 +143,10 @@ abstract class AbstractAddress implements AddressInterface
     public function formAttrs()
     {
         return [
-            /// Identifiant HTML du conteneur
-            'container_id'    => sprintf('tiFyShop-addressFormContainer--%s', $this->getId()),
-            /// Classe HTML du conteneur
-            'container_class' => '',
-            /// Identifiant HTML de la balise form
-            'form_id'         => sprintf('tiFyShop-addressForm--%s', $this->getId()),
-            /// Classe HTML de la balise form
-            'form_class'      => '',
-            /// Pré-affichage avant la balise form
-            'before'          => '',
-            /// Post-affichage après la balise form
-            'after'           => '',
-            // Attributs HTML de la balise form
-            'method'          => 'post',
-            'action'          => '',
-            'enctype'         => '',
-            // Attributs de paramètrage
+            'attrs' => [
+                'id'    => 'FormShopAddress--'. $this->getId(),
+                'class'    => 'FormShopAddress FormShopAddress--'. $this->getId()
+            ],
             'addons'          => $this->addons(),
             'buttons'         => $this->buttons(),
             'fields'          => $this->fields(),

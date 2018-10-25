@@ -2,16 +2,27 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use tiFy\Contracts\Form\FactoryRequest;
+use tiFy\Contracts\Form\FormFactory;
 use tiFy\Form\Controller\Handle;
 
 interface AddressFormHandlerInterface
 {
     /**
-     * Traitement de la requête de formulaire
+     * Instanciation de l'addon.
      *
-     * @param Handle $handle Controleur de traitement des formulaires
+     * @param $name Nom de qualification.
+     * @param array $attrs Liste des attributs de configuration.
+     * @param FormFactory $form Instance du formulaire associé.
+     *
+     * @return $this
+     */
+    public function __invoke($name, $attrs = [], FormFactory $form);
+
+    /**
+     * Court-circuitage de la requête au moment de sa soumission.
      *
      * @return void
      */
-    public function cb_handle_submit_request($handle);
+    public function onRequestSubmit(FactoryRequest $request);
 }

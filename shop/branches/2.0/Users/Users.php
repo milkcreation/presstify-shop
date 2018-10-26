@@ -121,7 +121,7 @@ class Users extends UserQuery implements UsersInterface
     public function getItem($user = null)
     {
         if (!$item = parent::getItem($user)) :
-            return app('shop.users.logged_out');
+            return app('shop.users.logged_out', [new \WP_User(0), $this->shop]);
         endif;
 
         $roles = $item->getRoles();

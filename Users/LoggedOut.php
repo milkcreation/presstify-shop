@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Users;
 
 use tiFy\Plugins\Shop\Contracts\UserLoggedOutInterface;
 
-class LoggedOut implements UserLoggedOutInterface
+class LoggedOut extends UserItem implements UserLoggedOutInterface
 {
     /**
      * {@inheritdoc}

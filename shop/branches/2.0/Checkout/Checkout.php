@@ -359,7 +359,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             $order->set($key, $value);
         endforeach;
 
-        events()->trigger('tify.plugins.shop.checkout.create_order', $this);
+        events()->trigger('tify.plugins.shop.checkout.create_order', [&$this]);
 
         $order->create();
 

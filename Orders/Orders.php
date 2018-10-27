@@ -178,7 +178,8 @@ class Orders extends PostQuery implements OrdersInterface
         else :
             /** @var Db $db */
             $db = app('db');
-            return $this->db = $dbController->get('shop.order.items');
+
+            return $this->db = $db->get('shop.order.items');
         endif;
 
         return null;

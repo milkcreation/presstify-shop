@@ -2,15 +2,13 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
+use tiFy\Plugins\Shop\Contracts\UserCustomerInterface;
 use tiFy\Plugins\Shop\Orders\OrderListInterface;
-use tiFy\Plugins\Shop\Shop;
 
-class Customer extends AbstractUser implements CustomerInterface
+class Customer extends UserItem implements UserCustomerInterface
 {
     /**
-     * Vérifie si un utilisateur est considéré en tant que client
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isCustomer()
     {
@@ -40,6 +38,6 @@ class Customer extends AbstractUser implements CustomerInterface
             ]
         ];
         
-        return $this->orders()->getList($query_args);
+        return $this->orders()->getCollection($query_args);
     }
 }

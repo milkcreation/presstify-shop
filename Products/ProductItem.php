@@ -2,11 +2,7 @@
 
 /**
  * @name ProductItem
- * @desc Controleur de récupération de données d'un produit
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Products
- * @version 1.1
- * @since 1.2.535
+ * @desc Controleur de récupération des données d'un produit.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,20 +10,14 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Query\Controller\AbstractPostItem;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\PostType\Query\PostQueryItem;
+use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class ProductItem extends AbstractPostItem implements ProductItemInterface, ProvideTraitsInterface
+class ProductItem extends PostQueryItem implements ProductItemInterface
 {
-    use ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * Classe de rappel de l'Object Type.
@@ -38,23 +28,36 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     /**
      * CONSTRUCTEUR
      *
-     * @param Shop $shop Classe de rappel de la boutique.
      * @param \WP_Post $wp_post
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, \WP_Post $wp_post)
+    public function __construct(\WP_Post $wp_post, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
         parent::__construct($wp_post);
     }
 
     /**
-     * Récupération de la liste des types de produit.
-     *
-     * @return ObjectTypes\Categorized|ObjectTypes\Uncategorized
+     * {@inheritdoc}
+     */
+    public function getAttributes()
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getGroupedProducts()
+    {
+        return \get_post_meta($this->getId(), '_grouped_products', true) ? : [];
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getProductObjectType()
     {
@@ -66,9 +69,15 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Récupération de la liste des types de produit.
-     *
-     * @return array
+     * {@inheritdoc}
+     */
+    public function getProductTags()
+    {
+        return wp_get_post_terms($this->getId(), 'product_tag');
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getProductTypes()
     {
@@ -76,9 +85,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Récupération du type de produit.
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function getProductType()
     {
@@ -97,19 +104,15 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Récupération de l'Unité de Gestion de Stock (SKU).
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function getSku()
+    public function getPurchasingOption($name)
     {
-        return get_post_meta($this->getId(), '_sku', true);
+        return app('shop.products.purchasing_option', [$name, $this, $this->shop]);
     }
 
     /**
-     * Récupération du prix de vente.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getRegularPrice()
     {
@@ -117,61 +120,15 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Récupération du prix de vente affiché.
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function salePriceDisplay()
+    public function getSku()
     {
-        return $this->functions()->price()->html($this->getRegularPrice());
+        return get_post_meta($this->getId(), '_sku', true);
     }
 
     /**
-     * Récupération du poids.
-     *
-     * @return float
-     */
-    public function getWeight()
-    {
-        return 0;
-    }
-
-    /**
-     * Récupération des attributs.
-     *
-     * @return array
-     */
-    public function getAttributes()
-    {
-        return [];
-    }
-
-    /**
-     * Récupération des attribut option d'achat.
-     *
-     * @param string $name Identifiant de qualification de l'option d'achat.
-     *
-     * @return ProductPurchasingOption
-     */
-    public function getPurchasingOption($name)
-    {
-        return $this->provide('products.purchasing_option', [$name, $this, $this->shop]);
-    }
-
-    /**
-     * Récupération des produits du groupe.
-     *
-     * @return string[]
-     */
-    public function getGroupedProducts()
-    {
-        return \get_post_meta($this->getId(), '_grouped_products', true) ? : [];
-    }
-
-    /**
-     * Récupération des produits de montée en gamme.
-     *
-     * @return string[]
+     * {@inheritdoc}
      */
     public function getUpsellProducts()
     {
@@ -179,19 +136,15 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Récupération du la liste des étiquettes associées.
-     *
-     * @return array|\WP_Term
+     * {@inheritdoc}
      */
-    public function getProductTags()
+    public function getWeight()
     {
-        return \wp_get_post_terms($this->getId(), 'product_tag');
+        return 0;
     }
 
     /**
-     * Vérifie si un produit est téléchargeable.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isDownloadable()
     {
@@ -199,23 +152,11 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Vérifie si un produit est dématérialisé (virtuel).
-     *
-     * @return bool
-     */
-    public function isVirtual()
-    {
-        return false;
-    }
-
-    /**
-     * Vérifie si un produit est mis en avant.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isFeatured()
     {
-        if (!$terms = \wp_get_post_terms($this->getId(), 'product_visibility', ['fields' => 'names'])) :
+        if (!$terms = wp_get_post_terms($this->getId(), 'product_visibility', ['fields' => 'names'])) :
             return false;
         elseif (is_wp_error($terms)) :
             return false;
@@ -225,19 +166,7 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Vérifie si un produit est en droit d'être commandé.
-     *
-     * @return bool
-     */
-    public function isPurchasable()
-    {
-        return ($this->getStatus() === 'publish');
-    }
-
-    /**
-     * Vérifie si un produit est en stock.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isInStock()
     {
@@ -245,27 +174,49 @@ class ProductItem extends AbstractPostItem implements ProductItemInterface, Prov
     }
 
     /**
-     * Sauvegarde des données d'un produit.
-     *
-     * @return void
+     * {@inheritdoc}
+     */
+    public function isPurchasable()
+    {
+        return ($this->getStatus() === 'publish');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isVirtual()
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function salePriceDisplay()
+    {
+        return $this->functions()->price()->html($this->getRegularPrice());
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function save()
     {
         // -----------------------------------------------------------
         // TYPE DE PRODUIT
-        $product_type = $this->appRequest('POST')->get('product-type', 'simple');
-        \wp_set_post_terms($this->getId(), $product_type, 'product_type');
+        $product_type = request()->post('product-type', 'simple');
+        wp_set_post_terms($this->getId(), $product_type, 'product_type');
 
         // -----------------------------------------------------------
         // VISIBILITE PRODUIT
         $visibility = [];
 
         // Mise en avant
-        $featured = $this->appRequest('POST')->get('_featured', 'off');
+        $featured = request()->post('_featured', 'off');
         if ($featured === 'on') :
             array_push($visibility, 'featured');
         endif;
 
-        \wp_set_post_terms($this->getId(), $visibility, 'product_visibility');
+        wp_set_post_terms($this->getId(), $visibility, 'product_visibility');
     }
 }

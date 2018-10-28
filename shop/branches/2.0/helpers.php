@@ -17,6 +17,18 @@ if (!function_exists('shop_cart_add_url')) :
     }
 endif;
 
+if (!function_exists('shop_cart_count')) :
+    /**
+     * Retourne le nombre de produit dans le panier
+     *
+     * @return int
+     */
+    function shop_cart_count()
+    {
+        return resolve('shop')->cart()->count();
+    }
+endif;
+
 if (!function_exists('shop_cart_update_url')) :
     /**
      * Url d'action de mise à jour des produits du panier d'achat

@@ -2,11 +2,7 @@
 
 /**
  * @name Products
- * @desc Gestion des gammes de produits
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Products
- * @version 1.1
- * @since 1.2.535
+ * @desc Gestion des gammes de produits.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -15,60 +11,53 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use LogicException;
-use tiFy\Query\Controller\AbstractPostQuery;
+use tiFy\PostType\Query\PostQuery;
+use tiFy\Plugins\Shop\Contracts\ProductsInterface;
+use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
+use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Products extends AbstractPostQuery implements ProductsInterface
+class Products extends PostQuery implements ProductsInterface
 {
-    /**
-     * Instance de la classe
-     * @var Products
-     */
-    private static $instance;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
+     * Instance de la classe.
+     * @var static
      */
-    protected $shop;
+    protected static $instance;
 
     /**
-     * Liste des classes de rappel des gammes de produits déclarées
+     * Liste des classes de rappel des gammes de produits déclarées.
      * @var ObjectTypes\Categorized[]|ObjectTypes\Uncategorized[]
      */
-    private static $ObjectTypes = [];
+    private static $objectTypes = [];
 
     /**
-     * Liste des type de produits permis
+     * Liste des types de produits permis.
      * @var string[]
      */
-    private static $ProductTypes = [
+    private static $productTypes = [
         'simple', 'grouped', 'external', 'variable'
     ];
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Classe de rappel de la boutique.
      *
-     * @return void
+     * @return null
      */
     protected function __construct(Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-
-        // Déclaration des gammes de produit
-        $this->registerObjectTypes();
-
-        // Déclaration des événements
-        $this->appAddAction('save_post', 'save_post', 10, 2);
     }
 
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return void
+     * @return null
      */
     private function __clone()
     {
@@ -78,7 +67,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return void
+     * @return null
      */
     private function __wakeup()
     {
@@ -86,54 +75,87 @@ class Products extends AbstractPostQuery implements ProductsInterface
     }
 
     /**
-     * Instanciation de la classe
+     * Instanciation de la classe.
      *
      * @param Shop $shop
      *
-     * @return Products
+     * @return AddressesInterface
      */
-    final public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
         endif;
 
-        self::$instance = new static($shop);
+        return self::$instance = new static($shop);
+    }
 
-        if(! self::$instance instanceof Products) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
-                    Products::class
-                ),
-                500
-            );
+    /**
+     * {@inheritdoc}
+     */
+    public function boot()
+    {
+        $this->_registerObjectTypes();
+
+        add_action('save_post', [$this, 'save_post'], 10, 2);
+    }
+
+    /**
+     * Déclaration des gammes de produit
+     *
+     * @return null|Categorized|Uncategorized
+     */
+    private function _registerObjectTypes()
+    {
+        foreach ($this->config('products', []) as $post_type => $attrs) :
+            if (empty($attrs['category'])) :
+                return self::$objectTypes[$post_type] = app(
+                        'shop.products.type.uncategorized',
+                        [$post_type, $attrs, $this->shop]
+                    );
+            else :
+                return self::$objectTypes[$post_type] = app(
+                        'shop.products.type.categorized',
+                        [$post_type, $attrs, $this->shop]
+                    );
+            endif;
+        endforeach;
+
+        return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCollection($query_args = [])
+    {
+        if (!$query_args['post_type'] = $this->getObjectTypes()) :
+            return [];
         endif;
 
-        return self::$instance;
+        if (!isset($query_args['posts_per_page'])) :
+            $query_args['posts_per_page'] = -1;
+        endif;
+
+        $wp_query = new \WP_Query;
+        $posts = $wp_query->query($query_args);
+
+        if ($posts) :
+            $items =  array_map([$this, 'getItem'], $posts);
+        else :
+            $items = [];
+        endif;
+
+        return $this->resolveCollection($items);
     }
 
     /**
-     * Récupération du controleur de données d'une liste d'éléments
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    final public function getListController()
-    {
-        return $this->shop->provider()->getMapController('products.list');
-    }
-
-    /**
-     * Récupération des données d'un produit existant.
-     *
-     * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
-     *
-     * @return null|object|ProductItemInterface
-     */
-    public function get($product = null)
+    public function getItem($product = null)
     {
         if (is_string($product)) :
-            return $this->getBy(null, $product);
+            return $this->getItemBy(null, $product);
         elseif (!$product) :
             $post = get_the_ID();
         else :
@@ -152,24 +174,23 @@ class Products extends AbstractPostQuery implements ProductsInterface
             return null;
         endif;
 
-        $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appServiceHas($name)) :
-            $controller = $this->getObjectType($post->post_type)->getItemController();
-            $this->appServiceAdd($name, new $controller($this->shop, $post));
+        $alias = 'shop.products.item.' . $post->ID;
+        if (!app()->has($alias)) :
+            app()->singleton(
+                $alias,
+                function() use ($post) {
+                    return $this->resolveItem($post);
+                }
+            );
         endif;
 
-        return $this->appServiceGet($name);
+        return app()->resolve($alias);
     }
 
     /**
-     * Instanciation selon un attribut particulier
-     *
-     * @param string $key Identifiant de qualification de l'attribut. défaut name.
-     * @param string $value Valeur de l'attribut
-     *
-     * @return null|object|ProductItemInterface
+     * {@inheritdoc}
      */
-    public function getBy($key = 'name', $value)
+    public function getItemBy($key = 'name', $value)
     {
         $args = [
             'post_type'      => $this->getObjectTypes(),
@@ -195,70 +216,98 @@ class Products extends AbstractPostQuery implements ProductsInterface
         $wp_query = new \WP_Query;
         $posts = $wp_query->query($args);
         if ($wp_query->found_posts) :
-            return $this->get(reset($posts));
+            return $this->getItem(reset($posts));
         endif;
 
         return null;
     }
 
     /**
-     * Récupération des données d'une liste d'élément selon des critères de requête
-     *
-     * @param array $query_args Liste des arguments de requête
-     *
-     * @return array|ProductItemInterface[]
+     * {@inheritdoc}
      */
-    public function getList($query_args = [])
+    public function getObjectType($object_type)
     {
-        if (!$query_args['post_type'] = $this->getObjectTypes()) :
-            return [];
+        if (isset(self::$objectTypes[$object_type])) :
+            return self::$objectTypes[$object_type];
         endif;
-
-        if (!isset($query_args['posts_per_page'])) :
-            $query_args['posts_per_page'] = -1;
-        endif;
-
-        $wp_query = new \WP_Query;
-        $posts = $wp_query->query($query_args);
-
-        if ($posts) :
-            $items =  array_map([$this, 'get'], $posts);
-        else :
-            $items = [];
-        endif;
-
-        $controller = $this->getListController();
-
-        return new $controller($items);
     }
 
     /**
-     * Déclaration des gammes de produit
-     *
-     * @return null|ObjectTypes\Categorized|ObjectTypes\Uncategorized
+     * {@inheritdoc}
      */
-    private function registerObjectTypes()
+    public function getObjectTypeList()
     {
-        foreach ($this->shop->appConfig('products', []) as $post_type => $attrs) :
-            if (empty($attrs['category'])) :
-                return self::$ObjectTypes[$post_type] = new ObjectTypes\Uncategorized($this->shop, $post_type, $attrs);
-            else :
-                return self::$ObjectTypes[$post_type] = new ObjectTypes\Categorized($this->shop, $post_type, $attrs);
-            endif;
-        endforeach;
-
-        return null;
+        return self::$objectTypes;
     }
 
     /**
-     * Enregistrement d'un post
-     *
-     * @param int $post_id Identifiant de qualification du post
-     * @param \WP_Post $post Objet Post Wordpress
-     *
-     * @return array|null|\WP_Post
+     * {@inheritdoc}
      */
-    final public function save_post($post_id, $post)
+    public function getObjectTypes()
+    {
+        return array_keys(self::$objectTypes);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProductTypeDisplayName($product_type)
+    {
+        switch($product_type) :
+            case 'simple' :
+                return __('Produit simple', 'tify');
+                break;
+            case 'grouped' :
+                return __('Produit groupés', 'tify');
+                break;
+            case 'external' :
+                return __('Produit externe/affiliation', 'tify');
+                break;
+            case 'variable' :
+                return __('Produit variable', 'tify');
+                break;
+            default :
+                return '';
+                break;
+        endswitch;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProductTypeIcon($product_type)
+    {
+        switch($product_type) :
+            case 'simple' :
+                return "<span class=\"dashicons dashicons-products\"></span>";
+                break;
+            case 'grouped' :
+                return "<span class=\"dashicons dashicons-forms\"></span>";
+                break;
+            case 'external' :
+                return "<span class=\"dashicons dashicons-share-alt\"></span>";
+                break;
+            case 'variable' :
+                return "<span class=\"dashicons dashicons-chart-area\"></span>";
+                break;
+            default :
+                return '';
+                break;
+        endswitch;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProductTypes()
+    {
+        return self::$productTypes;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function save_post($post_id, $post)
     {
         // Bypass - S'il s'agit d'une routine de sauvegarde automatique.
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) :
@@ -271,7 +320,7 @@ class Products extends AbstractPostQuery implements ProductsInterface
         endif;
 
         // Bypass - Si l'argument de requête renseignant l'indication de type de post est manquant
-        if (!$post_type = $this->appRequest('POST')->get('post_type', '')) :
+        if (!$post_type = request()->post('post_type', '')) :
             return null;
         endif;
 
@@ -294,112 +343,30 @@ class Products extends AbstractPostQuery implements ProductsInterface
         endif;
 
         // Bypass - Le type de post doit être faire partie d'une gamme de produit déclaré
-        if (!in_array($post_type, array_keys(self::$ObjectTypes))) :
+        if (!in_array($post_type, array_keys(self::$objectTypes))) :
             return null;
         endif;
 
-        $this->get($post)->save();
+        $this->getItem($post)->save();
 
         return $post;
     }
 
     /**
-     * Récupération de la liste des classe de rappel des types d'objet
-     *
-     * @return ObjectTypes\Categorized[]|ObjectTypes\Uncategorized[]
+     * {@inheritdoc}
      */
-    final public function getObjectTypeList()
+    public function resolveCollection($items)
     {
-        return self::$ObjectTypes;
+        return app('shop.products.list', [$items]);
     }
 
     /**
-     * Récupération d'une classe de rappel des types d'objet
-     *
-     * @param string $object_type Identifiant de qualification du type d'object (custom_post_type)
-     *
-     * @return ObjectTypes\Categorized|ObjectTypes\Uncategorized
+     * {@inheritdoc}
      */
-    final public function getObjectType($object_type)
+    public function resolveItem($wp_post)
     {
-        if (isset(self::$ObjectTypes[$object_type])) :
-            return self::$ObjectTypes[$object_type];
-        endif;
-    }
+        $concrete = $this->getObjectType($wp_post->post_type)->getItemController();
 
-    /**
-     * Récupération de la liste des identifiant de qualification des gamme de produits déclarés
-     *
-     * @return string[]
-     */
-    final public function getObjectTypes()
-    {
-        return array_keys(self::$ObjectTypes);
-    }
-
-    /**
-     * Récupération de la liste des types de produit
-     *
-     * @return array
-     */
-    final public function getProductTypes()
-    {
-        return self::$ProductTypes;
-    }
-
-    /**
-     * Récupération du nom d'affichage d'un type de produit
-     *
-     * @param string $product_type Identifiant de qualification d'un type de produit permis. simple|grouped|external|variable.
-     *
-     * @return string
-     */
-    final public function getProductTypeDisplayName($product_type)
-    {
-        switch($product_type) :
-            case 'simple' :
-                return __('Produit simple', 'tify');
-                break;
-            case 'grouped' :
-                return __('Produit groupés', 'tify');
-                break;
-            case 'external' :
-                return __('Produit externe/affiliation', 'tify');
-                break;
-            case 'variable' :
-                return __('Produit variable', 'tify');
-                break;
-            default :
-                return '';
-                break;
-        endswitch;
-    }
-
-    /**
-     * Récupération de l'icône représentative d'un type de produit
-     *
-     * @param string $product_type Identifiant de qualification d'un type de produit permis. simple|grouped|external|variable.
-     *
-     * @return string
-     */
-    final public function getProductTypeIcon($product_type)
-    {
-        switch($product_type) :
-            case 'simple' :
-                return "<span class=\"dashicons dashicons-products\"></span>";
-                break;
-            case 'grouped' :
-                return "<span class=\"dashicons dashicons-forms\"></span>";
-                break;
-            case 'external' :
-                return "<span class=\"dashicons dashicons-share-alt\"></span>";
-                break;
-            case 'variable' :
-                return "<span class=\"dashicons dashicons-chart-area\"></span>";
-                break;
-            default :
-                return '';
-                break;
-        endswitch;
+        return new $concrete($wp_post, $this->shop);
     }
 }

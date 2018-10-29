@@ -75,14 +75,12 @@ class Edit
         /** @var MetaboxManager $metabox */
         $metabox = resolve('metabox');
 
-        /*
-        $tabMetabox->registerBox(
-            "{$this->objectType}@post_type",
+        $metabox->tab(
             [
                 'title' => [$this, 'panelHeader'],
-            ]
+            ],
+            "{$this->objectType}@post_type"
         );
-        */
 
         // Définition des onglets de saisie par défaut
         $default_tabs = [

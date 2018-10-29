@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
-use tiFy\Metabox\Metabox;
+use tiFy\Contracts\Metabox\MetaboxManager;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
 use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
@@ -72,8 +72,8 @@ class Edit
             }
         );
 
-        /** @var Metabox $metaboxController */
-        $metaboxController = resolve(Metabox::class);
+        /** @var MetaboxManager $metabox */
+        $metabox = resolve('metabox');
 
         /*
         $tabMetabox->registerBox(
@@ -87,43 +87,36 @@ class Edit
         // Définition des onglets de saisie par défaut
         $default_tabs = [
             'general'    => [
-                'name'     => "ShopProduct-generalOptions--{$this->objectType}",
                 'title'    => __('Général', 'tify'),
                 'content'  => [$this, 'generalPanel'],
                 'position' => 1,
             ],
             'inventory'  => [
-                'name'     => "ShopProduct-inventoryOptions--{$this->objectType}",
                 'title'    => __('Inventaire', 'tify'),
                 'content'  => [$this, 'inventoryPanel'],
                 'position' => 2,
             ],
             'shipping'   => [
-                'name'     => "ShopProduct-shippingOptions--{$this->objectType}",
                 'title'    => __('Expédition', 'tify'),
                 'content'  => [$this, 'shippingPanel'],
                 'position' => 3,
             ],
             'linked'     => [
-                'name'     => "ShopProduct-linkedOptions--{$this->objectType}",
                 'title'    => __('Produits liés', 'tify'),
                 'content'  => [$this, 'linkedPanel'],
                 'position' => 4,
             ],
             'attributes' => [
-                'name'     => "ShopProduct-attributesOptions--{$this->objectType}",
                 'title'    => __('Attributs', 'tify'),
                 'content'  => [$this, 'attributesPanel'],
                 'position' => 5,
             ],
             'variations' => [
-                'name'     => "ShopProduct-variationsOptions--{$this->objectType}",
                 'title'    => __('Variations', 'tify'),
                 'content'  => [$this, 'variationsPanel'],
                 'position' => 6,
             ],
             'advanced'   => [
-                'name'     => "ShopProduct-advancedOptions--{$this->objectType}",
                 'title'    => __('Avancé', 'tify'),
                 'content'  => [$this, 'advancedPanel'],
                 'position' => 7,
@@ -143,8 +136,9 @@ class Edit
             endif;
         endforeach;
 
-        foreach ($custom_tabs as $attrs) :
-            $metaboxController->add(
+        foreach ($custom_tabs as $id => $attrs) :
+            $metabox->add(
+                "ShopProduct-{$id}--{$this->objectType}",
                 "{$this->objectType}@post_type",
                 $attrs
             );

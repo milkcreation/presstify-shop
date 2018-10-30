@@ -2,13 +2,13 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\PostType\PostQueryInterface;
+use tiFy\Contracts\PostType\PostQuery;
 use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 use tiFy\Plugins\Shop\Contracts\ProductListInterface;
 use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
 
-interface ProductsInterface extends BootableControllerInterface, PostQueryInterface, ShopResolverInterface
+interface ProductsInterface extends BootableControllerInterface, PostQuery, ShopResolverInterface
 {
     /**
      * {@inheritdoc}

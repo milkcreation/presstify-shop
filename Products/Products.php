@@ -127,73 +127,10 @@ class Products extends PostQuery implements ProductsInterface
     /**
      * {@inheritdoc}
      */
-    public function getCollection($query_args = [])
-    {
-        if (!$query_args['post_type'] = $this->getObjectTypes()) :
-            return [];
-        endif;
-
-        if (!isset($query_args['posts_per_page'])) :
-            $query_args['posts_per_page'] = -1;
-        endif;
-
-        $wp_query = new \WP_Query;
-        $posts = $wp_query->query($query_args);
-
-        if ($posts) :
-            $items =  array_map([$this, 'getItem'], $posts);
-        else :
-            $items = [];
-        endif;
-
-        return $this->resolveCollection($items);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getItem($product = null)
-    {
-        if (is_string($product)) :
-            return $this->getItemBy(null, $product);
-        elseif (!$product) :
-            $post = get_the_ID();
-        else :
-            $post = $product;
-        endif;
-
-        if (!$post = \get_post($product)) :
-            return null;
-        endif;
-
-        if (!$post instanceof \WP_Post) :
-            return null;
-        endif;
-
-        if (!in_array($post->post_type, (array) $this->getObjectTypes())) :
-            return null;
-        endif;
-
-        $alias = 'shop.products.item.' . $post->ID;
-        if (!app()->has($alias)) :
-            app()->singleton(
-                $alias,
-                function() use ($post) {
-                    return $this->resolveItem($post);
-                }
-            );
-        endif;
-
-        return app()->resolve($alias);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getItemBy($key = 'name', $value)
     {
         $args = [
-            'post_type'      => $this->getObjectTypes(),
+            'post_type'      => $this->getObjectName(),
             'posts_per_page' => 1
         ];
 
@@ -220,6 +157,14 @@ class Products extends PostQuery implements ProductsInterface
         endif;
 
         return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getObjectName()
+    {
+        return $this->getObjectTypes();
     }
 
     /**

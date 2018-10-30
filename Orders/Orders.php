@@ -159,7 +159,7 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * {@inheritdoc}
      */
-    public function getCollection($query_args = [])
+    public function getCollection($query_args = null)
     {
         if (!isset($query_args['post_status'])) :
             $query_args['post_status'] = $this->orders()->getRelPostStatuses();
@@ -198,47 +198,11 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function getItem($id = null)
     {
-        if (is_numeric($id) && $id > 0) :
-            $post = $id;
-        elseif (is_string($id)) :
-            return self::getItemBy('name', $id);
-        elseif (! $id) :
-            $post = $this->session()->get('order_awaiting_payment', 0);
-        else :
-            $post = $id;
+        if (!$id) :
+            $id = $this->session()->get('order_awaiting_payment', 0);
         endif;
 
-        if (!$post = \get_post($post)) :
-            return null;
-        endif;
-
-        if (!$post instanceof \WP_Post) :
-            return null;
-        endif;
-
-        if (($post->post_type !== 'any') && !in_array($post->post_type, (array) $this->getObjectName())) :
-            return null;
-        endif;
-
-        $alias = 'shop.orders.order.' . $post->ID;
-        if (!app()->has($alias)) :
-            app()->singleton(
-                $alias,
-                function() use ($post) {
-                    return $this->resolveItem($post);
-                }
-            );
-        endif;
-
-        return app()->resolve($alias);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function geItemBy($key = 'name', $value)
-    {
-        return parent::getItemBy($key, $value);
+        return parent::getItem($id);
     }
 
     /**

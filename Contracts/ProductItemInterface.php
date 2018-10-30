@@ -2,9 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\PostType\PostQueryItemInterface;
+use Illuminate\Support\Arr;
+use tiFy\Contracts\PostType\PostQueryItem;
 
-interface ProductItemInterface extends PostQueryItemInterface
+interface ProductItemInterface extends PostQueryItem
 {
     /**
      * Récupération des attributs.

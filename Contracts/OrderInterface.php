@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\PostType\PostQueryItemInterface;
+use tiFy\Contracts\PostType\PostQueryItem;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeCouponInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeFeeInterface;
@@ -10,7 +10,7 @@ use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeShippingInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeTaxInterface;
 
-interface OrderInterface extends PostQueryItemInterface
+interface OrderInterface extends PostQueryItem
 {
     /**
      * Ajout d'une note à la commande.

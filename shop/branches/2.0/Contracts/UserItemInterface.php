@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\User\UserQueryItemInterface;
+use tiFy\Contracts\User\UserQueryItem;
 
-interface UserItemInterface extends UserQueryItemInterface
+interface UserItemInterface extends UserQueryItem
 {
     /**
      * Récupération de l'adresse de facturation.

@@ -88,7 +88,7 @@ class Users extends UserQuery implements UsersInterface
 
         /** @var SignIn $signIn */
         $signIn = app('user.signin');
-        $signIn->add('_tiFyShop', $this->config('signin', []));
+        $signIn->add('shop', $this->config('signin', []));
     }
 
     /**
@@ -143,6 +143,6 @@ class Users extends UserQuery implements UsersInterface
         /** @var SignIn $signIn */
         $signIn = app('user.signin');
 
-        return $signIn->get('_tiFyShop');
+        return $signIn->get('shop');
     }
 }

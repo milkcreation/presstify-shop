@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\PostType\PostQueryCollectionInterface;
+use tiFy\Contracts\PostType\PostQueryCollection;
 
-interface ProductListInterface extends PostQueryCollectionInterface
+interface ProductListInterface extends PostQueryCollection
 {
 
 }

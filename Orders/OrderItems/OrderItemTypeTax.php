@@ -2,11 +2,7 @@
 
 /**
  * @name OrderItemTax
- * @desc Controleur de la taxe associée à une commande
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
+ * @desc Controleur de la taxe associée à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,12 +10,13 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
+use tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeTaxInterface;
+
 class OrderItemTypeTax extends AbstractOrderItemType implements OrderItemTypeTaxInterface
 {
     /**
-     * Récupération du type d'élement associé à la commande.
-     *
-     * @return string tax
+     * {@inheritdoc}
      */
     public function getType()
     {

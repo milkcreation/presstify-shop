@@ -11,13 +11,13 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use tiFy\Kernel\Parameters\AbstractParametersBagIterator;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class SessionItems extends AbstractParametersBagIterator implements CartSessionItemsInterface
+class SessionItems extends ParamsBag implements CartSessionItemsInterface
 {
     use ShopResolverTrait;
 

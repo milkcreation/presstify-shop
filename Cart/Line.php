@@ -13,7 +13,7 @@ namespace tiFy\Plugins\Shop\Cart;
 use Illuminate\Support\Fluent;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
-use tiFy\Plugins\Shop\Products\ProductItemInterface;
+use tiFy\Plugins\Shop\Products\ProductItem;
 use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;

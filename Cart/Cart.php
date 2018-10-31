@@ -170,7 +170,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     {
         /**
          * Vérification d'existance du produit et récupération
-         * @var \tiFy\Plugins\Shop\Products\ProductItemInterface $product
+         * @var \tiFy\Plugins\Shop\Products\ProductItem $product
          */
         if (!$product = $this->products()->getItem($product_name)) :
             return;

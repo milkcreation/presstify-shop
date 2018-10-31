@@ -21,9 +21,17 @@ class OrderList extends PostQueryCollection implements OrderListInterface
     use ShopResolverTrait;
 
     /**
+     * Liste des éléments déclarés.
+     * @var OrderInterface[]
+     */
+    protected $items = [];
+
+    /**
      * CONSTRUCTEUR.
      *
-     * @param null|OrderInterface[] $items
+     * @param array|OrderInterface[] $items Liste des éléments déclarés.
+     *
+     * @return void
      */
     public function __construct($items = [])
     {

@@ -10,9 +10,8 @@
 
 namespace tiFy\Plugins\Shop\Session;
 
-use tiFy\User\Session\Session as tFyUserSession;
-use tiFy\User\Session\Store;
-use tiFy\User\Session\StoreInterface;
+use tiFy\Contracts\User\SessionManager;
+use tiFy\Contracts\User\SessionStore;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\SessionInterface;
 
@@ -20,28 +19,26 @@ use tiFy\Plugins\Shop\Contracts\SessionInterface;
  * Class Session
  * @package tiFy\Plugins\Shop\Session
  *
- * @mixin StoreInterface
+ * @mixin SessionStore
  */
 class Session extends AbstractShopSingleton implements SessionInterface
 {
     /**
-     * Récupération de la classe responsable du traitement des sessions.
-     * @var StoreInterface
+     * Instance du traitement de la session.
+     * @var SessionStore
      */
-    private $handler;
+    private $store;
 
     /**
      * {@inheritdoc}
      */
     public function boot()
     {
-        add_action(
-            'tify_user_session_register',
-            function ($sessionController) {
-                /** @var tFyUserSession $sessionController */
-                $this->handler = $sessionController->register('tify_shop');
-            },
-            0
+        events()->listen(
+            'user.session.register',
+            function (SessionManager $session) {
+                $this->store = $session->register('tify_shop');
+            }
         );
     }
 
@@ -51,18 +48,18 @@ class Session extends AbstractShopSingleton implements SessionInterface
      */
     public function __call($name, $args)
     {
-        if (method_exists($this->handler, $name)) :
-            return call_user_func_array([$this->handler, $name], $args);
+        if (method_exists($this->store, $name)) :
+            return call_user_func_array([$this->store, $name], $args);
         endif;
     }
 
     /**
      * Appel de la classe responsable du traitement à l'invocation de la classe.
      *
-     * @return StoreInterface
+     * @return SessionStore
      */
     public function __invoke()
     {
-        return $this->handler;
+        return $this->store;
     }
 }

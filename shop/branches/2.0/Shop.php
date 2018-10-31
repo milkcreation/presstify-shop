@@ -6,7 +6,7 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstify-plugins/shop
  * @namespace \tiFy\Plugins\Shop
- * @version 2.0.6
+ * @version 2.0.7
  */
 
 namespace tiFy\Plugins\Shop;

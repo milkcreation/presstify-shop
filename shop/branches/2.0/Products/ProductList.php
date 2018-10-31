@@ -21,9 +21,17 @@ class ProductList extends PostQueryCollection implements ProductListInterface
     use ShopResolverTrait;
 
     /**
+     * Liste des éléments déclarés.
+     * @var ProductItemInterface[]
+     */
+    protected $items = [];
+
+    /**
      * CONSTRUCTEUR.
      *
-     * @param null|OrderInterface[] $items
+     * @param array|ProductItemInterface[] $items Liste des éléments déclarés.
+     *
+     * @return void
      */
     public function __construct($items = [])
     {

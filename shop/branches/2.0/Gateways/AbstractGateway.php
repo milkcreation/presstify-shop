@@ -3,12 +3,12 @@
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Str;
-use tiFy\Kernel\Parameters\AbstractParametersBagIterator;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\GatewayInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-abstract class AbstractGateway extends AbstractParametersBagIterator implements GatewayInterface
+abstract class AbstractGateway extends ParamsBag implements GatewayInterface
 {
     use ShopResolverTrait;
 

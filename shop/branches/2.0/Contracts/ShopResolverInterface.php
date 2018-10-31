@@ -17,7 +17,7 @@ use tiFy\Plugins\Shop\Contracts\SessionInterface;
 use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\User\Session\Session as tiFyUserSession;
+use tiFy\User\Session\SessionManager as tiFyUserSession;
 
 interface ShopResolverInterface
 {

@@ -76,14 +76,15 @@ class FormHandler extends AddonController implements AddressFormHandlerInterface
         endforeach;
 
         // Sauvegarde des données en session.
-        $this->shop()->session()->put($ctrl->getId(), $session_data);
-        $this->shop()->session()->save();
+        $this->session()->put($ctrl->getId(), $session_data);
+        $this->session()->save();
 
         // Sauvegarde des données de compte utilisateur.
-        $user = $this->shop()->users()->getItem();
+        $user = $this->users()->getItem();
+
         if ($user->isLoggedIn()) :
-            foreach($userdata as $key => $v) :
-                update_user_option($user->getId(), $key, $v, is_multisite());
+            foreach($userdata as $k => $v) :
+                update_user_option($user->getId(), $k, $v, !is_multisite());
             endforeach;
         endif;
     }

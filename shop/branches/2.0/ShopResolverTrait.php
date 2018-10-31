@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop;
 
 use tiFy\Contracts\App\AppInterface;
 use tiFy\Contracts\Container\ContainerInterface;
-use tiFy\Contracts\Views\ViewsInterface;
+use tiFy\Contracts\View\ViewEngine;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Contracts\AdminInterface;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
@@ -161,7 +161,7 @@ trait ShopResolverTrait
      */
     public function viewer($view = null, $data = [])
     {
-        /** @var ViewsInterface $viewer */
+        /** @var ViewEngine $viewer */
         $viewer = resolve('shop.viewer');
 
         if (func_num_args() === 0) :

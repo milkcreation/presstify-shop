@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\User\Session\StoreInterface;
+use tiFy\Contracts\User\SessionStore;
 
-interface SessionResolvedInterface extends StoreInterface
+interface SessionResolvedInterface extends SessionStore
 {
 
 }

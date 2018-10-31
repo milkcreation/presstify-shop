@@ -2,11 +2,7 @@
 
 /**
  * @name Line
- * @desc Controleur de récupération des données d'une ligne d'article dans le panier d'achat
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Cart
- * @version 1.1
- * @since 1.2.596
+ * @desc Controleur de récupération des données d'une ligne d'article dans le panier d'achat.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -15,58 +11,54 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Fluent;
-use tiFy\Apps\AppTrait;
-use tiFy\Plugins\Shop\Products\ProductItemInterface;
+use tiFy\Plugins\Shop\Contracts\CartInterface;
+use tiFy\Plugins\Shop\Contracts\CartLineInterface;
+use tiFy\Plugins\Shop\Products\ProductItem;
 use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Line extends Fluent implements LineInterface, ProvideTraitsInterface
+class Line extends Fluent implements CartLineInterface
 {
-    use AppTrait, ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Classe de rappel du controleur de panier
+     * Instance du controleur de panier.
      * @var CartInterface
      */
     protected $cart;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
-     * @param CartInterface $cart Classe de rappel du controleur de panier
-     * @param array Liste des attributs de l'article dans le panier
+     * @param array Liste des attributs de l'article dans le panier.
+     * @param CartInterface $cart Instance du controleur de panier.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, CartInterface $cart, $attributes)
+    public function __construct($attributes, CartInterface $cart, Shop $shop)
     {
-        parent::__construct($attributes);
-
-        // Définition de la classe de rappel de la boutique
+        $this->cart = $cart;
         $this->shop = $shop;
 
-        // Définition de la classe de rappel du controleur de panier
-        $this->cart = $cart;
+        parent::__construct($attributes);
 
-        // Définition de l'identifiant du produit
         if ($this->getProduct()) :
             $this['product_id'] = $this->getProductId();
         endif;
     }
 
     /**
-     * Récupération de l'identifiant de qualification de l'article dans le panier
-     *
-     * @return string
+     * {@inheritdoc}
+     */
+    public function cartFieldName($attribute_name)
+    {
+        return "cart[{$this->getKey()}][{$attribute_name}]";
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getKey()
     {
@@ -74,29 +66,31 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     * Récupération de la quantité du produit associé à l'article du panier
-     *
-     * @return int
+     * {@inheritdoc}
      */
-    public function getQuantity()
+    public function getPrice()
     {
-        return (int)$this->get('quantity', 0);
+        return (float)$this->getProduct()->getRegularPrice() * $this->getQuantity();
     }
 
     /**
-     * Récupération de l'identifiant de qualification du produit associé à l'article du panier
-     *
-     * @return int
+     * {@inheritdoc}
      */
-    public function getProductId()
+    public function getPriceHtml()
     {
-        return (int)$this->getProduct()->getId();
+        return $this->functions()->price()->html($this->getPrice());
     }
 
     /**
-     * Récupération des données du produit associé à l'article du panier
-     *
-     * @return ProductItemInterface
+     * {@inheritdoc}
+     */
+    public function getPriceIncludesTax()
+    {
+        return $this->get('price_includes_tax', false);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getProduct()
     {
@@ -104,16 +98,22 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     * Récupération des options d'achat.
-     *
-     * @return ProductPurchasingOption[]
+     * {@inheritdoc}
+     */
+    public function getProductId()
+    {
+        return (int)$this->getProduct()->getId();
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getPurchasingOptions()
     {
         $purchasing_opts = [];
         foreach($this->get('purchasing_options',[]) as $product_id => $po) :
             foreach($po as $name => $selected) :
-                $opt = $this->provide('products.purchasing_option', [$name, $product_id, $this->shop]);
+                $opt = app('shop.products.purchasing_option', [$name, $product_id, $this->shop]);
                 $opt->setSelected($selected);
                 $purchasing_opts[] = $opt;
             endforeach;
@@ -123,29 +123,15 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     *
-     *
-     * @return float
+     * {@inheritdoc}
      */
-    public function getTotal()
+    public function getQuantity()
     {
-        return (float)$this->get('line_total', 0);
+        return (int)$this->get('quantity', 0);
     }
 
     /**
-     *
-     *
-     * @return float
-     */
-    public function getTax()
-    {
-        return (float)$this->get('line_tax', 0);
-    }
-
-    /**
-     *
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getSubtotal()
     {
@@ -153,9 +139,7 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     *
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getSubtotalTax()
     {
@@ -163,28 +147,15 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getTaxes()
+    public function getTax()
     {
-        return (array)$this->get('line_tax_data', ['subtotal' => 0, 'total' => 0]);
+        return (float)$this->get('line_tax', 0);
     }
 
     /**
-     *
-     *
-     * @return string
-     */
-    public function getTaxClass()
-    {
-        return (string)$this->get('tax_class', '');
-    }
-
-    /**
-     *
-     *
-     * @return false|string
+     * {@inheritdoc}
      */
     public function getTaxable()
     {
@@ -192,38 +163,23 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     * Indique si le prix de vente tient compte de la taxe
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function getPriceIncludesTax()
+    public function getTaxClass()
     {
-        return $this->get('price_includes_tax', false);
+        return (string)$this->get('tax_class', '');
     }
 
     /**
-     * Récupération du prix de vente
-     *
-     * @return float
+     * {@inheritdoc}
      */
-    public function getPrice()
+    public function getTaxes()
     {
-        return (float)$this->getProduct()->getRegularPrice() * $this->getQuantity();
+        return (array)$this->get('line_tax_data', ['subtotal' => 0, 'total' => 0]);
     }
 
     /**
-     * Récupération de l'affichage HTML du prix de vente
-     *
-     * @return string
-     */
-    public function getPriceHtml()
-    {
-        return $this->functions()->price()->html($this->getPrice());
-    }
-
-    /**
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getTaxRates()
     {
@@ -231,34 +187,26 @@ class Line extends Fluent implements LineInterface, ProvideTraitsInterface
     }
 
     /**
-     * Url de suppression de l'article dans le panier d'achat
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function removeUrl()
+    public function getTotal()
     {
-        return $this->cart->removeUrl($this->getKey());
+        return (float)$this->get('line_total', 0);
     }
 
     /**
-     * Nom du champ de modification d'un attribut dans le panier
-     *
-     * @param string $attribute_name Nom de l'attribut du champ
-     *
-     * @return string
-     */
-    public function cartFieldName($attribute_name)
-    {
-        return "cart[{$this->getKey()}][{$attribute_name}]";
-    }
-
-    /**
-     * Vérifie si l'article nécessite une livraison
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function needShipping()
     {
         return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeUrl()
+    {
+        return $this->cart->removeUrl($this->getKey());
     }
 }

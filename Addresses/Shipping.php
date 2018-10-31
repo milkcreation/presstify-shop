@@ -2,11 +2,7 @@
 
 /**
  * @name Shipping
- * @desc Gestion des adresses de livraison
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Address
- * @version 1.1
- * @since 1.2.600
+ * @desc Gestion des adresses de livraison.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,7 +10,9 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-class Shipping extends AbstractAddress implements ShippingInterface
+use tiFy\Plugins\Shop\Contracts\AddressShippingInterface;
+
+class Shipping extends AbstractAddress implements AddressShippingInterface
 {
 
 }

@@ -205,45 +205,6 @@ class ShopServiceProvider extends AppServiceProvider
     ];
 
     /**
-     * Listes des noms de qualification de services instanciés de manière différée.
-     * @var array
-     */
-    protected $deferred = [
-        'shop.addresses.billing',
-        'shop.addresses.form_handler',
-        'shop.addresses.shipping',
-        'shop.cart.line',
-        'shop.cart.line_list',
-        'shop.cart.session_items',
-        'shop.cart.total',
-        'shop.functions.date',
-        'shop.functions.page',
-        'shop.functions.price',
-        'shop.functions.url',
-        'shop.gateway.cash_on_delivery',
-        'shop.gateway.cheque',
-        'shop.gateways.list',
-        'shop.orders.order',
-        'shop.orders.order_item',
-        'shop.orders.order_items',
-        'shop.orders.order_item_list',
-        'shop.orders.order_item_type_coupon',
-        'shop.orders.order_item_type_fee',
-        'shop.orders.order_item_type_product',
-        'shop.orders.order_item_type_shipping',
-        'shop.orders.order_item_type_tax',
-        'shop.orders.list',
-        'shop.products.item',
-        'shop.products.list',
-        'shop.products.purchasing_option',
-        'shop.products.type.categorized',
-        'shop.products.type.uncategorized',
-        'shop.users.customer',
-        'shop.users.logged_out',
-        'shop.users.shop_manager'
-    ];
-
-    /**
      * Liste des services personnalisés.
      * @var array
      */
@@ -260,7 +221,7 @@ class ShopServiceProvider extends AppServiceProvider
      */
     public function boot()
     {
-        $this->shop = $this->app->singleton('shop', Shop::class)->build();
+        $this->shop = $this->app->singleton('shop', function () { return new Shop(); })->build();
 
         $this->app->singleton(
             'shop.viewer',
@@ -280,7 +241,14 @@ class ShopServiceProvider extends AppServiceProvider
             }
         );
 
-        $this->customs = config('shop.service_provider', []);
+        $providers = config('shop.providers', []);
+
+        array_walk(
+            $providers,
+            function($value, $key) {
+                $this->customs["shop.{$key}"] = $value;
+            }
+        );
 
         foreach($this->bootables as $abstract) :
             $this->app
@@ -315,6 +283,8 @@ class ShopServiceProvider extends AppServiceProvider
 
             $resolved = $this->app->resolve($abstract);
 
+            unset($this->customs[$abstract]);
+
             if ($resolved instanceof BootableControllerInterface) :
                 add_action('tify_app_boot', [$resolved, 'boot'], 11);
             endif;
@@ -336,6 +306,8 @@ class ShopServiceProvider extends AppServiceProvider
             $abstract = $this->getContainer()->getAlias($concrete);
             $concrete = $this->getConcrete($abstract);
             $this->app->singleton($abstract, $concrete);
+
+            unset($this->customs[$abstract]);
         endforeach;
 
         $bindings = [
@@ -366,6 +338,14 @@ class ShopServiceProvider extends AppServiceProvider
             $abstract = $this->getContainer()->getAlias($concrete);
             $concrete = $this->getConcrete($abstract);
             $this->app->bind($abstract, $concrete);
+
+            unset($this->customs[$abstract]);
+        endforeach;
+
+        foreach($this->customs as $abstract => $concrete) :
+            if (preg_match('/^shop\.products\.purchasing_option\.(.*)/', $abstract)) :
+                $this->app->bind($abstract, $concrete);
+            endif;
         endforeach;
     }
 
@@ -378,10 +358,8 @@ class ShopServiceProvider extends AppServiceProvider
      */
     public function getConcrete($abstract)
     {
-        $_abstract = preg_replace('#^shop\.#', '', $abstract);
-
-        return isset($this->customs[$_abstract])
-            ? $this->customs[$_abstract]
+        return isset($this->customs[$abstract])
+            ? $this->customs[$abstract]
             : (
                 isset($this->aliases[$abstract])
                 ? $this->aliases[$abstract]

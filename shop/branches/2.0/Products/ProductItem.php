@@ -108,7 +108,9 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function getPurchasingOption($name)
     {
-        return app('shop.products.purchasing_option', [$name, $this, $this->shop]);
+        return app()->bound("shop.products.purchasing_option.{$name}")
+            ? app("shop.products.purchasing_option.{$name}", [$name, $this, $this->shop])
+            : app('shop.products.purchasing_option', [$name, $this, $this->shop]);
     }
 
     /**

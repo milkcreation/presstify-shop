@@ -11,20 +11,15 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use Illuminate\Support\Arr;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 use tiFy\Plugins\Shop\Contracts\ProductPurchasingOptionInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class ProductPurchasingOption implements ProductPurchasingOptionInterface
+class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOptionInterface
 {
     use ShopResolverTrait;
-
-    /**
-     * Liste des attributs de configuration
-     * @var array|mixed
-     */
-    protected $attributes = [];
 
     /**
      * Nom de qualification.
@@ -58,31 +53,15 @@ class ProductPurchasingOption implements ProductPurchasingOptionInterface
         $this->name = $name;
         $this->shop = $shop;
 
-        if ($product instanceof ProductItemInterface) :
-            $this->product = $product;
-        else :
-            $this->product = $this->products()->getItem($product);
-        endif;
+        $this->product = $product instanceof ProductItemInterface
+            ? $product
+            : $this->products()->getItem($product);
 
-        $this->attributes = $this->product instanceof ProductItemInterface
-            ? Arr::get($this->product->getMeta('_purchasing_options', true, []), $this->name, [])
+        $attrs = $this->product instanceof ProductItemInterface
+            ? Arr::get($this->product->getMetaSingle('_purchasing_options', []), $this->name, [])
             : [];
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function exists()
-    {
-        return !empty($this->attributes);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function get($key, $default = null)
-    {
-        return Arr::get($this->attributes, $key, $default);
+        parent::__construct($attrs);
     }
 
     /**
@@ -127,6 +106,14 @@ class ProductPurchasingOption implements ProductPurchasingOptionInterface
     public function getValueList()
     {
         return (array)$this->get('value', []);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isActive()
+    {
+        return !empty($this->attributes);
     }
 
     /**

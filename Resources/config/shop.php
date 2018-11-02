@@ -6,8 +6,8 @@
  */
 
 return [
-    //@var $service_provider Fournisseurs de services
-    'service_provider' => [
+    //@var $providers Fournisseurs de services
+    'providers' => [
         'addresses.billing'              => Billing::class,
         'addresses.form_handler'         => FormHandler::class,
         'addresses.shipping'             => Shipping::class,

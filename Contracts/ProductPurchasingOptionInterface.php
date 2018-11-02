@@ -2,17 +2,11 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use tiFy\Contracts\Kernel\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 
-interface ProductPurchasingOptionInterface
+interface ProductPurchasingOptionInterface extends ParamsBag
 {
-    /**
-     * Vérification d'existance.
-     *
-     * @return bool
-     */
-    public function exists();
-
     /**
      * Récupération d'attribut.
      *
@@ -59,6 +53,13 @@ interface ProductPurchasingOptionInterface
      * @return array
      */
     public function getValueList();
+
+    /**
+     * Vérification d'existance.
+     *
+     * @return bool
+     */
+    public function isActive();
 
     /**
      * Définition de la valeur de selection.

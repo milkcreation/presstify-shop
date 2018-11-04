@@ -3,6 +3,7 @@
 namespace tiFy\Plugins\Shop\Products\ObjectType;
 
 use Illuminate\Support\Arr;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\PostType\PostType;
 use tiFy\PostType\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
@@ -10,7 +11,7 @@ use tiFy\Plugins\Shop\Products\ProductItem;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-abstract class AbstractObjectType implements ProductObjectType
+abstract class AbstractObjectType extends ParamsBag implements ProductObjectType
 {
     use ShopResolverTrait;
 
@@ -21,15 +22,9 @@ abstract class AbstractObjectType implements ProductObjectType
     protected $name = '';
 
     /**
-     * Liste des attributs de configuration.
-     * @var array
-     */
-    protected $attributes = [];
-
-    /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param string $post_type Identifiant de qualification du type de post.
+     * @param string $name Identifiant de qualification du type de post.
      * @param array $attrs Attributs de configuration.
      * @param Shop $shop Instance de la boutique.
      *
@@ -40,7 +35,7 @@ abstract class AbstractObjectType implements ProductObjectType
         $this->shop = $shop;
         $this->name = $name;
 
-        $this->parse($attrs);
+        parent::__construct($attrs);
 
         $this->boot();
     }
@@ -103,14 +98,6 @@ abstract class AbstractObjectType implements ProductObjectType
     /**
      * {@inheritdoc}
      */
-    public function all()
-    {
-        return $this->attributes;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function defaults()
     {
         return [
@@ -124,9 +111,9 @@ abstract class AbstractObjectType implements ProductObjectType
     /**
      * {@inheritdoc}
      */
-    public function get($key, $default = null)
+    public function getDefaultProductType()
     {
-        return Arr::get($this->attributes, $key, $default);
+        return 'simple';
     }
 
     /**
@@ -135,14 +122,6 @@ abstract class AbstractObjectType implements ProductObjectType
     public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function has($key)
-    {
-        return Arr::has($this->attributes, $key);
     }
 
     /**
@@ -184,23 +163,10 @@ abstract class AbstractObjectType implements ProductObjectType
      */
     public function parse($attrs = [])
     {
-        $this->attributes = array_merge(
-            $this->defaults(),
-            $attrs
-        );
+        parent::parse($attrs);
 
         if (($tag = $this->get('tag', false)) && $tag === true) :
             $this->set('taxonomies', ['product_tag']);
         endif;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function set($key, $value)
-    {
-        Arr::set($this->attributes, $key, $value);
-
-        return $this;
     }
 }

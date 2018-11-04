@@ -6,7 +6,7 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstify-plugins/shop
  * @namespace \tiFy\Plugins\Shop
- * @version 2.0.7
+ * @version 2.0.8
  */
 
 namespace tiFy\Plugins\Shop;
@@ -57,5 +57,34 @@ final class Shop implements ShopInterface
     public function __construct()
     {
         $this->shop = $this;
+    }
+
+    /**
+     * Récupération du chemin absolu vers une ressource.
+     *
+     * @param string $path Chemin relatif vers un sous élément.
+     *
+     * @return string
+     */
+    public function resourcesDir($path = '')
+    {
+        $path = '/Resources/' . ltrim($path, '/');
+
+        return file_exists(__DIR__ . $path) ? __DIR__ . $path : '';
+    }
+
+    /**
+     * Récupération de l'url absolue vers une ressource.
+     *
+     * @param string $path Chemin relatif vers un sous élément.
+     *
+     * @return string
+     */
+    public function resourcesUrl($path = '')
+    {
+        $cinfo = class_info($this);
+        $path = '/Resources/' . ltrim($path, '/');
+
+        return file_exists($cinfo->getDirname() . $path) ? class_info($this)->getUrl() . $path : '';
     }
 }

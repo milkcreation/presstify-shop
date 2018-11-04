@@ -3,36 +3,20 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use Illuminate\Support\Arr;
+use tiFy\Contracts\Kernel\ParamsBag;
 use tiFy\PostType\PostType;
 use tiFy\PostType\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
 use tiFy\Plugins\Shop\Products\ProductItem;
 
-interface ProductObjectType extends ShopResolverInterface
+interface ProductObjectType extends ParamsBag, ShopResolverInterface
 {
     /**
-     * Récupération de la liste des attributs de configuration.
+     * Récupération du type de produit par défaut
      *
-     * @return array
+     * @return string
      */
-    public function all();
-
-    /**
-     * Liste des attributs de configuration par défaut.
-     *
-     * @return array
-     */
-    public function defaults();
-
-    /**
-     * Récupération d'un attribut de configuration.
-     *
-     * @param string $key Clé d'index de qualification de l'attribut.
-     * @param mixed $default Valeur de retoru par defaut.
-     *
-     * @return mixed
-     */
-    public function get($key, $default = null);
+    public function getDefaultProductType();
 
     /**
      * Récupération du nom de qualification.
@@ -42,13 +26,11 @@ interface ProductObjectType extends ShopResolverInterface
     public function getName();
 
     /**
-     * Vérification d'existance d'un attribut de configuration.
+     * Récupération du nom de qualification du controleur d'élément.
      *
-     * @param string $key Clé d'index de qualification de l'attribut.
-     *
-     * @return boolean
+     * @return callable
      */
-    public function has($key);
+    public function getItemController();
 
     /**
      * Récupération de la liste des types de produit
@@ -63,23 +45,4 @@ interface ProductObjectType extends ShopResolverInterface
      * @return bool
      */
     public function hasCat();
-
-    /**
-     * Traitement de arguments de configuration.
-     *
-     * @param array $attrs Liste des attributs de configuration.
-     *
-     * @return void
-     */
-    public function parse($attrs = []);
-
-    /**
-     * Définition d'un attribut de configuration.
-     *
-     * @param $key Clé d'indice de l'attribut de configuration. Syntaxe à point permise.
-     * @param mixed $value Valeur de l'attribut.
-     *
-     * @return $this
-     */
-    public function set($key, $value);
 }

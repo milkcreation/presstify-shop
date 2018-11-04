@@ -5,8 +5,15 @@ namespace tiFy\Plugins\Shop\Contracts;
 use tiFy\Contracts\Kernel\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 
-interface ProductPurchasingOptionInterface extends ParamsBag
+interface ProductPurchasingOption extends ParamsBag
 {
+    /**
+     * Résolution de sortie de la classe en tant que chaîne de caractère.
+     *
+     * @return string
+     */
+    public function __toString();
+
     /**
      * Récupération d'attribut.
      *
@@ -55,11 +62,18 @@ interface ProductPurchasingOptionInterface extends ParamsBag
     public function getValueList();
 
     /**
-     * Vérification d'existance.
+     * Vérification d'activation de l'option d'achat.
      *
-     * @return bool
+     * @return boolean
      */
     public function isActive();
+
+    /**
+     * Affichage
+     *
+     * @return string
+     */
+    public function render();
 
     /**
      * Définition de la valeur de selection.

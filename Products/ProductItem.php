@@ -12,6 +12,8 @@ namespace tiFy\Plugins\Shop\Products;
 
 use tiFy\PostType\Query\PostQueryItem;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
+use tiFy\Plugins\Shop\Contracts\ProductObjectType;
+use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
@@ -21,9 +23,15 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
 
     /**
      * Classe de rappel de l'Object Type.
-     * @var ObjectTypes\Categorized|ObjectTypes\Uncategorized
+     * @var ProductObjectType
      */
-    private $productObjectType;
+    protected $productObjectType;
+
+    /**
+     * Liste des options d'achats associées
+     * @var ProductPurchasingOption[]
+     */
+    protected $purchasingOptions;
 
     /**
      * CONSTRUCTEUR
@@ -51,9 +59,43 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     /**
      * {@inheritdoc}
      */
+    public function getCompositionProducts()
+    {
+        $products = [];
+
+        if (
+            $this->isProductType('composed') &&
+            ($product_ids = $this->getMetaSingle('_composition_products'))
+        ) :
+            foreach($product_ids as $product_id) :
+                if ($product = $this->products()->getItem($product_id)) :
+                    $products[] = $product;
+                endif;
+            endforeach;
+        endif;
+
+        return $this->products()->resolveCollection($products);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getGroupedProducts()
     {
-        return \get_post_meta($this->getId(), '_grouped_products', true) ? : [];
+        $products = [];
+
+        if (
+            $this->isProductType('grouped') &&
+            ($product_ids = $this->getMetaSingle('_grouped_products'))
+        ) :
+            foreach($product_ids as $product_id) :
+                if ($product = $this->products()->getItem($product_id)) :
+                    $products[] = $product;
+                endif;
+            endforeach;
+        endif;
+
+        return $this->products()->resolveCollection($products);
     }
 
     /**
@@ -79,25 +121,17 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     /**
      * {@inheritdoc}
      */
-    public function getProductTypes()
-    {
-        return $this->getProductObjectType()->getProductTypes();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getProductType()
     {
         if (!$terms = get_the_terms($this->getId(), 'product_type')) :
-            return 'simple';
+            return $this->getProductObjectType()->getDefaultProductType();
         elseif (is_wp_error($terms)) :
-            return 'simple';
+            return $this->getProductObjectType()->getDefaultProductType();
         endif;
 
         $term = reset($terms);
         if (!in_array($term->name, $this->getProductTypes())) :
-            return 'simple';
+            return $this->getProductObjectType()->getDefaultProductType();
         endif;
 
         return $term->name;
@@ -106,11 +140,42 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     /**
      * {@inheritdoc}
      */
+    public function getProductTypes()
+    {
+        return $this->getProductObjectType()->getProductTypes();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getPurchasingOption($name)
     {
-        return app()->bound("shop.products.purchasing_option.{$name}")
-            ? app("shop.products.purchasing_option.{$name}", [$name, $this, $this->shop])
-            : app('shop.products.purchasing_option', [$name, $this, $this->shop]);
+        $purchasing_options = $this->getPurchasingOptions();
+
+        return $purchasing_options[$name] ?? null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPurchasingOptions()
+    {
+        if (is_null($this->purchasingOptions)) :
+            $this->purchasingOptions = [];
+
+            foreach($this->getMetaSingle('_purchasing_options', []) as $name => $attrs) :
+                /** @var ProductPurchasingOption $option */
+                $option = app()->bound("shop.products.purchasing_option.{$name}")
+                    ? app("shop.products.purchasing_option.{$name}", [$name, $attrs, $this, $this->shop])
+                    : app('shop.products.purchasing_option', [$name, $attrs, $this, $this->shop]);
+
+                if ($option->isActive()) :
+                    $this->purchasingOptions[$name] = $option;
+                endif;
+            endforeach;
+        endif;
+
+        return $this->purchasingOptions;
     }
 
     /**
@@ -118,7 +183,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function getRegularPrice()
     {
-        return get_post_meta($this->getId(), '_regular_price', true);
+        return $this->getMetaSingle('_regular_price', 0);
     }
 
     /**
@@ -126,7 +191,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function getSku()
     {
-        return get_post_meta($this->getId(), '_sku', true);
+        return $this->getMetaSingle('_sku', '');
     }
 
     /**
@@ -134,7 +199,17 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function getUpsellProducts()
     {
-        return \get_post_meta($this->getId(), '_upsell_ids', true) ? : [];
+        $products = [];
+
+        if ($product_ids = $this->getMetaSingle('_upsell_ids')) :
+            foreach ($product_ids as $product_id) :
+                if ($product = $this->products()->getItemBy('sku', $product_id)) :
+                    $products[] = $product;
+                endif;
+            endforeach;
+        endif;
+
+        return $this->products()->resolveCollection($products);
     }
 
     /**
@@ -178,6 +253,14 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     /**
      * {@inheritdoc}
      */
+    public function isProductType($type)
+    {
+        return $this->getProductType() === $type;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isPurchasable()
     {
         return ($this->getStatus() === 'publish');
@@ -206,7 +289,7 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     {
         // -----------------------------------------------------------
         // TYPE DE PRODUIT
-        $product_type = request()->post('product-type', 'simple');
+        $product_type = request()->post('product-type', $this->getProductObjectType()->getDefaultProductType());
         wp_set_post_terms($this->getId(), $product_type, 'product_type');
 
         // -----------------------------------------------------------

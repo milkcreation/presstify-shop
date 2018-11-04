@@ -87,7 +87,7 @@ use tiFy\Plugins\Shop\Contracts\OrderListInterface;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 use tiFy\Plugins\Shop\Contracts\ProductListInterface;
-use tiFy\Plugins\Shop\Contracts\ProductPurchasingOptionInterface;
+use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption as ProductPurchasingOptionContract;
 use tiFy\Plugins\Shop\Contracts\ProductsInterface;
 use tiFy\Plugins\Shop\Contracts\SessionInterface;
 use tiFy\Plugins\Shop\Contracts\SettingsInterface;
@@ -198,7 +198,7 @@ class ShopServiceProvider extends AppServiceProvider
         'shop.products.controller'        => ProductsInterface::class,
         'shop.products.item'              => ProductItemInterface::class,
         'shop.products.list'              => ProductListInterface::class,
-        'shop.products.purchasing_option' => ProductPurchasingOptionInterface::class,
+        'shop.products.purchasing_option' => ProductPurchasingOptionContract::class,
         'shop.session.controller'         => SessionInterface::class,
         'shop.settings.controller'        => SettingsInterface::class,
         'shop.users.controller'           => UsersInterface::class,

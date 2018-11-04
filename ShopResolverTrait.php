@@ -125,7 +125,7 @@ trait ShopResolverTrait
     }
 
     /**
-     * @return SettingsInterface
+     * @return Shop
      */
     public function shop()
     {
@@ -137,7 +137,7 @@ trait ShopResolverTrait
      */
     public function resourcesDir($path = '')
     {
-        return ;
+        return $this->shop()->resourcesDir($path);
     }
 
     /**
@@ -145,7 +145,7 @@ trait ShopResolverTrait
      */
     public function resourcesUrl($path = '')
     {
-        return resolve('shop.settings.controller');
+        return $this->shop()->resourcesUrl($path);
     }
 
     /**

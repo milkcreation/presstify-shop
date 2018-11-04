@@ -15,16 +15,23 @@ interface ProductItemInterface extends PostQueryItem
     public function getAttributes();
 
     /**
+     * Récupération des produits de la composition.
+     *
+     * @return array|ProductListInterface
+     */
+    public function getCompositionProducts();
+
+    /**
      * Récupération des produits du groupe.
      *
-     * @return string[]
+     * @return array|ProductListInterface
      */
     public function getGroupedProducts();
 
     /**
      * Récupération de la liste des types de produit.
      *
-     * @return ObjectTypes\Categorized|ObjectTypes\Uncategorized
+     * @return ProductObjectType
      */
     public function getProductObjectType();
 
@@ -54,9 +61,16 @@ interface ProductItemInterface extends PostQueryItem
      *
      * @param string $name Identifiant de qualification de l'option d'achat.
      *
-     * @return ProductPurchasingOptionInterface
+     * @return ProductPurchasingOption
      */
     public function getPurchasingOption($name);
+
+    /**
+     * Récupération de la liste des options d'achat.
+     *
+     * @return array|ProductPurchasingOption[]
+     */
+    public function getPurchasingOptions();
 
     /**
      * Récupération du prix de vente.
@@ -106,6 +120,15 @@ interface ProductItemInterface extends PostQueryItem
      * @return bool
      */
     public function isInStock();
+
+    /**
+     * Vérifie si le type de produit correspond au type fourni.
+     *
+     * @param string $type Type de produit à vérifier
+     *
+     * @return boolean
+     */
+    public function isProductType($type);
 
     /**
      * Vérifie si un produit est en droit d'être commandé.

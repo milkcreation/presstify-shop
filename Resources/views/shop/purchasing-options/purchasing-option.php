@@ -1,6 +1,6 @@
 <?php
 /**
- * Edition de produit - Options avancées.
+ * Fiche produit - Option d'achat.
  * ---------------------------------------------------------------------------------------------------------------------
  * @var tiFy\Contracts\View\ViewController $this
  * @var \WP_Post $post
@@ -8,3 +8,6 @@
  */
 ?>
 
+<h3><?php echo $this->get('label'); ?></h3>
+
+<?php echo field($this->get('field.type'), $this->get('field.args', []));

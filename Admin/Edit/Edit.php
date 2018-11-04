@@ -41,7 +41,7 @@ class Edit
 
         add_action(
             'current_screen',
-            function ($wp_screen)
+            function (\WP_Screen $wp_screen)
             {
                 if ($wp_screen->id !== (string)$this->objectName) :
                     return;
@@ -54,16 +54,16 @@ class Edit
                         field('toggle-switch')->enqueue_scripts();
 
                         wp_enqueue_script(
-                            'ShopAdminEdit',
-                            class_info($this)->getUrl() . '/Edit.js',
+                            'ShopAdminProductEdit',
+                            $this->resourcesUrl() . '/assets/js/admin-edit.js',
                             ['jquery'],
                             171219,
                             true
                         );
 
                         wp_enqueue_style(
-                            'ShopAdminEdit',
-                            class_info($this)->getUrl() . '/Edit.css',
+                            'ShopAdminProductEdit',
+                            $this->resourcesUrl() . '/assets/css/admin-edit.css',
                             [],
                             171219
                         );

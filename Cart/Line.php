@@ -110,16 +110,19 @@ class Line extends Fluent implements CartLineInterface
      */
     public function getPurchasingOptions()
     {
-        $purchasing_opts = [];
-        foreach($this->get('purchasing_options',[]) as $product_id => $po) :
-            foreach($po as $name => $selected) :
-                $opt = app('shop.products.purchasing_option', [$name, $product_id, $this->shop]);
-                $opt->setSelected($selected);
-                $purchasing_opts[] = $opt;
-            endforeach;
+        $purchasing_options = [];
+        foreach($this->get('purchasing_options',[]) as $product_id => $opts) :
+            if ($product = $this->products()->getItem($product_id)) :
+                foreach($opts as $name => $selected) :
+                    if ($po = $product->getPurchasingOption($name)) :
+                        $po->setSelected($selected);
+                        $purchasing_options[] = $po;
+                    endif;
+                endforeach;
+            endif;
         endforeach;
 
-        return $purchasing_opts;
+        return $purchasing_options;
     }
 
     /**

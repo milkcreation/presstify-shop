@@ -39,7 +39,7 @@ class Products extends PostQuery implements ProductsInterface
      * @var string[]
      */
     private static $productTypes = [
-        'simple', 'grouped', 'external', 'variable'
+        'simple', 'grouped', 'composed', 'composing', 'external', 'variable'
     ];
 
     /**
@@ -205,6 +205,12 @@ class Products extends PostQuery implements ProductsInterface
             case 'grouped' :
                 return __('Produit groupés', 'tify');
                 break;
+            case 'composed' :
+                return __('Produit composé', 'tify');
+                break;
+            case 'composing' :
+                return __('Composition de produit', 'tify');
+                break;
             case 'external' :
                 return __('Produit externe/affiliation', 'tify');
                 break;
@@ -227,10 +233,16 @@ class Products extends PostQuery implements ProductsInterface
                 return "<span class=\"dashicons dashicons-products\"></span>";
                 break;
             case 'grouped' :
+                return "<span class=\"dashicons dashicons-networking\"></span>";
+                break;
+            case 'composed' :
                 return "<span class=\"dashicons dashicons-forms\"></span>";
                 break;
-            case 'external' :
+            case 'composing' :
                 return "<span class=\"dashicons dashicons-share-alt\"></span>";
+                break;
+            case 'external' :
+                return "<span class=\"dashicons dashicons-migrate\"></span>";
                 break;
             case 'variable' :
                 return "<span class=\"dashicons dashicons-chart-area\"></span>";

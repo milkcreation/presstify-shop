@@ -2,13 +2,13 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Kernel\Templates\TemplateController;
+use tiFy\View\ViewController;
 
 /**
  * Class ShopViewController
  * ---------------------------------------------------------------------------------------------------------------------
  */
-class ShopViewController extends TemplateController
+class ShopViewController extends ViewController
 {
     /**
      * Liste des méthodes héritées.

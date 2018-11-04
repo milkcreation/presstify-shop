@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\ProductPurchasingOptionInterface;
+use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption;
 
 interface CartLineInterface
 {
@@ -60,7 +60,7 @@ interface CartLineInterface
     /**
      * Récupération des options d'achat.
      *
-     * @return ProductPurchasingOptionInterface[]
+     * @return ProductPurchasingOption[]
      */
     public function getPurchasingOptions();
 

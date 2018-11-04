@@ -1,13 +1,8 @@
 <?php
 
-
 /**
  * @name ProductPurchasingOption
- * @desc Controleur de gestion d'une option d'achat
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Products
- * @version 1.1
- * @since 1.2.535
+ * @desc Controleur de gestion d'une option d'achat.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -16,37 +11,27 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use Illuminate\Support\Arr;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
+use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption as ProductPurchasingOptionContract;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasingOptionInterface
+class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOptionContract
 {
-    use ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Identifiant de qualification.
+     * Nom de qualification.
      * @var string
      */
     protected $name = '';
 
     /**
-     * Classe de rappel du produit associé.
+     * Instance du controleur du produit associé.
      * @var ProductItemInterface
      */
     protected $product;
-
-    /**
-     * Liste des attributs de configuration
-     * @var array|mixed
-     */
-    protected $attributes = [];
 
     /**
      * Clé d'indice de l'option d'achat selectionnée.
@@ -57,80 +42,35 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
     /**
      * CONSTRUCTEUR.
      *
-     * @param string $name Identifiant de qualification de l'option d'achat.
-     * @param int|ProductItemInterface $product Identifiant de qualification du produit|Objet produit.
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param string $name Nom de qualification.
+     * @param array $attrs Liste des attributs de configuration.
+     * @param int|ProductItemInterface $product Identifiant de qualification ou instance du produit associé.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct($name, $product = null, Shop $shop)
+    public function __construct($name, $attrs = [], $product, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
+        $this->name = $name;
         $this->shop = $shop;
 
-        // Définition de l'identification
-        $this->name = $name;
+        $this->product = $product instanceof ProductItemInterface
+            ? $product
+            : $this->products()->getItem($product);
 
-        // Définition du produit associé
-        if ($product instanceof ProductItemInterface) :
-            $this->product = $product;
-        else :
-            $this->product = $this->products()->get($product);
-        endif;
-
-        // Définition des attributs de configuration
-        $this->attributes = $this->product instanceof ProductItemInterface
-            ? Arr::get($this->product->getMeta('_purchasing_options', true, []), $this->name, [])
-            : [];
+        parent::__construct($attrs);
     }
 
     /**
-     * Vérification d'existance.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function exists()
+    public function __toString()
     {
-        return !empty($this->attributes);
+        return (string)$this->render();
     }
 
     /**
-     * Récupération d'attribut.
-     *
-     * @param string $key Clé d'index de l'attribut de configuration. Syntaxe à point permise.
-     * @param mixed $default Valeur de retour par defaut.
-     *
-     * @return mixed
-     */
-    public function get($key, $default = null)
-    {
-        return Arr::get($this->attributes, $key, $default);
-    }
-
-    /**
-     * Identifiant de qualification.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return (string)$this->name;
-    }
-
-    /**
-     * Classe de rappel du produit associé.
-     *
-     * @return null|ProductItemInterface
-     */
-    public function getProduct()
-    {
-        return $this->product;
-    }
-
-    /**
-     * Intitulé de qualification.
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function getLabel()
     {
@@ -138,31 +78,23 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
     }
 
     /**
-     * Intitulé de qualification.
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getValueList()
+    public function getName()
     {
-        return (array)$this->get('value', []);
+        return (string)$this->name;
     }
 
     /**
-     * Définition de la valeur de selection.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    public function setSelected($selected)
+    public function getProduct()
     {
-        $this->selected = $selected;
+        return $this->product;
     }
 
     /**
-     * Récupération de la valeur de selection.
-     *
-     * @param mixed $default Valeur de retour par défaut
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function getValue($default = null)
     {
@@ -171,5 +103,48 @@ class ProductPurchasingOption implements ProvideTraitsInterface, ProductPurchasi
         endif;
 
         return Arr::get($this->getValueList(), $this->selected, $default);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getValueList()
+    {
+        return Arr::wrap($this->get('value', []));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isActive()
+    {
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function parse($attrs = [])
+    {
+        parent::parse($attrs);
+
+        $this->set('field.args.name', "purchasing_options[{$this->product->getId()}][{$this->getName()}]");
+        $this->set('field.args.value', $this->getValue());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function render()
+    {
+        return $this->viewer('shop/purchasing-options/purchasing-option', $this->all());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSelected($selected)
+    {
+        $this->selected = $selected;
     }
 }

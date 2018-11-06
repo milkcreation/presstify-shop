@@ -275,7 +275,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function countProducts()
+    public function countQuantity()
     {
         return $this->lines()->sum('quantity');
     }

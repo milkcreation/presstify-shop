@@ -53,11 +53,11 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
     public function count();
 
     /**
-     * Compte le nombre de produits contenus dans le panier
+     * Compte la quantité de produits contenus dans le panier.
      *
      * @return int
      */
-    public function countProducts();
+    public function countQuantity();
 
     /**
      * Détruit complétement le panier.

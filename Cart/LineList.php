@@ -2,11 +2,7 @@
 
 /**
  * @name LineList
- * @desc Controleur de récupération des données de la liste des lignes du panier d'achat
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Cart
- * @version 1.1
- * @since 1.2.535
+ * @desc Controleur de récupération des données de la liste des lignes du panier d'achat.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -15,16 +11,15 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Collection;
-use tiFy\Apps\AppTrait;
+use tiFy\Plugins\Shop\Contracts\CartLineInterface;
+use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
 
-class LineList extends Collection
+class LineList extends Collection implements CartLineListInterface
 {
-    use AppTrait;
-
     /**
      * Liste des élements.
      *
-     * @var LineInterface[]
+     * @var CartLineInterface[]
      */
     protected $items = [];
 
@@ -32,7 +27,8 @@ class LineList extends Collection
      * Get an item at a given offset.
      *
      * @param  mixed  $key
-     * @return LineInterface
+     *
+     * @return CartLineInterface
      */
     public function offsetGet($key)
     {

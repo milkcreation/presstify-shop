@@ -10,13 +10,13 @@
 
 namespace tiFy\Plugins\Shop\Settings;
 
-use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Settings extends Fluent implements SettingsInterface
+class Settings extends ParamsBag implements SettingsInterface
 {
     use ShopResolverTrait;
 

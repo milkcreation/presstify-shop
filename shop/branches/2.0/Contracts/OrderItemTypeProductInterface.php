@@ -2,14 +2,14 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
+use tiFy\Contracts\Kernel\ParamsBag;
 
 interface OrderItemTypeProductInterface extends OrderItemTypeInterface
 {
     /**
      * Récupération de la classe de rappel du produit associé.
      *
-     * @return null|ProductItemInterface
+     * @return null|ParamsBag
      */
     public function getProduct();
 

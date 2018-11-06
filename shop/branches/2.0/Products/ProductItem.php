@@ -263,7 +263,9 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      */
     public function isPurchasable()
     {
-        return ($this->getStatus() === 'publish');
+        return $this->isProductType('composing')
+            ? false
+            : $this->getStatus() === 'publish';
     }
 
     /**

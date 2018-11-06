@@ -2,8 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
-
 interface AddressInterface extends ShopResolverInterface
 {
     /**

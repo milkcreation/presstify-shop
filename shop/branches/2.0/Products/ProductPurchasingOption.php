@@ -128,6 +128,7 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
     {
         parent::parse($attrs);
 
+        $this->set('field.label', $this->getLabel());
         $this->set('field.args.name', "purchasing_options[{$this->product->getId()}][{$this->getName()}]");
         $this->set('field.args.value', $this->getValue());
     }
@@ -135,9 +136,28 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
     /**
      * {@inheritdoc}
      */
-    public function render()
+    public function renderCartLine()
     {
-        return $this->viewer('shop/purchasing-options/purchasing-option', $this->all());
+        return $this->viewer(
+            'shop/cart/line/purchasing-option',
+            [
+                'option' => $this
+            ]
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function renderProduct()
+    {
+        return $this->viewer(
+            'shop/product/purchasing-option',
+            [
+                'option' => $this,
+                'field' => $this->get('field')
+            ]
+        );
     }
 
     /**

@@ -2,7 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface CartTotalInterface
+use tiFy\Contracts\Kernel\ParamsBag;
+
+interface CartTotalInterface extends ParamsBag
 {
     /**
      * Récupération de la taxe appliquée au montant de la remise.

@@ -2,10 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
+use tiFy\Contracts\Kernel\ParamsBag;
 
-interface OrderItemTypeInterface
+interface OrderItemTypeInterface extends ParamsBag
 {
     /**
      * Récupération de la liste des attributs.

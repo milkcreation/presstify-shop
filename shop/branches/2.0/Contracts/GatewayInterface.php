@@ -3,7 +3,6 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Kernel\ParamsBag;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
 
 interface GatewayInterface extends ParamsBag
 {

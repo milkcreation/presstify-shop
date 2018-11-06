@@ -18,17 +18,12 @@ use tiFy\Plugins\Shop\Contracts\ProductsInterface;
 class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
     /**
-     * Classe de rappel du produit associé.
-     * @var ProductItemInterface
-     */
-    protected $product;
-
-    /**
      * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
      * @var array
      */
     protected $metas_map = [
         'product_id'     => '_product_id',
+        'product'        => '_product',
         'variation_id'   => '_variation_id',
         'quantity'       => '_qty',
         'tax_class'      => '_tax_class',
@@ -63,28 +58,15 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     ];
 
     /**
-     * Récupération de la classe de rappel du produit associé.
-     *
-     * @return null|ProductItemInterface
+     * {@inheritdoc}
      */
     public function getProduct()
     {
-        if ($this->product instanceof ProductItemInterface) :
-            return $this->product;
-        elseif ($id = $this->getProductId()) :
-            /** @var ProductsInterface $products */
-            $products = app('shop.products.controller');
-
-            return $this->product = $products->getItem($id);
-        else :
-            return null;
-        endif;
+        return app('params.bag', [$this->get('product', [])]);
     }
 
     /**
-     * Récupération de l'identifiant de qualification du produit associé.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getProductId()
     {
@@ -92,9 +74,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de la quantité d'article du produit associé.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getQuantity()
     {
@@ -102,9 +82,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du montant du sous-total de la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getSubtotal()
     {
@@ -112,9 +90,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du montant du sous-total appliqué à la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getSubtotalTax()
     {
@@ -122,9 +98,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de la classe de taxe appliqué à la commande.
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function getTaxClass()
     {
@@ -132,9 +106,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de la liste des taxes appliquées à la commande.
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getTaxes()
     {
@@ -142,9 +114,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du montant total de la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getTotal()
     {
@@ -152,9 +122,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du montant total de la taxe appliqué à la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getTotalTax()
     {
@@ -162,9 +130,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du type d'élement associé à la commande.
-     *
-     * @return string line_item
+     * {@inheritdoc}
      */
     public function getType()
     {
@@ -172,9 +138,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de l'identifiant de qualification de la variation de produit associée.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getVariationId()
     {

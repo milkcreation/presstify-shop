@@ -2,7 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Illuminate\Support\Arr;
 use tiFy\Contracts\PostType\PostQueryItem;
 
 interface ProductItemInterface extends PostQueryItem

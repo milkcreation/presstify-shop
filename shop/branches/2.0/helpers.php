@@ -22,16 +22,18 @@ endif;
 
 if (!function_exists('shop_cart_count')) :
     /**
-     * Retourne le nombre de produit dans le panier
+     * Retourne le nombre de produit dans le panier.
+     *
+     * @param boolean $quantity Activation du calcul sur la base de la quantité de produits (défaut)|Compte le nombre de ligne de produits.
      *
      * @return int
      */
-    function shop_cart_count()
+    function shop_cart_count($quantity = true)
     {
         /** @var Shop $shop */
         $shop = resolve('shop');
 
-        return $shop->cart()->count();
+        return $quantity ? $shop->cart()->countQuantity() : $shop->cart()->count();
     }
 endif;
 

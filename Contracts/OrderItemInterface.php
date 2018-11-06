@@ -2,12 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Illuminate\Support\Fluent;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Contracts\Kernel\ParamsBag;
 
-interface OrderItemInterface
+interface OrderItemInterface extends ParamsBag
 {
     /**
      * Récupération de l'identifiant de qualification.

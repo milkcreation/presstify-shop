@@ -193,12 +193,32 @@ class Cart extends AbstractShopSingleton implements CartInterface
             return;
         endif;
 
-        // Définition de la ligne du panier
-        $key = md5(implode('_', [$product->getid()]));
+        // Options d'achat
+        $purchasing_options = $request->request->get('purchasing_options', []);
+
+        // Identification de la ligne du panier (doit contenir toutes les options d'unicité).
+        $key = md5(
+            implode(
+                '_',
+                [
+                    $product->getid(),
+                    maybe_serialize($purchasing_options)
+                ]
+            )
+        );
         if ($exists = $this->get($key)) :
             $quantity += $exists->getQuantity();
         endif;
-        $this->add($key, compact('key', 'quantity', 'product'));
+
+        $this->add(
+            $key,
+            compact(
+                'key',
+                'quantity',
+                'product',
+                'purchasing_options'
+            )
+        );
 
         // Mise à jour des données de session
         $this->sessionItems()->update();
@@ -292,9 +312,8 @@ class Cart extends AbstractShopSingleton implements CartInterface
     public function getProductsWeight()
     {
         return $this->lines()->sum(
-            function ($item) {
-                /** @var CartLineInterface $item */
-                return $result = (float)$item->getProduct()->getWeight() * $item->getQuantity();
+            function (CartLineInterface $item) {
+                return (float)$item->getProduct()->getWeight() * $item->getQuantity();
             }
         );
     }

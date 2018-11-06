@@ -15,13 +15,13 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use tiFy\PostType\Query\PostQueryItem;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeCouponInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeFeeInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeShippingInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeTaxInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCouponInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFeeInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProductInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShippingInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTaxInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 use WP_Post;
@@ -373,13 +373,14 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function needProcessing()
     {
-        if (! $line_items = $this->getItems('line_item')) :
+        if (!$line_items = $this->getItems('line_item')) :
             return false;
         endif;
 
-        $virtual_and_downloadable = $line_items->filter(function($line_item) {
-            /** @var OrderItemTypeProductInterface $line_item */
-            return $line_item->getProduct()->isDownloadable() &&  $line_item->getProduct()->isVirtual();
+        $virtual_and_downloadable = $line_items->filter(function(OrderItemTypeProductInterface $line_item) {
+            return ($product = $this->products()->getItem($line_item->getProductId()))
+                ? $product->isDownloadable() && $product->isVirtual()
+                : false;
         });
 
         return count($virtual_and_downloadable) === 0;

@@ -6,8 +6,6 @@ use Illuminate\Support\Arr;
 use tiFy\Contracts\Kernel\ParamsBag;
 use tiFy\PostType\PostType;
 use tiFy\PostType\Metadata\Post as MetadataPost;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
-use tiFy\Plugins\Shop\Products\ProductItem;
 
 interface ProductObjectType extends ParamsBag, ShopResolverInterface
 {

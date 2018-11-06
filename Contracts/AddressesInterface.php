@@ -2,11 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\AddressBillingInterface;
-use tiFy\Plugins\Shop\Contracts\AddressShippingInterface;
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
-
 interface AddressesInterface extends BootableControllerInterface, ShopResolverInterface
 {
     /**

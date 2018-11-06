@@ -4,8 +4,6 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Db\DbItemInterface;
 use tiFy\Contracts\PostType\PostQuery;
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
 
 interface OrdersInterface extends BootableControllerInterface, PostQuery, ShopResolverInterface
 {

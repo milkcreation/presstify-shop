@@ -4,12 +4,6 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\User\UserQuery;
 use tiFy\Contracts\User\UserSignInItemInterface;
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
-use tiFy\Plugins\Shop\Contracts\UserCustomerInterface;
-use tiFy\Plugins\Shop\Contracts\UserLoggedOutInterface;
-use tiFy\Plugins\Shop\Contracts\UserShopManagerInterface;
-use tiFy\Plugins\Shop\Contracts\UserItemInterface;
 
 interface UsersInterface extends BootableControllerInterface, ShopResolverInterface, UserQuery
 {

@@ -3,8 +3,6 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use LogicException;
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\SShopResolverInterface;
 
 interface NoticesInterface extends BootableControllerInterface, ShopResolverInterface
 {

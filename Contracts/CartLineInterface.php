@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption;
+use tiFy\Contracts\Kernel\ParamsBag;
 
-interface CartLineInterface
+interface CartLineInterface extends ParamsBag
 {
     /**
      * Nom du champ de modification d'un attribut dans le panier.
@@ -58,9 +58,9 @@ interface CartLineInterface
     public function getProductId();
 
     /**
-     * Récupération des options d'achat.
+     * Récupération des options d'achat par produit.
      *
-     * @return ProductPurchasingOption[]
+     * @return array
      */
     public function getPurchasingOptions();
 

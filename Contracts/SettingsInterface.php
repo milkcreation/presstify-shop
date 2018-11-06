@@ -2,10 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
+use tiFy\Contracts\Kernel\ParamsBag;
 
-interface SettingsInterface extends BootableControllerInterface, ShopResolverInterface
+interface SettingsInterface extends BootableControllerInterface, ParamsBag, ShopResolverInterface
 {
     /**
      * Liste des pays de vente.

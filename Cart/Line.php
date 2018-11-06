@@ -10,7 +10,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use Illuminate\Support\Fluent;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
 use tiFy\Plugins\Shop\Products\ProductItem;
@@ -18,7 +18,7 @@ use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Line extends Fluent implements CartLineInterface
+class Line extends ParamsBag implements CartLineInterface
 {
     use ShopResolverTrait;
 
@@ -31,18 +31,18 @@ class Line extends Fluent implements CartLineInterface
     /**
      * CONSTRUCTEUR.
      *
-     * @param array Liste des attributs de l'article dans le panier.
+     * @param array $attrs Liste des attributs de l'article dans le panier.
      * @param CartInterface $cart Instance du controleur de panier.
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct($attributes, CartInterface $cart, Shop $shop)
+    public function __construct($attrs, CartInterface $cart, Shop $shop)
     {
         $this->cart = $cart;
         $this->shop = $shop;
 
-        parent::__construct($attributes);
+        parent::__construct($attrs);
 
         if ($this->getProduct()) :
             $this['product_id'] = $this->getProductId();
@@ -111,12 +111,13 @@ class Line extends Fluent implements CartLineInterface
     public function getPurchasingOptions()
     {
         $purchasing_options = [];
-        foreach($this->get('purchasing_options',[]) as $product_id => $opts) :
+
+        foreach($this->get('purchasing_options', []) as $product_id => $opts) :
             if ($product = $this->products()->getItem($product_id)) :
                 foreach($opts as $name => $selected) :
                     if ($po = $product->getPurchasingOption($name)) :
                         $po->setSelected($selected);
-                        $purchasing_options[] = $po;
+                        $purchasing_options[$product_id][] = $po;
                     endif;
                 endforeach;
             endif;

@@ -4,7 +4,6 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Form\FactoryRequest;
 use tiFy\Contracts\Form\FormFactory;
-use tiFy\Form\Controller\Handle;
 
 interface AddressFormHandlerInterface
 {

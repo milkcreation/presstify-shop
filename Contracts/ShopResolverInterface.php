@@ -2,22 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\App\AppInterface;
-use tiFy\Plugins\Shop\Contracts\AddressesInterface;
-use tiFy\Plugins\Shop\Contracts\AdminInterface;
-use tiFy\Plugins\Shop\Contracts\CartInterface;
-use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
-use tiFy\Plugins\Shop\Contracts\CustomTypesInterface;
-use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
-use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
-use tiFy\Plugins\Shop\Contracts\NoticesInterface;
-use tiFy\Plugins\Shop\Contracts\OrdersInterface;
-use tiFy\Plugins\Shop\Contracts\ProductsInterface;
-use tiFy\Plugins\Shop\Contracts\SessionInterface;
-use tiFy\Plugins\Shop\Contracts\SettingsInterface;
-use tiFy\Plugins\Shop\Contracts\UsersInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\User\Session\SessionManager as tiFyUserSession;
+use tiFy\User\Session\SessionManager;
 
 interface ShopResolverInterface
 {
@@ -98,7 +83,7 @@ interface ShopResolverInterface
     /**
      * Récupération de la dépendance des réglages de la boutique.
      *
-     * @return tiFyUserSession
+     * @return SessionManager
      */
     public function settings();
 

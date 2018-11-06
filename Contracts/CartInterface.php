@@ -4,11 +4,6 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\CartLineInterface;
-use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
-use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
 
 interface CartInterface extends BootableControllerInterface, ShopResolverInterface
 {
@@ -37,7 +32,7 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
      * Url d'action d'ajout d'un produit au panier d'achat
      * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
      *
-     * @param null|int|\WP_Post|\tiFy\Plugins\Shop\Products\ProductItem $product Identification du produit. Produit de la page courante|Identifiant WP|Objet Post WP|Objet produit
+     * @param null|int|\WP_Post|ProductItemInterface $product Identification du produit. Produit de la page courante|Identifiant WP|Objet Post WP|Objet produit
      *
      * @return string
      */
@@ -46,7 +41,7 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
     /**
      * Calcul des totaux basés sur le contenu du panier
      *
-     * @return Total
+     * @return CartTotalInterface
      */
     public function calculate();
 
@@ -115,7 +110,7 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
     /**
      * Récupération des totaux
      *
-     * @return Total
+     * @return CartTotalInterface
      */
     public function getTotals();
 

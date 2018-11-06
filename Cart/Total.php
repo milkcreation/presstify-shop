@@ -10,12 +10,12 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use Illuminate\Support\Fluent;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\CartTotalInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Total extends Fluent implements CartTotalInterface
+class Total extends ParamsBag implements CartTotalInterface
 {
     use ShopResolverTrait;
 
@@ -83,7 +83,7 @@ class Total extends Fluent implements CartTotalInterface
             $this['lines_total'] = $lines->sum('line_total');
             $this['lines_total_tax'] = $lines->sum('line_tax');
 
-            $this['total'] = $this['lines_total'] + $this['fees_total'] + $this['shipping_total'];
+            $this['total'] = $this['lines_total'] + $this['fee_total'] + $this['shipping_total'];
         endif;
     }
 

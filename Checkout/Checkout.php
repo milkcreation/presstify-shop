@@ -93,6 +93,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                     ->set('taxes', [])
                     ->set('tax_class', '')
                     ->set('product_id', $product->getId())
+                    ->set('product', $product->all())
                     ->set('variation_id', 0);
 
                 $order->addItem($item);

@@ -4,10 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use tiFy\Plugins\Shop\Contracts\BootableControllerInterface;
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
 
 interface CheckoutInterface extends BootableControllerInterface, ShopResolverInterface
 {

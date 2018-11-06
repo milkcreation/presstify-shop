@@ -79,13 +79,13 @@ class OrderItems implements OrderItemsInterface
     {
         $query_args['order_id'] = $this->order->getId();
 
-        if (!$items = $this->orders()->getDb()->select()->rows($query_args)) :
+        if (!$items = $this->orders()->getDb()->select()->rows($query_args, ARRAY_A)) :
             return [];
         endif;
 
         return array_map(
-            function($attributes){
-                return app('shop.orders.order_item', [$attributes, $this->shop]);
+            function(array $attrs){
+                return app('shop.orders.order_item', [$attrs, $this->shop]);
             },
             $items
         );

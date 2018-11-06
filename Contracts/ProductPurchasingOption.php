@@ -3,27 +3,9 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Kernel\ParamsBag;
-use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 
 interface ProductPurchasingOption extends ParamsBag
 {
-    /**
-     * Résolution de sortie de la classe en tant que chaîne de caractère.
-     *
-     * @return string
-     */
-    public function __toString();
-
-    /**
-     * Récupération d'attribut.
-     *
-     * @param string $key Clé d'index de l'attribut de configuration. Syntaxe à point permise.
-     * @param mixed $default Valeur de retour par defaut.
-     *
-     * @return mixed
-     */
-    public function get($key, $default = null);
-
     /**
      * Intitulé de qualification.
      *
@@ -50,7 +32,7 @@ interface ProductPurchasingOption extends ParamsBag
      *
      * @param mixed $default Valeur de retour par défaut
      *
-     * @return void
+     * @return mixed
      */
     public function getValue($default = null);
 
@@ -69,11 +51,18 @@ interface ProductPurchasingOption extends ParamsBag
     public function isActive();
 
     /**
-     * Affichage
+     * Affichage d'une ligne de panier.
      *
      * @return string
      */
-    public function render();
+    public function renderCartLine();
+
+    /**
+     * Affichage du champ de saisie.
+     *
+     * @return string
+     */
+    public function renderProduct();
 
     /**
      * Définition de la valeur de selection.

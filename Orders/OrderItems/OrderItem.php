@@ -10,19 +10,19 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use Illuminate\Support\Fluent;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class OrderItem extends Fluent implements OrderItemInterface
+class OrderItem extends ParamsBag implements OrderItemInterface
 {
     use ShopResolverTrait;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param array $attributes {
+     * @param array $attrs {
      *      Liste des attributs de l'élément.
      *
      *      @var int $order_item_id
@@ -34,12 +34,11 @@ class OrderItem extends Fluent implements OrderItemInterface
      *
      * @return void
      */
-    public function __construct($attributes = [], Shop $shop)
+    public function __construct($attrs = [], Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique.
         $this->shop = $shop;
 
-        parent::__construct($attributes);
+        parent::__construct($attrs);
     }
 
     /**

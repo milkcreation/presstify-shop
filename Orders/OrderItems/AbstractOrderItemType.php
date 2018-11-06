@@ -10,14 +10,14 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use Illuminate\Support\Fluent;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInterface
+abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeInterface
 {
     use ShopResolverTrait;
 

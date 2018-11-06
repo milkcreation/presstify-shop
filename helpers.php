@@ -13,7 +13,10 @@ if (!function_exists('shop_cart_add_url')) :
      */
     function shop_cart_add_url($product)
     {
-        return resolve('shop')->cart()->addUrl($product);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->cart()->addUrl($product);
     }
 endif;
 
@@ -25,7 +28,10 @@ if (!function_exists('shop_cart_count')) :
      */
     function shop_cart_count()
     {
-        return resolve('shop')->cart()->count();
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->cart()->count();
     }
 endif;
 
@@ -38,7 +44,10 @@ if (!function_exists('shop_cart_update_url')) :
      */
     function shop_cart_update_url()
     {
-        return resolve('shop')->cart()->updateUrl();
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->cart()->updateUrl();
     }
 endif;
 
@@ -52,7 +61,10 @@ if (!function_exists('shop_cart_remove_url')) :
      */
     function shop_cart_remove_url($key)
     {
-        return resolve('shop')->cart()->removeUrl($key);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->cart()->removeUrl($key);
     }
 endif;
 
@@ -65,7 +77,10 @@ if (!function_exists('shop_checkout_process_url')) :
      */
     function shop_checkout_process_url()
     {
-        return resolve('shop')->checkout()->processUrl();
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->checkout()->processUrl();
     }
 endif;
 
@@ -77,7 +92,10 @@ if (!function_exists('shop_form_billing')) :
      */
     function shop_form_billing()
     {
-        return resolve('shop')->addresses()->billing()->form();
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->addresses()->billing()->form();
     }
 endif;
 
@@ -89,7 +107,10 @@ if (!function_exists('shop_notices')) :
      */
     function shop_notices()
     {
-        return (string)resolve('shop')->notices();
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return (string)$shop->notices();
     }
 endif;
 
@@ -103,7 +124,10 @@ if (!function_exists('shop_page_is')) :
      */
     function shop_page_is($name)
     {
-        return resolve('shop')->functions()->page()->is($name);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->functions()->page()->is($name);
     }
 endif;
 
@@ -118,7 +142,10 @@ if (!function_exists('shop_price_html')) :
      */
     function shop_price_html($price, $format = '')
     {
-        return resolve('shop')->functions()->price()->html($price, $format);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->functions()->price()->html($price, $format);
     }
 endif;
 
@@ -128,11 +155,14 @@ if (!function_exists('shop_product')) :
      *
      * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
      *
-     * @return null|object|\tiFy\Plugins\Shop\Products\ProductItem
+     * @return tiFy\Plugins\Shop\Contracts\ProductItemInterface
      */
     function shop_product($product)
     {
-        return resolve('shop')->products()->getItem($product);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->products()->getItem($product);
     }
 endif;
 
@@ -147,7 +177,10 @@ if (!function_exists('shop_setting')) :
      */
     function shop_setting($key, $default = '')
     {
-        return resolve('shop')->settings()->get($key, $default);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->settings()->get($key, $default);
     }
 endif;
 
@@ -158,7 +191,7 @@ if (!function_exists('shop_signin')) :
      * @param string $key Identifiant de qualification de l'option
      * @param string $default Valeur de retour par défaut
      *
-     * @return \tiFy\Contracts\User\UserSignInItemInterface
+     * @return tiFy\Contracts\User\UserSignInItemInterface
      */
     function shop_signin()
     {
@@ -179,6 +212,9 @@ if (!function_exists('shop_url')) :
      */
     function shop_url($name)
     {
-        return resolve('shop')->functions()->url()->page($name);
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->functions()->url()->page($name);
     }
 endif;

@@ -2,10 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemListInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
-
 interface OrderItemsInterface
 {
     /**

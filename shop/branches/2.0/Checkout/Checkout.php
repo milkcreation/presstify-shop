@@ -18,7 +18,6 @@ use Illuminate\Support\Arr;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\Route\Route;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
@@ -31,29 +30,18 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     public function boot()
     {
         add_action(
-            'tify_route_register',
-            function($routeController) {
-                /** @var Route $routeController */
-
+            'after_setup_tify',
+            function() {
                 // Ajout d'un produit au panier
-                $routeController->register(
+                router(
                     'tify.plugins.shop.checkout.process',
                     [
                         'method' => 'post',
                         'path'   => '/commander',
-                        'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                            add_action(
-                                'wp_loaded',
-                                function () use ($psrRequest, $psrResponse) {
-                                    call_user_func_array([$this, 'process'], [$psrRequest, $psrResponse]);
-                                },
-                                20
-                            );
-                        }
+                        'cb'     => [$this, 'process']
                     ]
                 );
-            },
-            0
+            }
         );
     }
 
@@ -383,9 +371,6 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
      */
     public function processUrl()
     {
-        /** @var Route $route */
-        $route = app(Route::class);
-
-        return $route->url('tify.plugins.shop.checkout.process');
+        return route('tify.plugins.shop.checkout.process');
     }
 }

@@ -15,7 +15,6 @@ use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\Route\Route;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
@@ -59,75 +58,38 @@ class Cart extends AbstractShopSingleton implements CartInterface
             function () {
                 $this->sessionItems();
                 $this->initNotices();
-            }
-        );
-
-        add_action(
-            'tify_route_register',
-            function($routeController) {
-                /** @var Route $routeController */
 
                 // Ajout d'un article au panier
-                $routeController->register(
-                    'tify.plugins.shop.cart.add',
+                router(
+                    'shop.cart.add',
                     [
                         'method' => 'post',
                         'path'   => '/ajouter-au-panier/{product_name}',
-                        'cb'     => function (
-                            $product_name,
-                            ServerRequestInterface $psrRequest,
-                            ResponseInterface $psrResponse
-                        ) {
-                            add_action(
-                                'wp_loaded',
-                                function () use ($product_name, $psrRequest, $psrResponse) {
-                                    call_user_func_array([$this, 'addHandler'], [$product_name, $psrRequest, $psrResponse]);
-                                },
-                                20
-                            );
-                        }
+                        'cb'     => [$this, 'addHandler']
                     ]
                 );
 
                 // Mise à jour des articles du panier
-                $routeController->register(
-                    'tify.plugins.shop.cart.update',
+                router(
+                    'shop.cart.update',
                     [
                         'method' => 'post',
                         'path'   => '/mise-a-jour-du-panier',
-                        'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                            add_action(
-                                'wp_loaded',
-                                function () use ($psrRequest, $psrResponse) {
-                                    call_user_func_array([$this, 'updateHandler'], [$psrRequest, $psrResponse]);
-                                },
-                                20
-                            );
-                        }
+                        'cb'     => [$this, 'updateHandler']
                     ]
                 );
 
                 // Suppression d'un article du panier
-                $routeController->register(
-                    'tify.plugins.shop.cart.remove',
+                router(
+                    'shop.cart.remove',
                     [
                         'method' => ['get', 'post'],
                         'path'   => '/supprimer-du-panier/{line_key}',
-                        'cb'     => function ($line_key, ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                            add_action(
-                                'wp_loaded',
-                                function () use ($line_key, $psrRequest, $psrResponse) {
-                                    call_user_func_array([$this, 'removeHandler'], [$line_key, $psrRequest, $psrResponse]);
-                                },
-                                20
-                            );
-                        }
+                        'cb'     => [$this, 'removeHandler']
                     ]
                 );
-            },
-            0
+            }
         );
-
         add_action(
             'init',
             function() {
@@ -247,10 +209,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
         if (!$product instanceof ProductItemInterface) :
             $product = $this->products()->getItem($product);
         elseif ($product instanceof ProductItemInterface) :
-            /** @var Route $route */
-            $route = app(Route::class);
-
-            return $route->url('tify.plugins.shop.cart.add', [$product->getSlug()]);
+            return route('shop.cart.add', [$product->getSlug()]);
         else :
             return '';
         endif;
@@ -440,10 +399,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function removeUrl($key)
     {
-        /** @var Route $route */
-        $route = app(Route::class);
-
-        return $route->url('tify.plugins.shop.cart.remove', [$key]);
+        return route('shop.cart.remove', [$key]);
     }
 
     /**
@@ -475,10 +431,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function updateUrl()
     {
-        /** @var Route $route */
-        $route = app(Route::class);
-
-        return $route->url('tify.plugins.shop.cart.update');
+        return route('shop.cart.update');
     }
 
     /**

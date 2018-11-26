@@ -15,7 +15,6 @@
 namespace tiFy\Plugins\Shop\Checkout;
 
 use Illuminate\Support\Arr;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
@@ -108,7 +107,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     /**
      * {@inheritdoc}
      */
-    public function process(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
+    public function process(ServerRequestInterface $psrRequest)
     {
         /**
          * Conversion de la requête PSR-7

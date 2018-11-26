@@ -2,7 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 interface CartInterface extends BootableControllerInterface, ShopResolverInterface
@@ -22,11 +21,10 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
      *
      * @param string $product_name Identifiant de qualification d'url (Slug) du produit
      * @param ServerRequestInterface $psrRequest Requête HTTP Psr-7
-     * @param ResponseInterface $psrResponse Requête HTTP Psr-7
      *
      * @return void
      */
-    public function addHandler($product_name, ServerRequestInterface $psrRequest, ResponseInterface $psrResponse);
+    public function addHandler($product_name, ServerRequestInterface $psrRequest);
 
     /**
      * Url d'action d'ajout d'un produit au panier d'achat
@@ -163,11 +161,10 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
      *
      * @param string $key Identifiant de qualification de la ligne du panier à supprimer
      * @param ServerRequestInterface $psrRequest Requête HTTP Psr-7
-     * @param ResponseInterface $psrResponse Requête HTTP Psr-7
      *
      * @return bool
      */
-    public function removeHandler($key, ServerRequestInterface $psrRequest, ResponseInterface $psrResponse);
+    public function removeHandler($key, ServerRequestInterface $psrRequest);
 
     /**
      * Url d'action de suppression d'un produit du panier d'achat
@@ -209,9 +206,8 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
      * Traitement de la mise à jour des produits du panier
      *
      * @param ServerRequestInterface $psrRequest Requête HTTP Psr-7
-     * @param ResponseInterface $psrResponse Requête HTTP Psr-7
      *
      * @return void
      */
-    public function updateHandler(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse);
+    public function updateHandler(ServerRequestInterface $psrRequest);
 }

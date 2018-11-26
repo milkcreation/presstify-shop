@@ -12,7 +12,6 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
 use LogicException;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
@@ -63,7 +62,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
                 router(
                     'shop.cart.add',
                     [
-                        'method' => 'post',
+                        'method' => 'POST',
                         'path'   => '/ajouter-au-panier/{product_name}',
                         'cb'     => [$this, 'addHandler']
                     ]
@@ -73,7 +72,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
                 router(
                     'shop.cart.update',
                     [
-                        'method' => 'post',
+                        'method' => 'POST',
                         'path'   => '/mise-a-jour-du-panier',
                         'cb'     => [$this, 'updateHandler']
                     ]
@@ -83,7 +82,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
                 router(
                     'shop.cart.remove',
                     [
-                        'method' => ['get', 'post'],
+                        'method' => 'GET',
                         'path'   => '/supprimer-du-panier/{line_key}',
                         'cb'     => [$this, 'removeHandler']
                     ]
@@ -128,7 +127,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function addHandler($product_name, ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
+    public function addHandler($product_name, ServerRequestInterface $psrRequest)
     {
         /**
          * Vérification d'existance du produit et récupération
@@ -364,7 +363,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function removeHandler($key, ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
+    public function removeHandler($key, ServerRequestInterface $psrRequest)
     {
         /**
          * Conversion de la requête PSR-7
@@ -437,7 +436,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function updateHandler(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
+    public function updateHandler(ServerRequestInterface $psrRequest)
     {
         /**
          * Conversion de la requête PSR-7

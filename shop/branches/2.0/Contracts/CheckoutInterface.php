@@ -2,7 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use tiFy\Plugins\Shop\Shop;
 
@@ -57,11 +56,10 @@ interface CheckoutInterface extends BootableControllerInterface, ShopResolverInt
      * Traitement de la commande.
      *
      * @param ServerRequestInterface $psrRequest Requête HTTP Psr-7
-     * @param ResponseInterface $psrResponse Requête HTTP Psr-7
      *
      * @return void
      */
-    public function process(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse);
+    public function process(ServerRequestInterface $psrRequest);
 
     /**
      * Url d'action d'exécution de la commande.

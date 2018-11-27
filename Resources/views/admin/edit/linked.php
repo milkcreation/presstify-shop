@@ -68,7 +68,7 @@
                     'select-js',
                     [
                         'name'         => '_composition_products',
-                        'value'        => get_post_meta($post->ID, '_composition_products', true),
+                        'value'        => [],//get_post_meta($post->ID, '_composition_products', true),
                         'multiple'     => true,
                         'autocomplete' => true,
                         'source'       => [

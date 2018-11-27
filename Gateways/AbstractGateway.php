@@ -3,6 +3,7 @@
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Str;
+use tiFy\Contracts\Kernel\Logger;
 use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\GatewayInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -200,11 +201,19 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
         if (!in_array($Type, ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'])) :
             return;
         endif;
+        /** @var Logger $logger */
+        $logger = app()->bound("shop.gateways.logger.{$this->getId()}")
+            ? app("shop.gateways.logger.{$this->getId()}")
+            : app()->singleton(
+                "shop.gateways.logger.{$this->getId()}",
+                function () {
+                    return app('logger', ["shop.gateways.{$this->getId()}"]);
+                }
+            )->build();
 
-        $logger = app()->appLog();
         $levels = $logger::getLevels();
 
-        $logger->addRecord($levels[$Type], $message, $context);
+        $logger->log($levels[$Type], $message, $context);
     }
 
     /**

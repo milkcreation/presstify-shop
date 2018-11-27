@@ -53,7 +53,7 @@ abstract class AbstractObjectType extends ParamsBag implements ProductObjectType
             '_weight', '_length', '_width', '_height', '_upsell_ids', '_crosssell_ids',
             '_purchase_note', '_default_attributes', '_virtual', '_downloadable', '_product_image_gallery',
             '_download_limit', '_download_expiry', '_stock', '_stock_status', '_product_version', '_product_attributes',
-            '_grouped_products',
+            '_grouped_products', '_composition_products'
         ];
 
         /** @var MetadataPost $postMetaController */

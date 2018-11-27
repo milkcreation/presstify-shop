@@ -15,7 +15,6 @@
 namespace tiFy\Plugins\Shop\Checkout;
 
 use Illuminate\Support\Arr;
-use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
@@ -33,9 +32,9 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             function() {
                 // Ajout d'un produit au panier
                 router(
-                    'tify.plugins.shop.checkout.process',
+                    'shop.checkout.process',
                     [
-                        'method' => 'post',
+                        'method' => 'POST',
                         'path'   => '/commander',
                         'cb'     => [$this, 'process']
                     ]
@@ -107,14 +106,9 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     /**
      * {@inheritdoc}
      */
-    public function process(ServerRequestInterface $psrRequest)
+    public function process()
     {
-        /**
-         * Conversion de la requête PSR-7
-         * @see https://symfony.com/doc/current/components/psr7.html
-         * @var \Symfony\Component\HttpFoundation\Request $request
-         */
-        $request = (new HttpFoundationFactory())->createRequest($psrRequest);
+        $request = request();
 
         // Définition de l'url de redirection
         if ($redirect = $request->request->get('_wp_http_referer', '')) :
@@ -370,6 +364,6 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
      */
     public function processUrl()
     {
-        return route('tify.plugins.shop.checkout.process');
+        return route('shop.checkout.process');
     }
 }

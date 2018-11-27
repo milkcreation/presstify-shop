@@ -12,8 +12,6 @@ namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
 use LogicException;
-use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
@@ -127,7 +125,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function addHandler($product_name, ServerRequestInterface $psrRequest)
+    public function addHandler($product_name)
     {
         /**
          * Vérification d'existance du produit et récupération
@@ -137,12 +135,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
             return;
         endif;
 
-        /**
-         * Conversion de la requête PSR-7
-         * @see https://symfony.com/doc/current/components/psr7.html
-         * @var \Symfony\Component\HttpFoundation\Request $request
-         */
-        $request = (new HttpFoundationFactory())->createRequest($psrRequest);
+        $request = request();
 
         // Récupération de la quantité de produit
         if (!$quantity = $request->request->getInt('quantity', 1)) :
@@ -363,14 +356,14 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function removeHandler($key, ServerRequestInterface $psrRequest)
+    public function removeHandler($key)
     {
         /**
          * Conversion de la requête PSR-7
          * @see https://symfony.com/doc/current/components/psr7.html
          * @var \Symfony\Component\HttpFoundation\Request $request
          */
-        $request = (new HttpFoundationFactory())->createRequest($psrRequest);
+        $request = request();
 
         if ($this->remove($key)) :
             // Mise à jour des données de session
@@ -436,14 +429,9 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * {@inheritdoc}
      */
-    public function updateHandler(ServerRequestInterface $psrRequest)
+    public function updateHandler()
     {
-        /**
-         * Conversion de la requête PSR-7
-         * @see https://symfony.com/doc/current/components/psr7.html
-         * @var \Symfony\Component\HttpFoundation\Request $request
-         */
-        $request = (new HttpFoundationFactory())->createRequest($psrRequest);
+        $request = request();
 
         if ($lines = $request->request->get('cart')) :
             foreach ($lines as $key => $attributes) :

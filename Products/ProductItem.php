@@ -164,13 +164,15 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
             $this->purchasingOptions = [];
 
             foreach($this->getMetaSingle('_purchasing_options', []) as $name => $attrs) :
-                /** @var ProductPurchasingOption $option */
-                $option = app()->bound("shop.products.purchasing_option.{$name}")
-                    ? app("shop.products.purchasing_option.{$name}", [$name, $attrs, $this, $this->shop])
-                    : app('shop.products.purchasing_option', [$name, $attrs, $this, $this->shop]);
+                if (!empty($attrs)) :
+                    /** @var ProductPurchasingOption $option */
+                    $option = app()->bound("shop.products.purchasing_option.{$name}")
+                        ? app("shop.products.purchasing_option.{$name}", [$name, $attrs, $this, $this->shop])
+                        : app('shop.products.purchasing_option', [$name, $attrs, $this, $this->shop]);
 
-                if ($option->isActive()) :
-                    $this->purchasingOptions[$name] = $option;
+                    if ($option->isActive()) :
+                        $this->purchasingOptions[$name] = $option;
+                    endif;
                 endif;
             endforeach;
         endif;

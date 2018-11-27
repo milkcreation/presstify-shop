@@ -96,7 +96,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
         );
 
         add_action(
-            'wp_loaded',
+            'get_header',
             function () {
                 if ($this->functions()->page()->isCart() && ! $this->getList() && ($message = $this->getNotice('is_empty'))) :
                     $this->notices()->add(

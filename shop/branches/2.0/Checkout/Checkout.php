@@ -128,7 +128,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
 
         // Vérification du contenu du panier
         if ($this->cart()->isEmpty()) :
-            $this->notices()->add(__('Désolé, il semblerait votre session ait expirée.', 'tify'), 'error');
+            $this->notices()->add(__('Désolé, il semblerait que votre session ait expirée.', 'tify'), 'error');
 
             wp_redirect($redirect);
             exit;

@@ -44,6 +44,11 @@ class Cheque extends AbstractGateway
     public function processPayment($order)
     {
         // @todo Mise à jour du status vers en attente.
+        if ($order->getTotal() > 0) :
+            $order->updateStatus('order-on-hold');
+        else :
+            $order->paymentComplete();
+        endif;
 
         // @todo Mise à jour des stocks.
 

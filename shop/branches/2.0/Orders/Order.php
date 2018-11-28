@@ -381,7 +381,7 @@ class Order extends PostQueryItem implements OrderInterface
             return ($product = $this->products()->getItem($line_item->getProductId()))
                 ? $product->isDownloadable() && $product->isVirtual()
                 : false;
-        });
+        })->all();
 
         return count($virtual_and_downloadable) === 0;
     }

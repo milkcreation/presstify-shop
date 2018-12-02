@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name Notices
+ * @name \tiFy\Plugins\Shop\Notices\Notices
  * @desc Gestion des messages de notification
  * @package presstiFy
  * @namespace \tiFy\Plugins\Shop\Notices
@@ -14,6 +14,7 @@
 
 namespace tiFy\Plugins\Shop\Notices;
 
+use \LogicException;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\NoticesInterface;
 
@@ -55,7 +56,11 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
     {
         if (!did_action('wp_loaded')) :
             throw new LogicException(
-                __('L\'ajout de message de notification ne devrait pas être fait à ce moment de l\'exécution de votre code', 'tify'),
+                __(
+                    'L\'ajout de message de notification ne devrait pas être fait ' . '
+                    à ce moment de l\'exécution de votre code',
+                    'tify'
+                ),
                 500
             );
         endif;
@@ -84,7 +89,11 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
     {
         if (!did_action('template_redirect')) :
             throw new \LogicException(
-                __('L\'affichage des messages de notifications ne devrait pas être fait à ce moment de l\'execution de votre code', 'tify'),
+                __(
+                    'L\'affichage des messages de notifications ne devrait pas être fait ' . '
+                    à ce moment de l\'execution de votre code',
+                    'tify'
+                ),
                 500
             );
         endif;

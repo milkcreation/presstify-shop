@@ -13,8 +13,6 @@ namespace tiFy\Plugins\Shop\Cart;
 use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
-use tiFy\Plugins\Shop\Products\ProductItem;
-use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 

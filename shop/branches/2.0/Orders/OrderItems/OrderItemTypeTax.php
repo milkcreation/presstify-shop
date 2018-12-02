@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderItemTax
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTax
  * @desc Controleur de la taxe associée à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -10,7 +10,6 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeTaxInterface;
 
 class OrderItemTypeTax extends AbstractOrderItemType implements OrderItemTypeTaxInterface

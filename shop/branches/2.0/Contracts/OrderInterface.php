@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use Illuminate\Support\Collection;
 use tiFy\Contracts\PostType\PostQueryItem;
 
 interface OrderInterface extends PostQueryItem
@@ -100,6 +101,13 @@ interface OrderInterface extends PostQueryItem
     public function getCheckoutPaymentUrl();
 
     /**
+     * Récupération du client associé à la commande.
+     *
+     * @return UserItemInterface
+     */
+    public function getCustomer();
+
+    /**
      * Récupération de l'identifiant de qualification du client associé à la commande.
      *
      * @return int
@@ -109,7 +117,8 @@ interface OrderInterface extends PostQueryItem
     /**
      * Récupération de la liste des éléments associés à la commande.
      *
-     * @param string $type Type d'éléments à récupérer. null pour tous par défaut|coupon|fee|line_item (product)|shipping|tax.
+     * @param string $type Type d'éléments à récupérer.
+     * null pour tous par défaut|coupon|fee|line_item (product)|shipping|tax.
      *
      * @return Collection
      */
@@ -128,6 +137,20 @@ interface OrderInterface extends PostQueryItem
      * @return string
      */
     public function getPaymentMethod();
+
+    /**
+     * Récupération du l'intitulé de qualification de la méthode de paiement.
+     *
+     * @return string
+     */
+    public function getPaymentMethodLabel();
+
+    /**
+     * Récupération du nom de qualification court du statut.
+     *
+     * @return string
+     */
+    public function getShortStatus();
 
     /**
      * {@inheritdoc}
@@ -263,6 +286,8 @@ interface OrderInterface extends PostQueryItem
 
     /**
      * Mise à jour du statut et enregistrement immédiat.
+     *
+     * @param string $new_status Nom de qualification du nouveau statut.
      *
      * @return bool
      */

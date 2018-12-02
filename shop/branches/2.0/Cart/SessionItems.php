@@ -122,7 +122,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsInterface
     public function update()
     {
         // Récupération des totaux
-        $cart_totals = $this->cart->calculate()->toArray();
+        $cart_totals = $this->cart->calculate()->all();
 
         // Préparation de la session
         $cart = [];

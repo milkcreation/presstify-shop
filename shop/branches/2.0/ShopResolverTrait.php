@@ -2,23 +2,20 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Contracts\App\AppInterface;
-use tiFy\Contracts\Container\ContainerInterface;
+use tiFy\Contracts\View\ViewController;
 use tiFy\Contracts\View\ViewEngine;
+use tiFy\Plugins\Shop\Contracts\Actions;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
-use tiFy\Plugins\Shop\Contracts\AdminInterface;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
-use tiFy\Plugins\Shop\Contracts\CustomTypesInterface;
 use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
-use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
-use tiFy\Plugins\Shop\Contracts\NoticesInterface;
+use tiFy\Plugins\Shop\Contracts\GatewayInterface;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
 use tiFy\Plugins\Shop\Contracts\ProductsInterface;
-use tiFy\Plugins\Shop\Contracts\SessionResolvedInterface;
+use tiFy\Plugins\Shop\Contracts\NoticesInterface;
+use tiFy\Plugins\Shop\Contracts\SessionInterface;
 use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
-use tiFy\Plugins\Shop\Shop;
 
 trait ShopResolverTrait
 {
@@ -29,6 +26,21 @@ trait ShopResolverTrait
     protected $shop;
 
     /**
+     * {@inheritdoc}
+     *
+     * @return string
+     */
+    public function action($alias, $parameters = [], $absolute = false)
+    {
+        /** @var Actions $actions */
+        return ($actions = resolve('shop.actions'))
+            ? $actions->url($alias, $parameters, $absolute)
+            : '';
+    }
+
+    /**
+     * {@inheritdoc}
+     *
      * @return AddressesInterface
      */
     public function addresses()
@@ -37,6 +49,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return CartInterface
      */
     public function cart()
@@ -45,6 +59,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return CheckoutInterface
      */
     public function checkout()
@@ -53,7 +69,7 @@ trait ShopResolverTrait
     }
 
     /**
-     * @return mixed
+     * {@inheritdoc}
      */
     public function config($key = null, $default = '')
     {
@@ -61,6 +77,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return FunctionsInterface
      */
     public function functions()
@@ -69,7 +87,9 @@ trait ShopResolverTrait
     }
 
     /**
-     * @return GatewaysInterface
+     * {@inheritdoc}
+     *
+     * @return GatewayInterface
      */
     public function gateways()
     {
@@ -77,6 +97,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return OrdersInterface
      */
     public function orders()
@@ -85,14 +107,18 @@ trait ShopResolverTrait
     }
 
     /**
-     * @return \tiFy\Plugins\Shop\ShopServiceProvider
+     * {@inheritdoc}
+     *
+     * @return ShopServiceProvider
      */
     public function provider()
     {
-        return resolve(\tiFy\Plugins\Shop\ShopServiceProvider::class);
+        return resolve(ShopServiceProvider::class);
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return ProductsInterface
      */
     public function products()
@@ -101,6 +127,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return NoticesInterface
      */
     public function notices()
@@ -109,7 +137,9 @@ trait ShopResolverTrait
     }
 
     /**
-     * @return SessionResolvedInterface
+     * {@inheritdoc}
+     *
+     * @return SessionInterface
      */
     public function session()
     {
@@ -117,6 +147,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return SettingsInterface
      */
     public function settings()
@@ -125,6 +157,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return Shop
      */
     public function shop()
@@ -133,6 +167,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return string
      */
     public function resourcesDir($path = '')
@@ -141,6 +177,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return string
      */
     public function resourcesUrl($path = '')
@@ -149,6 +187,8 @@ trait ShopResolverTrait
     }
 
     /**
+     * {@inheritdoc}
+     *
      * @return UsersInterface
      */
     public function users()
@@ -158,6 +198,8 @@ trait ShopResolverTrait
 
     /**
      * {@inheritdoc}
+     *
+     * @return ViewController|ViewEngine
      */
     public function viewer($view = null, $data = [])
     {

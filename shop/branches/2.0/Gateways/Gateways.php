@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name Gateways
+ * @name \tiFy\Plugins\Shop\Gateways\Gateways
  * @desc Gestion des plateformes de paiement.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -10,12 +10,7 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use Illuminate\Support\Arr;
-use LogicException;
-use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
-use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\GatewayInterface;
 use tiFy\Plugins\Shop\Contracts\GatewayListInterface;
 use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
 
@@ -60,20 +55,24 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
                 $attrs = [];
             endif;
 
-            if ($attrs === false) :
-                $attrs = ['enabled' => false];
-            elseif (!isset($attrs['enabled'])) :
-                $attrs['enabled'] = true;
-            endif;
+            if (is_callable($attrs)) :
+                $gateways[$id] = call_user_func_array($attrs, [$id, [], $this->shop]);
+            else :
+                if ($attrs === false) :
+                    $attrs = ['enabled' => false];
+                elseif (!isset($attrs['enabled'])) :
+                    $attrs['enabled'] = true;
+                endif;
 
-            $gateways[$id] = app(
-                "shop.gateway.{$id}",
-                [
-                    $id,
-                    $attrs,
-                    $this->shop
-                ]
-            );
+                $gateways[$id] = app(
+                    "shop.gateway.{$id}",
+                    [
+                        $id,
+                        $attrs,
+                        $this->shop
+                    ]
+                );
+            endif;
         endforeach;
 
         return $this->list = app('shop.gateways.list', [$gateways, $this->shop]);
@@ -98,7 +97,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
      */
     public function all()
     {
-        return $this->list_controller->all();
+        return $this->list->all();
     }
 
     /**

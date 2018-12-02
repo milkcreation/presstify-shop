@@ -2,8 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Shop;
-
 interface CheckoutInterface extends BootableControllerInterface, ShopResolverInterface
 {
     /**
@@ -60,7 +58,8 @@ interface CheckoutInterface extends BootableControllerInterface, ShopResolverInt
 
     /**
      * Url d'action d'exécution de la commande.
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST.
+     * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
+     * de formulaire ayant pour attribut "method" POST.}
      *
      * @return string
      */

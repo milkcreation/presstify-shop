@@ -17,11 +17,11 @@ interface OrdersInterface extends BootableControllerInterface, PostQuery, ShopRe
     /**
      * Récupération des données d'une liste d'élément selon des critères de requête.
      *
-     * @param array $query_args Liste des arguments de requête
+     * @param null|\WP_Query|array $query_args Liste des arguments de requête
      *
      * @return array|OrderListInterface
      */
-    public function getCollection($query_args = []);
+    public function getCollection($query_args = null);
 
     /**
      * Récupération du controleur de base de données.
@@ -40,7 +40,8 @@ interface OrdersInterface extends BootableControllerInterface, PostQuery, ShopRe
     /**
      * Récupération d'un élément.
      *
-     * @param string|int|\WP_Post|null $id Nom de qualification du post WP (slug, post_name)|Identifiant de qualification du post WP|Object post WP|Post WP  de la page courante
+     * @param string|int|\WP_Post|null $id Nom de qualification du post WP (slug, post_name)|
+     * Identifiant de qualification du post WP|Object post WP|Post WP  de la page courante
      *
      * @return null|OrderInterface
      */
@@ -108,7 +109,8 @@ interface OrdersInterface extends BootableControllerInterface, PostQuery, ShopRe
     /**
      * Récupération de l'intitulé de désignation d'un status.
      *
-     * @param string $name Nom de qualification du status. order-pending|order-processing|order-on-hold|order-completed|order-cancelled|order-refunded|order-failed.
+     * @param string $name Nom de qualification du status.
+     * order-pending|order-processing|order-on-hold|order-completed|order-cancelled|order-refunded|order-failed.
      * @param mixed $default Valeur de retour par défaut.
      *
      * @return array

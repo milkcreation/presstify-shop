@@ -7,6 +7,17 @@ use tiFy\User\Session\SessionManager;
 interface ShopResolverInterface
 {
     /**
+     * Récupération de l'url d'une action de traitement.
+     *
+     * @param string $alias Alias de qualification de l'action.
+     * @param array $parameters Liste des variables passées en argument dans l'url.
+     * @param boolean $absolute Format de sortie de l'url. Url relative par défaut.
+     *
+     * @return string
+     */
+    public function action($alias, $parameters = [], $absolute = false);
+
+    /**
      * Récupération de la classe de rappel de gestion des adresses : livraison|facturation.
      *
      * @return AddressesInterface

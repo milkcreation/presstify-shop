@@ -11,7 +11,6 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use LogicException;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
@@ -98,7 +97,11 @@ class Cart extends AbstractShopSingleton implements CartInterface
         add_action(
             'get_header',
             function () {
-                if ($this->functions()->page()->isCart() && ! $this->getList() && ($message = $this->getNotice('is_empty'))) :
+                if (
+                    $this->functions()->page()->isCart() &&
+                    ! $this->getList() &&
+                    ($message = $this->getNotice('is_empty'))
+                ) :
                     $this->notices()->add(
                         $message,
                         'info'
@@ -200,11 +203,11 @@ class Cart extends AbstractShopSingleton implements CartInterface
     {
         if (!$product instanceof ProductItemInterface) :
             $product = $this->products()->getItem($product);
-        elseif ($product instanceof ProductItemInterface) :
-            return route('shop.cart.add', [$product->getSlug()]);
-        else :
-            return '';
         endif;
+
+        return ($product instanceof ProductItemInterface)
+             ? route('shop.cart.add', [$product->getSlug()])
+             : '';
     }
 
     /**

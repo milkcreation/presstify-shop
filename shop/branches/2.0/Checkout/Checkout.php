@@ -15,7 +15,6 @@
 namespace tiFy\Plugins\Shop\Checkout;
 
 use Illuminate\Support\Arr;
-use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;

@@ -17,7 +17,8 @@ interface UsersInterface extends BootableControllerInterface, ShopResolverInterf
     /**
      * Récupération des données d'un utilisateur
      *
-     * @param string|int|\WP_User|null $user Identifiant pixvert|ID de l'utilisateur WP|Objet User WP|Utilisateur courant WP.
+     * @param string|int|\WP_User|null $user Identifiant pixvert|ID de l'utilisateur WP|Objet User WP
+     * |Utilisateur courant WP.
      *
      * @return object|UserCustomerInterface|UserLoggedOutInterface|UserShopManagerInterface|UserItemInterface.
      */

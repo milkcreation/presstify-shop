@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderList
+ * @name \tiFy\Plugins\Shop\Orders\OrderList
  * @desc Controleur de liste des commandes.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>

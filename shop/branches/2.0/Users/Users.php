@@ -5,8 +5,6 @@ namespace tiFy\Plugins\Shop\Users;
 use tiFy\User\Query\UserQuery;
 use tiFy\User\Role\Role;
 use tiFy\User\SignIn\SignIn;
-use tiFy\Layout\Layout;
-use tiFy\Layout\Admin\WpUserListTable\WpUserListTable;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;

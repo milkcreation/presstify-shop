@@ -35,6 +35,8 @@ class Date extends DateTime implements FunctionsDateInterface
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
+     *
+     * @throws \Exception
      */
     public function __construct($time = 'now', $timezone = true, Shop $shop)
     {

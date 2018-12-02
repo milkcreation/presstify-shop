@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name ChequeGateway
+ * @name \tiFy\Plugins\Shop\Gateways\Cheque\Cheque
  * @desc Plateforme de paiement par chèque.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -10,6 +10,7 @@
 
 namespace tiFy\Plugins\Shop\Gateways\Cheque;
 
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Gateways\AbstractGateway;
 
 class Cheque extends AbstractGateway
@@ -41,11 +42,12 @@ class Cheque extends AbstractGateway
     /**
      * {@inheritdoc}
      */
-    public function processPayment($order)
+    public function processPayment(OrderInterface $order)
     {
         // @todo Mise à jour du status vers en attente.
         if ($order->getTotal() > 0) :
             $order->updateStatus('order-on-hold');
+            $order->addNote(__('En attente du réglement par chèque', 'tify'));
         else :
             $order->paymentComplete();
         endif;

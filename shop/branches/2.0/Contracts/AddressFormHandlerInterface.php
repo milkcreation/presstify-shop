@@ -10,7 +10,7 @@ interface AddressFormHandlerInterface
     /**
      * Instanciation de l'addon.
      *
-     * @param $name Nom de qualification.
+     * @param string $name Nom de qualification.
      * @param array $attrs Liste des attributs de configuration.
      * @param FormFactory $form Instance du formulaire associé.
      *

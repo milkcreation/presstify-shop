@@ -116,7 +116,7 @@ interface GatewayInterface extends ParamsBag
      *
      * @param string $message Message
      * @param string $type Type de notification. DEBUG|INFO (par défaut)|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY.
-     * @param string $context Données complémentaire de contexte
+     * @param array $context Données complémentaire de contexte
      *
      * @return void
      */

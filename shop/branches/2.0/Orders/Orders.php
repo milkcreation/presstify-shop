@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name Orders
+ * @name \tiFy\Plugins\Shop\Orders\Orders
  * @desc Controleur de gestion des commandes.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -32,7 +32,7 @@ class Orders extends PostQuery implements OrdersInterface
 
     /**
      * Classe de rappel de la base de données
-     * @var DbControllerInterface
+     * @var DbItemInterface
      */
     protected $db;
 
@@ -53,7 +53,7 @@ class Orders extends PostQuery implements OrdersInterface
      *
      * @param Shop $shop Classe de rappel de la boutique.
      *
-     * @return null
+     * @return void
      */
     protected function __construct(Shop $shop)
     {
@@ -63,7 +63,7 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return null
+     * @return void
      */
     private function __clone()
     {
@@ -73,7 +73,7 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return null
+     * @return void
      */
     private function __wakeup()
     {
@@ -83,9 +83,10 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * Instanciation de la classe.
      *
+     * @param string $alias Nom de qualification
      * @param Shop $shop
      *
-     * @return AddressesInterface
+     * @return static
      */
     public static function make($alias, Shop $shop)
     {
@@ -426,7 +427,7 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * {@inheritdoc}
      */
-    public function resolveItem($wp_post)
+    public function resolveItem(\WP_Post $wp_post)
     {
         return app('shop.orders.order', [$wp_post, $this->shop]);
     }

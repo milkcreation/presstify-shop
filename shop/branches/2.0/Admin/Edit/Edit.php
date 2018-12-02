@@ -146,6 +146,8 @@ class Edit
     /**
      * Titre du panneau de saisie
      *
+     * @param \WP_Post $post
+     *
      * @return string
      */
     public function panelHeader($post)
@@ -156,7 +158,9 @@ class Edit
         if ($product_types = $product->getProductTypes()) :
             $product_type_options = [];
             foreach ($product_types as $product_type) :
-                $product_type_options[$product_type] = $this->shop->products()->getProductTypeDisplayName($product_type);
+                $product_type_options[$product_type] = $this->shop
+                    ->products()
+                    ->getProductTypeDisplayName($product_type);
             endforeach;
 
             $product_type_selector .= '<b> — </b>';

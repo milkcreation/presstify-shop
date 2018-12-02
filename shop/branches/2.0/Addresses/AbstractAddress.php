@@ -3,8 +3,7 @@
 namespace tiFy\Plugins\Shop\Addresses;
 
 use Illuminate\Support\Str;
-use tiFy\Form\Form;
-use tiFy\Form\Forms\FormBaseController;
+use tiFy\Contracts\Form\FormFactory;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Contracts\AddressInterface;
 use tiFy\Plugins\Shop\Contracts\UserItemInterface;
@@ -29,7 +28,7 @@ abstract class AbstractAddress implements AddressInterface
 
     /**
      * Instance de la classe de gestion du formulaire.
-     * @var FormBaseController
+     * @var FormFactory
      */
     protected $form = null;
 
@@ -130,7 +129,7 @@ abstract class AbstractAddress implements AddressInterface
     {
         if (is_null($this->form)) :
             return $this->form = form()->get('ShopFormAddress-' . $this->getId());
-        elseif ($this->form instanceof FormBaseController) :
+        elseif ($this->form instanceof FormFactory) :
             return $this->form;
         else :
             return '';

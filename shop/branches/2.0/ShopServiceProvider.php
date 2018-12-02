@@ -2,15 +2,10 @@
 
 namespace tiFy\Plugins\Shop;
 
-use App\Json\ProductItem;
 use \LogicException;
 use tiFy\App\Container\AppServiceProvider;
-use tiFy\Plugins\Shop\Products\ProductList;
-use tiFy\Plugins\Shop\Shop;
-
-/**
- * CONTROLEURS.
- */
+// Controllers
+use tiFy\Plugins\Shop\Actions\Actions;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Addresses\Billing as AddressesBilling;
 use tiFy\Plugins\Shop\Addresses\FormHandler as AddressesFormHandler;
@@ -56,11 +51,7 @@ use tiFy\Plugins\Shop\Users\Users;
 use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
 use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
 use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
-use tiFy\Plugins\Shop\ShopViewController;
-
-/**
- * CONTRACTS
- */
+// Contracts
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Contracts\AddressBillingInterface;
 use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
@@ -100,6 +91,7 @@ class ShopServiceProvider extends AppServiceProvider
      * @var array
      */
     protected $aliases = [
+        'shop.actions'                         => Actions::class,
         'shop.addresses.controller'            => Addresses::class,
         'shop.addresses.billing'               => AddressesBilling::class,
         'shop.addresses.form_handler'          => AddressesFormHandler::class,
@@ -152,6 +144,7 @@ class ShopServiceProvider extends AppServiceProvider
      * @var array
      */
     protected $bootables = [
+        'shop.actions',
         'shop.addresses.controller',
         'shop.admin.controller',
         'shop.cart.controller',
@@ -169,7 +162,7 @@ class ShopServiceProvider extends AppServiceProvider
 
     /**
      * Listes des interfaces requises par les classe de surchage.
-     * @var array
+     * @var callable[]|object[]
      */
     protected $contracts = [
         'shop.addresses.controller'       => AddressesInterface::class,
@@ -221,19 +214,21 @@ class ShopServiceProvider extends AppServiceProvider
      */
     public function boot()
     {
-        $this->shop = $this->app->singleton('shop', function () { return new Shop(); })->build();
+        $this->shop = $this->app->singleton('shop', function () {
+            return new Shop();
+        })->build();
 
         $this->app->singleton(
             'shop.viewer',
             function () {
-                $cinfo = class_info($this->shop);
+                $cinfo       = class_info($this->shop);
                 $default_dir = $cinfo->getDirname() . '/Resources/views';
-                $viewer = view()
+                $viewer      = view()
                     ->setDirectory($default_dir)
-                    ->setController(config('shop.viewer.controller') ? : ShopViewController::class)
+                    ->setController(config('shop.viewer.controller') ?: ShopViewController::class)
                     ->setOverrideDir(($dir = config('shop.viewer.override_dir')) && is_dir($dir)
-                            ? $override_dir
-                            : $default_dir
+                        ? $dir
+                        : $default_dir
                     )
                     ->set('shop', $this->shop);
 
@@ -245,12 +240,12 @@ class ShopServiceProvider extends AppServiceProvider
 
         array_walk(
             $providers,
-            function($value, $key) {
+            function ($value, $key) {
                 $this->customs["shop.{$key}"] = $value;
             }
         );
 
-        foreach($this->bootables as $abstract) :
+        foreach ($this->bootables as $abstract) :
             $this->app
                 ->singleton(
                     $abstract,
@@ -265,7 +260,7 @@ class ShopServiceProvider extends AppServiceProvider
 
                         if (isset($this->contracts[$abstract])) :
                             try {
-                                $resolved instanceof $this->contracts[$abstract];
+                               !$resolved instanceof $this->contracts[$abstract];
                             } catch (\Exception $e) {
                                 throw new LogicException(
                                     sprintf(
@@ -302,7 +297,7 @@ class ShopServiceProvider extends AppServiceProvider
             GatewaysCheque::class,
             GatewaysList::class
         ];
-        foreach($singletons as $concrete) :
+        foreach ($singletons as $concrete) :
             $abstract = $this->getContainer()->getAlias($concrete);
             $concrete = $this->getConcrete($abstract);
             $this->app->singleton($abstract, $concrete);
@@ -334,7 +329,7 @@ class ShopServiceProvider extends AppServiceProvider
             UsersLoggedOut::class,
             UsersShopManager::class
         ];
-        foreach($bindings as $concrete) :
+        foreach ($bindings as $concrete) :
             $abstract = $this->getContainer()->getAlias($concrete);
             $concrete = $this->getConcrete($abstract);
             $this->app->bind($abstract, $concrete);
@@ -342,7 +337,7 @@ class ShopServiceProvider extends AppServiceProvider
             unset($this->customs[$abstract]);
         endforeach;
 
-        foreach($this->customs as $abstract => $concrete) :
+        foreach ($this->customs as $abstract => $concrete) :
             if (preg_match('/^shop\.products\.purchasing_option\.(.*)/', $abstract)) :
                 $this->app->bind($abstract, $concrete);
             endif;
@@ -361,7 +356,7 @@ class ShopServiceProvider extends AppServiceProvider
         return isset($this->customs[$abstract])
             ? $this->customs[$abstract]
             : (
-                isset($this->aliases[$abstract])
+            isset($this->aliases[$abstract])
                 ? $this->aliases[$abstract]
                 : $abstract
             );

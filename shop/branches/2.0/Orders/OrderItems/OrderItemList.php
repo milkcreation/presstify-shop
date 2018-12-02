@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderItemList
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemList
  * @desc Controleur des éléments de commande en base de données.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -24,13 +24,12 @@ class OrderItemList extends Collection implements OrderItemListInterface
      * CONSTRUCTEUR.
      *
      * @param OrderItemInterface[] $items Liste des éléments.
-     * @param Shop $shop Instrance de la boutique.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
     public function __construct($items = [], Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique.
         $this->shop = $shop;
 
         parent::__construct($items);

@@ -2,10 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Illuminate\Support\Arr;
 use tiFy\Contracts\Kernel\ParamsBag;
-use tiFy\PostType\PostType;
-use tiFy\PostType\Metadata\Post as MetadataPost;
 
 interface ProductObjectType extends ParamsBag, ShopResolverInterface
 {

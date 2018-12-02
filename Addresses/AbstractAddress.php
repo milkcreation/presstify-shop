@@ -3,149 +3,88 @@
 namespace tiFy\Plugins\Shop\Addresses;
 
 use Illuminate\Support\Str;
-use tiFy\Apps\AppController;
-use tiFy\Form\Form;
-use tiFy\Form\Forms\FormBaseController;
+use tiFy\Contracts\Form\FormFactory;
+use tiFy\Plugins\Shop\Contracts\AddressesInterface;
+use tiFy\Plugins\Shop\Contracts\AddressInterface;
+use tiFy\Plugins\Shop\Contracts\UserItemInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-abstract class AbstractAddress extends AppController implements AddressInterface
+abstract class AbstractAddress implements AddressInterface
 {
+    use ShopResolverTrait;
+
     /**
-     * Identifiant de qualification
+     * Identifiant de qualification.
      * @var string
      */
     protected $id = '';
 
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Classe de rappel de gestion des adresses
+     * Instance de la classe de gestion des adresses.
      * @var AddressesInterface
      */
     protected $addresses;
 
     /**
-     * @var \tiFy\Plugins\Shop\Users\UserInterface
+     * Instance de la classe de gestion du formulaire.
+     * @var FormFactory
+     */
+    protected $form = null;
+
+    /**
+     * Instance de la classe de l'utilisateur courant.
+     * @var UserItemInterface
      */
     protected $user;
 
     /**
-     * Classe de rappel du formulaire
-     * @var FormBaseController
-     */
-    protected $form;
-
-    /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
-     * @param AddressesInterface $address Classe de rappel de gestion des adresses
+     * @param AddressesInterface $address Instance de la classe de gestion des adresses.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop, AddressesInterface $addresses)
+    public function __construct(AddressesInterface $addresses, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-
-        // Définition de la classe de rappel de gestion des adresses
         $this->addresses = $addresses;
 
-        // Déclaration des événements
-        $this->appAddAction('tify_form_register');
+        add_action(
+            'init',
+            function () {
+                $this->user = $this->shop->users()->getItem();
+
+                /**
+                 * Traitement de la liste des champs.
+                 * {@internal Ajout du préfixe aux identifiants de champ et récupération de la valeur.}
+                 */
+                $attrs = $this->formAttrs();
+                foreach ($attrs['fields'] as $slug => &$fattrs) :
+                    if (!isset($fattrs['name'])) :
+                        $fattrs['name'] = $this->getId() . '_' . $slug;
+                    endif;
+
+                    if (!isset($fattrs['value'])) :
+                        $method = 'get' . $this->getId() . Str::studly($slug);
+                        $fattrs['value'] = $this->shop->session()->get($this->getId() . '.' . $slug)
+                            ?: (method_exists($this->user, $method)
+                                ? call_user_func([$this->user, $method])
+                                : ''
+                            );
+                    endif;
+                endforeach;
+
+                $attrs['addons']['shop.addresses.form_handler'] = ['controller' => $this];
+
+                form()->add('ShopFormAddress-' . $this->getId(), $attrs);
+            }
+        );
     }
 
     /**
-     * Déclaration du formulaire
-     *
-     * @return void
-     */
-    final public function tify_form_register($formController)
-    {
-        $this->user = $this->shop->users()->get();
-
-        $attrs = $this->formAttrs();
-
-        /**
-         * Traitement de la liste des champs
-         * @internal Ajout du préfixe aux identifiants de champ et récupération de la valeur
-         */
-        foreach ($attrs['fields'] as $slug => &$fattrs) :
-            if (!isset($fattrs['slug'])) :
-                $fattrs['slug'] = $this->getId() . '_' . $slug;
-            endif;
-            if (!isset($fattrs['value'])) :
-                $method = 'get' . $this->getId() . Str::studly($slug);
-                $fattrs['value'] = $this->shop->session()->get($this->getId() . '.' . $slug)
-                    ?: (method_exists($this->user, $method) ? call_user_func([$this->user, $method]) : '');
-            endif;
-        endforeach;
-
-        $attrs['addons']['tify_shop_address_form_handler'] = ['controller' => $this];
-
-        if (
-            $form = $formController->register(
-                '_tiFyShop-formAddress--' . $this->getId(),
-                $attrs
-            )
-        ) :
-            $this->form = $form;
-        endif;
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification
-     *
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->id ?: strtolower($this->appShortname());
-    }
-
-    /**
-     * Définition des attributs de configuration du formulaire
-     * @see \tiFy\Form\Controller\Form
-     *
-     * @return array
-     */
-    public function formAttrs()
-    {
-        return [
-            /// Identifiant HTML du conteneur
-            'container_id'    => sprintf('tiFyShop-addressFormContainer--%s', $this->getId()),
-            /// Classe HTML du conteneur
-            'container_class' => '',
-            /// Identifiant HTML de la balise form
-            'form_id'         => sprintf('tiFyShop-addressForm--%s', $this->getId()),
-            /// Classe HTML de la balise form
-            'form_class'      => '',
-            /// Pré-affichage avant la balise form
-            'before'          => '',
-            /// Post-affichage après la balise form
-            'after'           => '',
-            // Attributs HTML de la balise form
-            'method'          => 'post',
-            'action'          => '',
-            'enctype'         => '',
-            // Attributs de paramètrage
-            'addons'          => $this->addons(),
-            'buttons'         => $this->buttons(),
-            'fields'          => $this->fields(),
-            'notices'         => $this->notices(),
-            'options'         => $this->options(),
-            'callbacks'       => $this->callbacks()
-        ];
-    }
-
-    /**
-     * Définition de la liste des addons de formulaire
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function addons()
     {
@@ -153,9 +92,7 @@ abstract class AbstractAddress extends AppController implements AddressInterface
     }
 
     /**
-     * Définition de la liste des boutons d'action du formulaire
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function buttons()
     {
@@ -163,10 +100,15 @@ abstract class AbstractAddress extends AppController implements AddressInterface
     }
 
     /**
-     * Définition de la liste des champs de formulaire
-     * @see \tiFy\Form\Controller\Field
-     *
-     * @return array
+     * {@inheritdoc}
+     */
+    public function callbacks()
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function fields()
     {
@@ -181,9 +123,48 @@ abstract class AbstractAddress extends AppController implements AddressInterface
     }
 
     /**
-     * Définition de la liste des messages de notification du formulaire
-     *
-     * @return array
+     * {@inheritdoc}
+     */
+    public function form()
+    {
+        if (is_null($this->form)) :
+            return $this->form = form()->get('ShopFormAddress-' . $this->getId());
+        elseif ($this->form instanceof FormFactory) :
+            return $this->form;
+        else :
+            return '';
+        endif;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function formAttrs()
+    {
+        return [
+            'attrs' => [
+                'id'    => 'FormShopAddress--'. $this->getId(),
+                'class'    => 'FormShopAddress FormShopAddress--'. $this->getId()
+            ],
+            'addons'          => $this->addons(),
+            'buttons'         => $this->buttons(),
+            'fields'          => $this->fields(),
+            'notices'         => $this->notices(),
+            'options'         => $this->options(),
+            'callbacks'       => $this->callbacks()
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->id ?: Str::lower(class_info($this)->getShortName());
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function notices()
     {
@@ -191,36 +172,10 @@ abstract class AbstractAddress extends AppController implements AddressInterface
     }
 
     /**
-     * Définition de la liste des options du formulaire
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function options()
     {
         return [];
-    }
-
-    /**
-     * Définition de la liste des événements de déclenchement
-     *
-     * @return array
-     */
-    public function callbacks()
-    {
-        return [];
-    }
-
-    /**
-     * Récupération du formulaire de traitement de l'adresse de livraison
-     *
-     * @return string
-     */
-    public function form()
-    {
-        if ($this->form instanceof \tiFy\Form\Forms\FormBaseController) :
-            return $this->form->display();
-        else :
-            return '';
-        endif;
     }
 }

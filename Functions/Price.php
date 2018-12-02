@@ -2,10 +2,7 @@
 
 /**
  * @name Price
- * @desc Controleur de gestion des tarifs de la boutique
- * @namespace \tiFy\Plugins\Shop\Functions
- * @package presstify-plugins/shop
- * @version 1.0.2
+ * @desc Controleur de gestion des tarifs de la boutique.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -13,80 +10,28 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\Contracts\FunctionsPriceInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Price implements PriceInterface, ProvideTraitsInterface
+class Price implements FunctionsPriceInterface
 {
-    use ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
     public function __construct(Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
     }
 
     /**
-     * Prix d'affichage des pages HTML
-     *
-     * @param float $price Montant à afficher
-     * @param string $format d'affichage
-     *
-     * @return string
-     */
-    public function html($price, $format = '')
-    {
-        $currency = $this->settings()->get('currency', '');
-        $currency_position = $this->settings()->get('currency_position');
-        $decimals = $this->settings()->decimalNumber();
-        $dec_point = $this->settings()->decimalSeparator();
-        $thousands_sep = $this->settings()->thousandSeparator();
-
-        if (!$format) :
-            $format = '%1$s';
-            if ($currency) :
-                switch($currency_position) :
-                    default :
-                    case 'right' :
-                        $format .= '%2$s';
-                        break;
-                    case 'right_space' :
-                        $format .= ' %2$s';
-                        break;
-                    case 'left' :
-                        $format = '%2$s' . $format;
-                        break;
-                    case 'left_space' :
-                        $format .= ' %2$s ' . $format;
-                        break;
-                endswitch;
-            endif;
-        endif;
-
-        return sprintf($format, \number_format($price, $decimals, $dec_point, $thousands_sep), $this->currencySymbol($currency));
-    }
-
-    /**
-     * Récupération du symbole de la devise
-     * @todo https://github.com/xsolla/currency-format
-     *
-     * @param string $currency Identifiant de qualification de la devise.
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function currencySymbol($currency = '')
     {
@@ -257,5 +202,44 @@ class Price implements PriceInterface, ProvideTraitsInterface
         ];
 
         return isset($symbols[$currency]) ? $symbols[$currency] : $currency;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function html($price, $format = '')
+    {
+        $currency          = $this->settings()->get('currency', '');
+        $currency_position = $this->settings()->get('currency_position');
+        $decimals          = $this->settings()->decimalNumber();
+        $dec_point         = $this->settings()->decimalSeparator();
+        $thousands_sep     = $this->settings()->thousandSeparator();
+
+        if ( ! $format) :
+            $format = '%1$s';
+            if ($currency) :
+                switch ($currency_position) :
+                    default :
+                    case 'right' :
+                        $format .= '%2$s';
+                        break;
+                    case 'right_space' :
+                        $format .= ' %2$s';
+                        break;
+                    case 'left' :
+                        $format = '%2$s' . $format;
+                        break;
+                    case 'left_space' :
+                        $format .= ' %2$s ' . $format;
+                        break;
+                endswitch;
+            endif;
+        endif;
+
+        return sprintf(
+            $format,
+            \number_format($price, $decimals, $dec_point, $thousands_sep),
+            $this->currencySymbol($currency)
+        );
     }
 }

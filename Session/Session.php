@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name Session
+ * @name \tiFy\Plugins\Shop\Session\Session
  * @desc Gestion des données portées par la session.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -27,7 +27,7 @@ class Session extends AbstractShopSingleton implements SessionInterface
      * Instance du traitement de la session.
      * @var SessionStore
      */
-    private $store;
+    public $store;
 
     /**
      * {@inheritdoc}
@@ -43,6 +43,10 @@ class Session extends AbstractShopSingleton implements SessionInterface
     }
 
     /**
+     * Appel des dynamique des méthodes.
+     *
+     * @param string $name
+     * @param array $args
      *
      * @return mixed
      */

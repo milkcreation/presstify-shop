@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderItemProduct
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProduct
  * @desc Controleur d'une ligne d'article associée à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -10,10 +10,7 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
-use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
-use tiFy\Plugins\Shop\Contracts\ProductsInterface;
 
 class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {

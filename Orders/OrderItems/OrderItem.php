@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderItem
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItem
  * @desc Controleur d'un élément de commande en base de données.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -20,16 +20,20 @@ class OrderItem extends ParamsBag implements OrderItemInterface
     use ShopResolverTrait;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param array $attrs {
-     *      Liste des attributs de l'élément.
-     *
+     * Liste des attributs
+     * @var array $attributes {
      *      @var int $order_item_id
      *      @var string $order_item_name
      *      @var string $order_item_type
      *      @var string $order_id
      * }
+     */
+    protected $attributes = [];
+
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @param array $attrs Liste des attributs de l'élément.
      * @param Shop $shop Instance de la boutique.
      *
      * @return void

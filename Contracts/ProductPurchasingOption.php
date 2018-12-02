@@ -67,6 +67,8 @@ interface ProductPurchasingOption extends ParamsBag
     /**
      * Définition de la valeur de selection.
      *
+     * @param $selected
+     *
      * @return void
      */
     public function setSelected($selected);

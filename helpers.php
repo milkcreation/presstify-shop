@@ -2,12 +2,33 @@
 
 use tiFy\Plugins\Shop\Shop;
 
+if (!function_exists('shop_action')) :
+    /**
+     * Récupération de l'url d'une action de traitement.
+     *
+     * @param string $alias Alias de qualification de l'action.
+     * @param array $parameters Liste des variables passées en argument dans l'url.
+     * @param boolean $absolute Format de sortie de l'url. Url relative par défaut.
+     *
+     * @return string
+     */
+    function shop_action($alias, $parameters = [], $absolute = false)
+    {
+        /** @var Shop $shop */
+        $shop = resolve('shop');
+
+        return $shop->action($alias, $parameters, $absolute);
+    }
+endif;
+
 if (!function_exists('shop_cart_add_url')) :
     /**
      * Url de l'action d'un formulaire d'ajout d'un produit au panier d'achat
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
+     * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
+     * de formulaire ayant pour attribut "method" POST.}
      *
-     * @param null|int|\WP_Post|\tiFy\Plugins\Shop\Products\ProductItem $product Identification du produit. Produit de la page courante|Identifiant WP|Objet Post WP|Objet produit
+     * @param null|int|\WP_Post|\tiFy\Plugins\Shop\Products\ProductItem $product Identification du produit.
+     * Produit de la page courante|Identifiant WP|Objet Post WP|Objet produit
      *
      * @return string
      */
@@ -24,7 +45,8 @@ if (!function_exists('shop_cart_count')) :
     /**
      * Retourne le nombre de produit dans le panier.
      *
-     * @param boolean $quantity Activation du calcul sur la base de la quantité de produits (défaut)|Compte le nombre de ligne de produits.
+     * @param boolean $quantity Activation du calcul sur la base de la quantité de produits.
+     * (défaut) true|false: Compte le nombre de ligne de produits.
      *
      * @return int
      */
@@ -40,7 +62,8 @@ endif;
 if (!function_exists('shop_cart_update_url')) :
     /**
      * Url d'action de mise à jour des produits du panier d'achat
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
+     * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
+     * de formulaire ayant pour attribut "method" POST.}
      *
      * @return string
      */
@@ -73,7 +96,8 @@ endif;
 if (!function_exists('shop_checkout_process_url')) :
     /**
      * Url d'action d'exécution de la commande
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
+     * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
+     * de formulaire ayant pour attribut "method" POST.}
      *
      * @return string
      */
@@ -155,7 +179,8 @@ if (!function_exists('shop_product')) :
     /**
      * Récupération des données d'un produit existant.
      *
-     * @param null|int|string|\WP_Post $product Identification du produit. Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant
+     * @param null|int|string|\WP_Post $product Identification du produit.
+     * Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant.
      *
      * @return tiFy\Plugins\Shop\Contracts\ProductItemInterface
      */

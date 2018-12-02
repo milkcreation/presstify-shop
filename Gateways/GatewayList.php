@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name GatewayList
+ * @name \tiFy\Plugins\Shop\Gateways\GatewayList
  * @desc Gestion de la liste des plateformes de paiement déclarées.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>

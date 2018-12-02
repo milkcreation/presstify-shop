@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name AbstractOrderItemType
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType
  * @desc Controleur d'un élément associé à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -58,7 +58,8 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     /**
      * CONSTRUCTEUR.
      *
-     * @param int|OrderItemInterface $item Identifiant de qualification ou Objet de données de l'élément enregistré en base.
+     * @param int|OrderItemInterface $item Identifiant de qualification
+     * ou Objet de données de l'élément enregistré en base.
      * @param OrderInterface $order Instance de la commande associée.
      * @param Shop $shop Instance de la boutique.
      *
@@ -80,14 +81,6 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
         else :
             $this->set('order_id', $order->getId());
         endif;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function all()
-    {
-        return $this->getAttributes();
     }
 
     /**
@@ -159,7 +152,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
             $this->saveMetas();
         endif;
 
-        return $this->id;
+        return $this->getId();
     }
 
     /**
@@ -181,13 +174,13 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
      */
     public function saveMeta($meta_key, $meta_value, $unique = true)
     {
-        if (!$this->id) :
+        if (!$id = $this->getId()) :
             return 0;
         endif;
 
         $db = $this->orders()->getDb();
 
-        return $db->meta()->add($this->id, $meta_key, $meta_value);
+        return $db->meta()->add($id, $meta_key, $meta_value);
     }
 
     /**

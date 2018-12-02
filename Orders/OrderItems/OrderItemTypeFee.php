@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderItemTypeFee
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFee
  * @desc Controleur d'une ligne d'article associée à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -10,7 +10,6 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeFeeInterface;
 
 class OrderItemTypeFee extends  AbstractOrderItemType implements OrderItemTypeFeeInterface

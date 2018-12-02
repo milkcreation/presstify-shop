@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name Order
+ * @name \tiFy\Plugins\Shop\Orders\Order
  * @desc Controleur de commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -14,13 +14,10 @@ use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use tiFy\PostType\Query\PostQueryItem;
+use tiFy\Plugins\Shop\Contracts\GatewayInterface;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeCouponInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeFeeInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeShippingInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeTaxInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
@@ -154,7 +151,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function addNote($note, $is_customer = false, $by_user = false)
     {
-        if (! $this->getId()) :
+        if ( ! $this->getId()) :
             return 0;
         endif;
 
@@ -165,7 +162,7 @@ class Order extends PostQueryItem implements OrderInterface
             $comment_author       = __('tiFyShop', 'tify');
             $comment_author_email = strtolower(__('tiFyShop', 'tify')) . '@';
             $comment_author_email .= 'noreply.com';
-            $comment_author_email = sanitize_email( $comment_author_email );
+            $comment_author_email = sanitize_email($comment_author_email);
         endif;
 
         $commentdata = [
@@ -196,7 +193,7 @@ class Order extends PostQueryItem implements OrderInterface
     {
         $type = $item->getType();
 
-        $count = isset($this->items[$type]) ? count($this->items[$type]) : 0;
+        $count       = isset($this->items[$type]) ? count($this->items[$type]) : 0;
         $this->items = Arr::add($this->items, $type . '.new:' . $type . $count, $item);
     }
 
@@ -289,6 +286,14 @@ class Order extends PostQueryItem implements OrderInterface
     /**
      * {@inheritdoc}
      */
+    public function getCustomer()
+    {
+        return $this->users()->getItem($this->getCustomerId());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getCustomerId()
     {
         return (int)$this->get('customer_id', 0);
@@ -318,6 +323,27 @@ class Order extends PostQueryItem implements OrderInterface
     public function getPaymentMethod()
     {
         return (string)$this->get('payment_method', '');
+    }
+
+    /**
+     * Récupération du l'intitulé de qualification de la méthode de paiement.
+     *
+     * @return string
+     */
+    public function getPaymentMethodLabel()
+    {
+        /** @var GatewayInterface $gateway */
+        return ($gateway = $this->gateways()->get($this->get('payment_method', '')))
+            ? $gateway->getTitle()
+            : '';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getShortStatus()
+    {
+        return (string)preg_replace('/^order\-/', '', $this->get('status', $this->orders()->getDefaultStatus()));
     }
 
     /**
@@ -357,7 +383,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function isCustomer($customer_id)
     {
-        return (bool)($this->getCustomerId() === (int) $customer_id);
+        return (bool)($this->getCustomerId() === (int)$customer_id);
     }
 
     /**
@@ -373,11 +399,11 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function needProcessing()
     {
-        if (!$line_items = $this->getItems('line_item')) :
+        if ( ! $line_items = $this->getItems('line_item')) :
             return false;
         endif;
 
-        $virtual_and_downloadable = $line_items->filter(function(OrderItemTypeProductInterface $line_item) {
+        $virtual_and_downloadable = $line_items->filter(function (OrderItemTypeProductInterface $line_item) {
             return ($product = $this->products()->getItem($line_item->getProductId()))
                 ? $product->isDownloadable() && $product->isVirtual()
                 : false;
@@ -392,17 +418,17 @@ class Order extends PostQueryItem implements OrderInterface
     public function paymentComplete($transaction_id = '')
     {
         try {
-            if (! $this->getId() ) :
+            if ( ! $this->getId()) :
                 return false;
             endif;
 
             $this->session()->pull('order_awaiting_payment', false);
 
             if ($this->hasStatus($this->orders()->getPaymentValidStatuses())) :
-                if (! empty($transaction_id)) :
+                if ( ! empty($transaction_id)) :
                     $this->transaction_id = $transaction_id;
                 endif;
-                if (! $this->get('date_paid')) :
+                if ( ! $this->get('date_paid')) :
                     $this->set('date_paid', $this->functions()->date()->utc('U'));
                 endif;
 
@@ -413,6 +439,7 @@ class Order extends PostQueryItem implements OrderInterface
         } catch (Exception $e) {
             return false;
         }
+
         return true;
     }
 
@@ -429,7 +456,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function quantityProductCount()
     {
-        return (int) (new Collection($this->getItems('line_item')))->sum('quantity');
+        return (int)(new Collection($this->getItems('line_item')))->sum('quantity');
     }
 
     /**
@@ -439,19 +466,20 @@ class Order extends PostQueryItem implements OrderInterface
     {
         $this->attributes = array_merge($this->defaults, $this->attributes);
 
-        if (! $id = $this->getId()) :
+        if ( ! $id = $this->getId()) :
             return;
         endif;
 
-        foreach($this->metas_map as $attr_key => $meta_key) :
-            $this->set($attr_key, \get_post_meta($id, $meta_key, true) ? : $this->get($attr_key, Arr::get($this->defaults, $attr_key)));
+        foreach ($this->metas_map as $attr_key => $meta_key) :
+            $this->set($attr_key,
+                \get_post_meta($id, $meta_key, true) ?: $this->get($attr_key, Arr::get($this->defaults, $attr_key)));
         endforeach;
 
-        foreach(['billing', 'shipping'] as $address_type) :
-            if (!$address_data = $this->get($address_type, [])) :
+        foreach (['billing', 'shipping'] as $address_type) :
+            if ( ! $address_data = $this->get($address_type, [])) :
                 continue;
             endif;
-            foreach($address_data as $key => $value) :
+            foreach ($address_data as $key => $value) :
                 $this->set("{$address_type}.{$key}", \get_post_meta($id, "_{$address_type}_{$key}", true));
             endforeach;
         endforeach;
@@ -459,11 +487,12 @@ class Order extends PostQueryItem implements OrderInterface
         $this->set('parent_id', $this->getParentId());
         $this->set('date_created', $this->getDate(true));
         $this->set('date_modified', $this->getModified(true));
-        $this->set('status', $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
+        $this->set('status',
+            $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
         $this->set('customer_note', $this->getExcerpt(true));
 
         // Récupération de la liste des éléments associé à la commande, enregistré en base de donnée.
-        foreach($this->order_items->getCollection() as $item) :
+        foreach ($this->order_items->getCollection() as $item) :
             /** @var OrderItemTypeInterface $item */
             $this->items[$item->getType()][$item->getId()] = $item;
         endforeach;
@@ -475,7 +504,6 @@ class Order extends PostQueryItem implements OrderInterface
     public function save()
     {
         // Mise à jour des données de post
-        // @todo
         $post_data = [
             'ID'                => $this->getId(),
             'post_date'         => $this->functions()->date()->get(),
@@ -500,7 +528,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function saveItems()
     {
-        if (! $this->items) :
+        if ( ! $this->items) :
             return;
         endif;
 
@@ -517,14 +545,14 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function saveMetas()
     {
-        if (!$this->metas_map || ! $this->getId()) :
+        if ( ! $this->metas_map || ! $this->getId()) :
             return;
         endif;
 
         foreach ($this->metas_map as $attr_key => $meta_key) :
             $meta_value = $this->get($attr_key, '');
 
-            switch($attr_key) :
+            switch ($attr_key) :
                 case 'date_paid' :
                     \update_post_meta($this->getId(), $meta_key, ! is_null($meta_value) ? $meta_value : '');
                     break;
@@ -537,11 +565,11 @@ class Order extends PostQueryItem implements OrderInterface
             endswitch;
         endforeach;
 
-        foreach(['billing', 'shipping'] as $address_type) :
-            if (!$address_data = $this->get($address_type, [])) :
+        foreach (['billing', 'shipping'] as $address_type) :
+            if ( ! $address_data = $this->get($address_type, [])) :
                 continue;
             endif;
-            foreach($address_data as $key => $value) :
+            foreach ($address_data as $key => $value) :
                 \update_post_meta($this->getId(), "_{$address_type}_{$key}", $value);
             endforeach;
 
@@ -580,18 +608,17 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function updateStatus($new_status)
     {
-        if (! $this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) :
+        if ( ! $this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) :
             return false;
         endif;
 
         $this->set('status', $new_status);
-        // @todo status_transition
 
-        if (! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
+        if ( ! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) :
             $this->set('date_paid', $this->functions()->date()->utc('U'));
         endif;
 
-        if (! $this->get('date_completed') && $this->hasStatus('completed')) :
+        if ( ! $this->get('date_completed') && $this->hasStatus('completed')) :
             $this->set('date_completed', $this->functions()->date()->utc('U'));
         endif;
 

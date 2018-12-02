@@ -209,16 +209,16 @@ class Price implements FunctionsPriceInterface
      */
     public function html($price, $format = '')
     {
-        $currency = $this->settings()->get('currency', '');
+        $currency          = $this->settings()->get('currency', '');
         $currency_position = $this->settings()->get('currency_position');
-        $decimals = $this->settings()->decimalNumber();
-        $dec_point = $this->settings()->decimalSeparator();
-        $thousands_sep = $this->settings()->thousandSeparator();
+        $decimals          = $this->settings()->decimalNumber();
+        $dec_point         = $this->settings()->decimalSeparator();
+        $thousands_sep     = $this->settings()->thousandSeparator();
 
-        if (!$format) :
+        if ( ! $format) :
             $format = '%1$s';
             if ($currency) :
-                switch($currency_position) :
+                switch ($currency_position) :
                     default :
                     case 'right' :
                         $format .= '%2$s';
@@ -236,6 +236,10 @@ class Price implements FunctionsPriceInterface
             endif;
         endif;
 
-        return sprintf($format, \number_format($price, $decimals, $dec_point, $thousands_sep), $this->currencySymbol($currency));
+        return sprintf(
+            $format,
+            \number_format($price, $decimals, $dec_point, $thousands_sep),
+            $this->currencySymbol($currency)
+        );
     }
 }

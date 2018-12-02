@@ -116,7 +116,7 @@ class ListTable
      * @param string $column_name Identifiant de qualification de la colonne.
      * @param int $post_id Identifiant du contenu.
      *
-     * @return void
+     * @return string
      */
     public function columnFeatured($column_name, $post_id)
     {
@@ -133,7 +133,7 @@ class ListTable
      * @param string $column_name Identifiant de qualification de la colonne.
      * @param int $post_id Identifiant du contenu.
      *
-     * @return void
+     * @return string
      */
     public function columnPrice($column_name, $post_id)
     {
@@ -154,7 +154,7 @@ class ListTable
      * @param string $column_name Identifiant de qualification de la colonne.
      * @param int $post_id Identifiant du contenu.
      *
-     * @return void
+     * @return string
      */
     public function columnProductType($column_name, $post_id)
     {
@@ -179,11 +179,11 @@ class ListTable
      * @param string $column_name Identifiant de qualification de la colonne.
      * @param int $post_id Identifiant du contenu.
      *
-     * @return void
+     * @return string
      */
     public function columnSku($column_name, $post_id)
     {
-        return get_post_meta($post_id, '_sku', true);
+        return get_post_meta($post_id, '_sku', true) ? : '';
     }
 
     /**
@@ -192,7 +192,7 @@ class ListTable
      * @param string $column_name Identifiant de qualification de la colonne.
      * @param int $post_id Identifiant du contenu.
      *
-     * @return void
+     * @return string
      */
     public function columnThumbnail($column_name, $post_id)
     {

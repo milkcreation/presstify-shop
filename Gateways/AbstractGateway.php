@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use tiFy\Contracts\Kernel\Logger;
 use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\GatewayInterface;
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
@@ -219,7 +220,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     /**
      * {@inheritdoc}
      */
-    public function processPayment($order)
+    public function processPayment(OrderInterface $order)
     {
         return [];
     }

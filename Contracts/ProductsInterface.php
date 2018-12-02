@@ -11,7 +11,7 @@ interface ProductsInterface extends BootableControllerInterface, PostQuery, Shop
      *
      * @return array|ProductListInterface|ProductItemInterface[]
      */
-    public function getCollection($query_args = []);
+    public function getCollection($query_args = null);
 
     /**
      * {@inheritdoc}
@@ -53,7 +53,8 @@ interface ProductsInterface extends BootableControllerInterface, PostQuery, Shop
     /**
      * Récupération du nom d'affichage d'un type de produit
      *
-     * @param string $product_type Identifiant de qualification d'un type de produit permis. simple|grouped|external|variable.
+     * @param string $product_type Identifiant de qualification d'un type de produit permis.
+     * simple|grouped|external|variable.
      *
      * @return string
      */
@@ -62,7 +63,8 @@ interface ProductsInterface extends BootableControllerInterface, PostQuery, Shop
     /**
      * Récupération de l'icône représentative d'un type de produit
      *
-     * @param string $product_type Identifiant de qualification d'un type de produit permis. simple|grouped|external|variable.
+     * @param string $product_type Identifiant de qualification d'un type de produit permis.
+     * simple|grouped|external|variable.
      *
      * @return string
      */

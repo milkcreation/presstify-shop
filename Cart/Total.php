@@ -11,6 +11,7 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartTotalInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
@@ -48,7 +49,7 @@ class Total extends ParamsBag implements CartTotalInterface
     /**
      * CONSTRUCTEUR.
      *
-     * @param CartInterface $cart Instance de gestion des données des élements contenu dans le panier.
+     * @param Cart $cart Instance de gestion des données des élements contenu dans le panier.
      * @param Shop $shop Instance de la boutique.
      *
      * @return void

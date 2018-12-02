@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name Url
+ * @name \tiFy\Plugins\Shop\Functions\Url
  * @desc Controleur de récupération des urls de la boutique.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>

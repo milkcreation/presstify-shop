@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name OrderItemTypeCoupon
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCoupon
  * @desc Controleur d'une ligne d'un coupon de réduction associé à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>

@@ -10,7 +10,6 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use LogicException;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
 

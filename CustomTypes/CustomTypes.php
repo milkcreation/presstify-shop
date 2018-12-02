@@ -10,7 +10,6 @@
 
 namespace tiFy\Plugins\Shop\CustomTypes;
 
-use tiFy\Field\ToggleSwitch\ToggleSwitch;
 use tiFy\PostType\PostType;
 use tiFy\Taxonomy\Taxonomy;
 use tiFy\Plugins\Shop\AbstractShopSingleton;

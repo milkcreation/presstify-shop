@@ -9,6 +9,7 @@ interface FunctionsInterface extends BootableControllerInterface, ShopResolverIn
      *
      * @param string $time Date à traité. now par défaut.
      * @see http://php.net/manual/fr/class.datetime.php
+     * @param boolean $timezone
      *
      * @return FunctionsDateInterface
      */

@@ -11,6 +11,8 @@ use tiFy\Plugins\Shop\Addresses\Billing as AddressesBilling;
 use tiFy\Plugins\Shop\Addresses\FormHandler as AddressesFormHandler;
 use tiFy\Plugins\Shop\Addresses\Shipping as AddressesShipping;
 use tiFy\Plugins\Shop\Admin\Admin;
+use tiFy\Plugins\Shop\Api\Api;
+use tiFy\Plugins\Shop\Api\Orders\Orders as ApiOrders;
 use tiFy\Plugins\Shop\Cart\Cart;
 use tiFy\Plugins\Shop\Cart\Line as CartLine;
 use tiFy\Plugins\Shop\Cart\LineList as CartLineList;
@@ -97,6 +99,8 @@ class ShopServiceProvider extends AppServiceProvider
         'shop.addresses.form_handler'          => AddressesFormHandler::class,
         'shop.addresses.shipping'              => AddressesShipping::class,
         'shop.admin.controller'                => Admin::class,
+        'shop.api'                             => Api::class,
+        'shop.api.orders'                      => ApiOrders::class,
         'shop.cart.controller'                 => Cart::class,
         'shop.cart.line'                       => CartLine::class,
         'shop.cart.line_list'                  => CartLineList::class,
@@ -147,6 +151,7 @@ class ShopServiceProvider extends AppServiceProvider
         'shop.actions',
         'shop.addresses.controller',
         'shop.admin.controller',
+        'shop.api',
         'shop.cart.controller',
         'shop.checkout.controller',
         'shop.custom_types.controller',
@@ -306,6 +311,7 @@ class ShopServiceProvider extends AppServiceProvider
         endforeach;
 
         $bindings = [
+            ApiOrders::class,
             CartLine::class,
             CartLineList::class,
             CartTotal::class,
@@ -355,10 +361,6 @@ class ShopServiceProvider extends AppServiceProvider
     {
         return isset($this->customs[$abstract])
             ? $this->customs[$abstract]
-            : (
-            isset($this->aliases[$abstract])
-                ? $this->aliases[$abstract]
-                : $abstract
-            );
+            : ($this->aliases[$abstract] ?? $abstract);
     }
 }

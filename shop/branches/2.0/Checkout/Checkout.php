@@ -1,17 +1,5 @@
 <?php
 
-/**
- * @name Checkout
- * @desc Controleur de gestion des réglages de la boutique
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Checkout
- * @version 1.1
- * @since 1.2.600
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Checkout;
 
 use Illuminate\Support\Arr;
@@ -26,20 +14,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
      */
     public function boot()
     {
-        add_action(
-            'after_setup_tify',
-            function() {
-                // Ajout d'un produit au panier
-                router(
-                    'shop.checkout.process',
-                    [
-                        'method' => 'POST',
-                        'path'   => '/commander',
-                        'cb'     => [$this, 'process']
-                    ]
-                );
-            }
-        );
+
     }
 
     /**
@@ -78,8 +53,27 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                     ->set('taxes', [])
                     ->set('tax_class', '')
                     ->set('product_id', $product->getId())
+                    ->set('product_sku', $product->getSku())
                     ->set('product', $product->all())
                     ->set('variation_id', 0);
+
+                $purchasing_options = [];
+                foreach($line->get('purchasing_options', []) as $product_id => $opts) :
+                    if ($prod = $this->products()->getItem($product_id)) :
+                        $purchasing_options[$product_id] = [];
+                        foreach($opts as $name => $opt) :
+                            if ($po = $prod->getPurchasingOption($name)) :
+                                $po->setSelected($opt);
+                                $purchasing_options[$product_id][$po->getName()] = [
+                                    'selected'  => $opt,
+                                    'render'    => trim((string)$po->renderCartLine()),
+                                    'sku'       => $prod->getSku()
+                                ];
+                            endif;
+                        endforeach;
+                    endif;
+                endforeach;
+                $item->set('purchasing_options', $purchasing_options);
 
                 $order->addItem($item);
             endforeach;
@@ -363,6 +357,6 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
      */
     public function processUrl()
     {
-        return route('shop.checkout.process');
+        return $this->action('checkout.process');
     }
 }

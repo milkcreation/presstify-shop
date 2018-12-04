@@ -245,7 +245,7 @@ class Orders extends PostQuery implements OrdersInterface
     {
         return [
             'order-pending'    => [
-                'label'                     => _x('En attente de paiement', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('En attente de paiement', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -257,19 +257,19 @@ class Orders extends PostQuery implements OrdersInterface
                 ),
             ],
             'order-processing' => [
-                'label'                     => _x('En cours', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('En préparation', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
                 'show_in_admin_status_list' => true,
                 'label_count'               => _n_noop(
-                    'En cours <span class="count">(%s)</span>',
-                    'En cours <span class="count">(%s)</span>',
+                    'En préparation <span class="count">(%s)</span>',
+                    'En préparation <span class="count">(%s)</span>',
                     'tify'
                 ),
             ],
             'order-on-hold'    => [
-                'label'                     => _x('En attente', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('En attente', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -281,7 +281,7 @@ class Orders extends PostQuery implements OrdersInterface
                 ),
             ],
             'order-completed'  => [
-                'label'                     => _x('Terminée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Terminée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -293,7 +293,7 @@ class Orders extends PostQuery implements OrdersInterface
                 ),
             ],
             'order-cancelled'  => [
-                'label'                     => _x('Annulée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Annulée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -305,7 +305,7 @@ class Orders extends PostQuery implements OrdersInterface
                 ),
             ],
             'order-refunded'   => [
-                'label'                     => _x('Remboursée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Remboursée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -317,7 +317,7 @@ class Orders extends PostQuery implements OrdersInterface
                 ),
             ],
             'order-failed'     => [
-                'label'                     => _x('Echouée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Echouée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,

@@ -10,7 +10,7 @@
     "woocommerce"
   ],
   "homepage": "https://svn.milkcreation.fr/presstify-plugins/shop",
-  "time": "2018-12-01",
+  "time": "2018-12-04",
   "license": "proprietary",
   "authors": [
     {
@@ -27,6 +27,7 @@
   ],
   "require": {
     "composer/installers": "~1.0",
+    "league/fractal": "^0.17.0",
     "presstify/framework": ">=1.4"
   },
   "autoload": {

@@ -1,12 +1,8 @@
 <?php
 
 /**
- * @name AbstractOrderItemType
- * @desc Controleur d'un élément associé à une commande
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType
+ * @desc Controleur d'un élément associé à une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,21 +10,16 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use Illuminate\Support\Fluent;
-use tiFy\Plugins\Shop\Orders\OrderInterface;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Plugins\Shop\Contracts\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInterface, ProvideTraitsInterface
+abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeInterface
 {
-    use ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * Classe de rappel de la commande associée.
@@ -67,24 +58,24 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     /**
      * CONSTRUCTEUR.
      *
-     * @param int|OrderItemInterface $item Identifiant de qualification|Objet de données de l'élément enregistré en base.
-     * @param OrderInterface $order Classe de rappel de la commande associée.
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param int|OrderItemInterface $item Identifiant de qualification
+     * ou Objet de données de l'élément enregistré en base.
+     * @param OrderInterface $order Instance de la commande associée.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
     public function __construct($item = 0, OrderInterface $order, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
         parent::__construct($this->attributes);
 
-        if ($item instanceof OrderItem) :
+        if ($item instanceof OrderItemInterface) :
             $this->setDatas($item);
             $this->setMetas($item);
         elseif (is_numeric($item) && $item > 0) :
-            $item = $this->provide('orders.order_items', [$this->order, $this->shop])->get($item);
+            $item = app('shop.orders.order_items', [$this->order, $this->shop])->get($item);
             $this->setDatas($item);
             $this->setMetas($item);
         else :
@@ -93,63 +84,7 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     }
 
     /**
-     * Définition de la liste des données de l'élément enregistrées en base de données.
-     *
-     * @param OrderItemInterface $item Classe de rappel des données de l'élément en base.
-     *
-     * @return void
-     */
-    public function setDatas(OrderItemInterface $item)
-    {
-        foreach ($this->datas_map as $key => $data_key) :
-            $this->set($key, $item->get($data_key));
-        endforeach;
-    }
-
-    /**
-     * Définition de la liste des metadonnées de l'élément enregistrées en base de données.
-     *
-     * @param OrderItemInterface $item Classe de rappel des données de l'élément en base.
-     *
-     * @return void
-     */
-    public function setMetas(OrderItemInterface $item)
-    {
-        foreach ($this->metas_map as $key => $meta_key) :
-            $this->set($key, $item->getMeta($meta_key));
-        endforeach;
-    }
-
-    /**
-     * Définition de la valeur d'un attribut de l'élément.
-     *
-     * @param string $key Identifiant de qualification de l'attribut
-     * @param mixed $value Valeur de définition de l'attribut
-     *
-     * @return self
-     */
-    public function set($key, $value)
-    {
-        $this[$key] = $value;
-
-        return $this;
-    }
-
-    /**
-     * Récupération de la liste des attributs
-     *
-     * @return array
-     */
-    public function all()
-    {
-        return $this->getAttributes();
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification.
-     * @internal Identifiant de l'élément en base de données.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getId()
     {
@@ -157,9 +92,7 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     }
 
     /**
-     * Récupération de l'intitulé de qualification.
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function getName()
     {
@@ -167,29 +100,7 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     }
 
     /**
-     * Récupération du type d'élement associé à la commande.
-     *
-     * @return string
-     */
-    public function getType()
-    {
-        return (string)$this->get('type', '');
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification de la commande.
-     *
-     * @return int
-     */
-    public function getOrderId()
-    {
-        return (int)$this->get('order_id', 0);
-    }
-
-    /**
-     * Récupération de la classe de rappel de la commande associée.
-     *
-     * @return OrderInterface
+     * {@inheritdoc}
      */
     public function getOrder()
     {
@@ -197,11 +108,23 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     }
 
     /**
-     * Vérification de validité du type d'élement.
-     *
-     * @param string $type
-     *
-     * @return boolean
+     * {@inheritdoc}
+     */
+    public function getOrderId()
+    {
+        return (int)$this->get('order_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getType()
+    {
+        return (string)$this->get('type', '');
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isType($type)
     {
@@ -209,35 +132,31 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     }
 
     /**
-     * Enregistrement de l'élément.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function save()
     {
         $db = $this->orders()->getDb();
 
         if (
-            $id = $db->handle()->record(
-                [
-                    'order_item_id'   => $this->getId(),
-                    'order_item_name' => $this->getName(),
-                    'order_item_type' => $this->getType(),
-                    'order_id'        => $this->getOrderId()
-                ]
-            )
+        $id = $db->handle()->record(
+            [
+                'order_item_id'   => $this->getId(),
+                'order_item_name' => $this->getName(),
+                'order_item_type' => $this->getType(),
+                'order_id'        => $this->getOrderId()
+            ]
+        )
         ) :
             $this->set('id', $id);
             $this->saveMetas();
         endif;
 
-        return $this->id;
+        return $this->getId();
     }
 
     /**
-     * Enregistrement de la liste des métadonnées cartographiées.
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function saveMetas()
     {
@@ -251,22 +170,46 @@ abstract class AbstractOrderItemType extends Fluent implements OrderItemTypeInte
     }
 
     /**
-     * Enregistrement d'une métadonnée
-     *
-     * @param string $meta_key Clé d'identification de la métadonnée.
-     * @param mixed $meta_value Valeur de la métadonnée
-     * @param bool $unique Enregistrement unique d'une valeur pour la clé d'identification fournie.
-     *
-     * @return int Valeur de la clé primaire de la métadonnée enregistrée.
+     * {@inheritdoc}
      */
     public function saveMeta($meta_key, $meta_value, $unique = true)
     {
-        if (!$this->id) :
+        if (!$id = $this->getId()) :
             return 0;
         endif;
 
         $db = $this->orders()->getDb();
 
-        return $db->meta()->add($this->id, $meta_key, $meta_value);
+        return $db->meta()->add($id, $meta_key, $meta_value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function set($key, $value)
+    {
+        $this[$key] = $value;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setDatas(OrderItemInterface $item)
+    {
+        foreach ($this->datas_map as $key => $data_key) :
+            $this->set($key, $item->get($data_key));
+        endforeach;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setMetas(OrderItemInterface $item)
+    {
+        foreach ($this->metas_map as $key => $meta_key) :
+            $this->set($key, $item->getMeta($meta_key));
+        endforeach;
     }
 }

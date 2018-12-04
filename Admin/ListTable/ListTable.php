@@ -2,140 +2,213 @@
 
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
-use tiFy\Apps\AppController;
-use tiFy\Components\Columns\PostType\PostThumbnail;
-use tiFy\Column\Column;
+use tiFy\Contracts\Column\Column;
+use tiFy\Plugins\Shop\Contracts\ProductObjectType;
+use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
+use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Products\ObjectTypes\Factory as ObjectTypesFactory;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class ListTable extends AppController
+class ListTable
 {
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel d'un produit
-     * @var \tiFy\Plugins\Shop\Products\ObjectTypes\Categorized|\tiFy\Plugins\Shop\Products\ObjectTypes\Uncategorized
+     * Nom de qualification du type de post associé.
+     * @var string
+     */
+    private $objectName = '';
+
+    /**
+     * Instance du type de produit.
+     * @var Categorized|Uncategorized
      */
     private $objectType;
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param string $id Identifiant de qualification du type de post du produit
-     * @param array $attrs Attributs de configuration
+     * @param ProductObjectType $object_type Instance du type de produit.
+     * @param Shop $shop Attributs de configuration.
      *
      * @return void
      */
-    public function __construct(Shop $shop, ObjectTypesFactory $ObjectType)
+    public function __construct(ProductObjectType $object_type, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-        
-        $this->objectType = $ObjectType;
+        $this->objectType = $object_type;
+        $this->objectName = $this->objectType->getName();
 
-        // Définition des colonnes
-        Column::make('post_type', (string)$this->objectType)
+        /** @var Column $column */
+        $column = app('column');
+        $column
             ->add(
+                "{$this->objectName}@post_type",
                 'thumb',
-                new PostThumbnail(
-                    [
-                        'position'  => 1
-                    ]
-                )
-            )
-            ->add(
-                'sku',
                 [
-                    'title'     => __('UGS', 'tify'),
-                    'position'  => 3,
-                    'content'   => [$this, 'columnSku']
+                    'title'    => '<span class="dashicons dashicons-format-image"></span>',
+                    'position' => 1,
+                    'content'  => [$this, 'columnThumbnail'],
                 ]
             )
             ->add(
-                'price',
-                [
-                    'title'     => __('Prix', 'tify'),
-                    'position'  => 4,
-                    'content'   => [$this, 'columnPrice']
-                ]
-            )
-            ->add(
-                'featured',
-                [
-                    'title'     => "<span class=\"dashicons dashicons-star-half\"></span>",
-                    'position'  => 5,
-                    'content'   => [$this, 'columnFeatured']
-                ]
-            )
-            ->add(
+                "{$this->objectName}@post_type",
                 'product_type',
                 [
-                    'title'     => __('Type', 'tify'),
-                    'position'  => 6,
-                    'content'   => [$this, 'columnProductType']
+                    'title'    => __('Type', 'tify'),
+                    'position' => 2.1,
+                    'content'  => [$this, 'columnProductType'],
+                ]
+            )
+            ->add(
+                "{$this->objectName}@post_type",
+                'sku',
+                [
+                    'title'    => __('UGS', 'tify'),
+                    'position' => 2.2,
+                    'content'  => [$this, 'columnSku'],
+                ]
+            )
+            ->add(
+                "{$this->objectName}@post_type",
+                'price',
+                [
+                    'title'    => __('Prix', 'tify'),
+                    'position' => 2.3,
+                    'content'  => [$this, 'columnPrice'],
+                ]
+            )
+            ->add(
+                "{$this->objectName}@post_type",
+                'featured',
+                [
+                    'title'    => "<span class=\"dashicons dashicons-star-half\"></span>",
+                    'position' => 10,
+                    'content'  => [$this, 'columnFeatured'],
                 ]
             );
+
+        add_action(
+            'current_screen',
+            function (\WP_Screen $wp_screen) {
+                if ($wp_screen->id === "edit-{$this->objectName}") :
+                    add_action(
+                        'admin_enqueue_scripts',
+                        function () {
+                            partial('holder-image')->enqueue_scripts();
+
+                            wp_enqueue_style(
+                                'ShopAdminProductList',
+                                $this->resourcesUrl() . '/assets/css/admin-list.css',
+                                [],
+                                181103
+                            );
+                        }
+                    );
+                endif;
+            }
+        );
     }
 
     /**
-     * Contenu des éléments de la colonne "Unité de Gestion de Stock" (sku
+     * Contenu des éléments de la colonne "Mise en avant".
      *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
      *
-     * @return void
-     */
-    public function columnSku($column_name, $post_id)
-    {
-        echo get_post_meta($post_id, '_sku', true);
-    }
-
-    /**
-     * Contenu des éléments de la colonne "Prix"
-     *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
-     *
-     * @return void
-     */
-    public function columnPrice($column_name, $post_id)
-    {
-        echo get_post_meta($post_id, '_regular_price', true);
-    }
-
-    /**
-     * Contenu des éléments de la colonne "Mise en avant"
-     *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
-     *
-     * @return void
+     * @return string
      */
     public function columnFeatured($column_name, $post_id)
     {
-        $product = $this->shop->products()->get($post_id);
+        $product = $this->shop->products()->getItem($post_id);
 
-        echo $product->isFeatured()
+        return $product->isFeatured()
             ? "<span class=\"dashicons dashicons-star-filled\"></span>"
             : "<span class=\"dashicons dashicons-star-empty\"></span>";
     }
 
     /**
-     * Contenu des éléments de la colonne "Type de produit"
+     * Contenu des éléments de la colonne "Prix".
      *
-     * @param string $column_name Identifiant de qualification de la colonne
-     * @param int $post_id Identifiant du contenu
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
      *
-     * @return void
+     * @return string
+     */
+    public function columnPrice($column_name, $post_id)
+    {
+        $product = $this->products()->getItem($post_id);
+
+        if ($product->isProductType('composing')) :
+            return '<em>' . __('Non vendu séparément', 'tify') . '</em>';
+        else :
+            return ($price = $product->getRegularPrice())
+                ? $this->functions()->price()->html($price)
+                : '--';
+        endif;
+    }
+
+    /**
+     * Contenu des éléments de la colonne "Type de produit".
+     *
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
+     *
+     * @return string
      */
     public function columnProductType($column_name, $post_id)
     {
-        $product = $this->shop->products()->get($post_id);
+        $product = $this->products()->getItem($post_id);
 
-        echo $this->shop->products()->getProductTypeIcon($product->getProductType());
+        return (string) partial(
+            'tag',
+            [
+                'tag' => 'a',
+                'attrs' => [
+                    'href' => '#',
+                    'title' => $this->products()->getProductTypeDisplayName($product->getProductType())
+                ],
+                'content' => $this->products()->getProductTypeIcon($product->getProductType())
+            ]
+        );
+    }
+
+    /**
+     * Contenu des éléments de la colonne "Unité de Gestion de Stock" (sku).
+     *
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
+     *
+     * @return string
+     */
+    public function columnSku($column_name, $post_id)
+    {
+        return get_post_meta($post_id, '_sku', true) ? : '';
+    }
+
+    /**
+     * Contenu des éléments de la colonne "Unité de Gestion de Stock" (sku).
+     *
+     * @param string $column_name Identifiant de qualification de la colonne.
+     * @param int $post_id Identifiant du contenu.
+     *
+     * @return string
+     */
+    public function columnThumbnail($column_name, $post_id)
+    {
+        $product = $this->products()->getItem($post_id);
+
+        if ($thumb = $product->getThumbnail([80, 80])):
+        else :
+            $thumb = partial(
+                'holder-image',
+                [
+                    'width'  => 80,
+                    'height' => 80,
+                ]
+            );
+        endif;
+
+        return $thumb;
     }
 }

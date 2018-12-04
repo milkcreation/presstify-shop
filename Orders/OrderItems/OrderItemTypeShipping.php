@@ -1,12 +1,8 @@
 <?php
 
 /**
- * @name OrderItemShipping
- * @desc Controleur de la livraison associée aux articles d'une commande
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
+ * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShipping
+ * @desc Controleur de la livraison associée aux articles d'une commande.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
  * @copyright Milkcreation
@@ -14,12 +10,12 @@
 
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeShippingInterface;
+
 class OrderItemTypeShipping extends AbstractOrderItemType implements OrderItemTypeShippingInterface
 {
     /**
-     * Récupération du type d'élement associé à la commande.
-     *
-     * @return string shipping
+     * {@inheritdoc}
      */
     public function getType()
     {

@@ -21,6 +21,13 @@ interface OrderItemTypeProductInterface extends OrderItemTypeInterface
     public function getProductId();
 
     /**
+     * Récupération de la liste des options d'achat
+     *
+     * @return array
+     */
+    public function getPurchasingOptions();
+
+    /**
      * Récupération de la quantité d'article du produit associé.
      *
      * @return int

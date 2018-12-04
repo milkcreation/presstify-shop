@@ -320,7 +320,7 @@ class Products extends PostQuery implements ProductsInterface
     /**
      * {@inheritdoc}
      */
-    public function resolveItem($wp_post)
+    public function resolveItem(\WP_Post $wp_post)
     {
         $concrete = $this->getObjectType($wp_post->post_type)->getItemController();
 

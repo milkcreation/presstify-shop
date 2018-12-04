@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name ProductPurchasingOption
+ * @name \tiFy\Plugins\Shop\Products\ProductPurchasingOption
  * @desc Controleur de gestion d'une option d'achat.
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>
@@ -59,14 +59,6 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
             : $this->products()->getItem($product);
 
         parent::__construct($attrs);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __toString()
-    {
-        return (string)$this->render();
     }
 
     /**

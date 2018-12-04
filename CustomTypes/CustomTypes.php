@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @name CustomTypes
+ * @name \tiFy\Plugins\Shop\CustomTypes\CustomTypes
  * @desc Gestion des types de posts et taxonomies relatifs à la boutique (hors gamme de produits).
  *
  * @author Jordy Manner <jordy@tigreblanc.fr>

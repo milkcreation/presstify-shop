@@ -20,9 +20,14 @@ class Actions extends AbstractShopSingleton implements ActionsContract
      */
     public function boot()
     {
+        // Paiement - Traitement de la commande
+        $this->items['checkout.process'] = router()->post(
+            '/shop/checkout/process', [$this->checkout(), 'process']
+        );
+
         // Commandes - Validation de paiement
         $this->items['order.payment_complete'] = router()->post(
-            'shop/order/payment_complete/{order_id:number}',
+            '/shop/order/payment_complete/{order_id:number}',
             function ($order_id) {
                 if (is_user_logged_in() && ($user = $this->users()->getItem())) :
                     if($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) :

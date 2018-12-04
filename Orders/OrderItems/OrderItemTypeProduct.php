@@ -19,16 +19,18 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
      * @var array
      */
     protected $metas_map = [
-        'product_id'     => '_product_id',
-        'product'        => '_product',
-        'variation_id'   => '_variation_id',
-        'quantity'       => '_qty',
-        'tax_class'      => '_tax_class',
-        'subtotal'       => '_line_subtotal',
-        'subtotal_class' => '_line_subtotal_tax',
-        'total'          => '_line_total',
-        'total_tax'      => '_line_tax',
-        'taxes'          => '_line_tax_data'
+        'product_id'         => '_product_id',
+        'product_sku'        => '_product_sku',
+        'product'            => '_product',
+        'variation_id'       => '_variation_id',
+        'quantity'           => '_qty',
+        'tax_class'          => '_tax_class',
+        'subtotal'           => '_line_subtotal',
+        'subtotal_class'     => '_line_subtotal_tax',
+        'total'              => '_line_total',
+        'total_tax'          => '_line_tax',
+        'taxes'              => '_line_tax_data',
+        'purchasing_options' => '_purchasing_options'
     ];
 
     /**
@@ -68,6 +70,14 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     public function getProductId()
     {
         return (int)$this->get('product_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPurchasingOptions()
+    {
+        return $this->get('purchasing_options', []);
     }
 
     /**

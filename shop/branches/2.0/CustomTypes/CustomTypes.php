@@ -10,8 +10,6 @@
 
 namespace tiFy\Plugins\Shop\CustomTypes;
 
-use tiFy\PostType\PostType;
-use tiFy\Taxonomy\Taxonomy;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\CustomTypesInterface;
 
@@ -25,14 +23,11 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
         add_action(
             'init',
             function () {
-                /** @var Taxonomy $taxonomyController */
-                $taxonomyController = app(Taxonomy::class);
-
                 // Récupération de la liste des identifiant de qualification des gamme de produits déclarés.
                 $product_object_types = $this->products()->getObjectTypes();
 
                 // Type de produit
-                $taxonomyController->register(
+                taxonomy()->register(
                     'product_type',
                     [
                         'hierarchical'      => false,
@@ -47,7 +42,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 );
 
                 // Visibilité d'un produit
-                $taxonomyController->register(
+                taxonomy()->register(
                     'product_visibility',
                     [
                         'hierarchical'      => false,
@@ -62,7 +57,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 );
 
                 // Catégorie de produit
-                $taxonomyController->register(
+                taxonomy()->register(
                     'product_cat',
                     [
                         'hierarchical' => true,
@@ -73,7 +68,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 );
 
                 // Etiquette de produit
-                $taxonomyController->register(
+                taxonomy()->register(
                     'product_tag',
                     [
                         'hierarchical' => false,
@@ -86,14 +81,11 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 // Classes de livraison
                 // @todo
 
-                /** @var PostType $postTypeController */
-                $postTypeController = app(PostType::class);
-
                 // Produits
                 // @todo
 
                 // Variation de produits
-                $postTypeController->register(
+                post_type()->register(
                     'product_variation',
                     [
                         'plural'          => __('variations', 'tify'),
@@ -108,7 +100,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 );
 
                 // Commandes
-                $postTypeController->register(
+                post_type()->register(
                     'shop_order',
                     [
                         'plural'              => __('commandes', 'tify'),
@@ -131,7 +123,7 @@ class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
                 );
 
                 // Remboursements
-                $postTypeController->register(
+                post_type()->register(
                     'shop_order_refund',
                     [
                         'plural'          => __('remboursements', 'tify'),

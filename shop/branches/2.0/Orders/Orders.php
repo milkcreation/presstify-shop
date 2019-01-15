@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\Orders
- * @desc Controleur de gestion des commandes.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders;
 
 use Illuminate\Support\Arr;
@@ -20,6 +12,11 @@ use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Orders
+ *
+ * @desc Controleur de gestion des commandes.
+ */
 class Orders extends PostQuery implements OrdersInterface
 {
     use ShopResolverTrait;

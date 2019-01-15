@@ -1,19 +1,16 @@
 <?php
 
-/**
- * @name Page
- * @desc Controleur de récupération des contextes d'affichage des pages de la boutique.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\Contracts\FunctionsPageInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Page
+ *
+ * @desc Controleur de récupération des contextes d'affichage des pages de la boutique.
+ */
 class Page implements FunctionsPageInterface
 {
     use ShopResolverTrait;

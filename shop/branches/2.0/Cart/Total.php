@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name Total
- * @desc Gestion du calcul des totaux du panier d'achat.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Cart;
 
 use tiFy\Kernel\Params\ParamsBag;
@@ -16,6 +8,11 @@ use tiFy\Plugins\Shop\Contracts\CartTotalInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Total
+ *
+ * @desc Gestion du calcul des totaux du panier d'achat.
+ */
 class Total extends ParamsBag implements CartTotalInterface
 {
     use ShopResolverTrait;

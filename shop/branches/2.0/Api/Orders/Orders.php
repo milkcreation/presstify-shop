@@ -4,6 +4,7 @@ namespace tiFy\Plugins\Shop\Api\Orders;
 
 use Carbon\Carbon;
 use League\Fractal\Resource\Collection;
+use tiFy\Contracts\Kernel\Request;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Api\AbstractWpPosts;
@@ -32,7 +33,7 @@ class Orders extends AbstractWpPosts
     /**
      * {@inheritdoc}
      */
-    public function getItems($request)
+    public function getItems(Request $request)
     {
         $this->parse($request->all());
 

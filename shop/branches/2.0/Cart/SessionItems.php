@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name SessionItems
- * @desc Gestion des données des éléments du panier d'achat portées par la session.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
@@ -17,6 +9,11 @@ use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class SessionItems
+ *
+ * @desc Gestion des données des éléments du panier d'achat portées par la session.
+ */
 class SessionItems extends ParamsBag implements CartSessionItemsInterface
 {
     use ShopResolverTrait;

@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Functions\Url
- * @desc Controleur de récupération des urls de la boutique.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use League\Uri;
@@ -15,6 +7,11 @@ use tiFy\Plugins\Shop\Contracts\FunctionsUrlInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Url
+ *
+ * @desc Controleur de récupération des urls de la boutique.
+ */
 class Url implements FunctionsUrlInterface
 {
     use ShopResolverTrait;

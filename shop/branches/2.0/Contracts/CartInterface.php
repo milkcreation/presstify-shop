@@ -186,15 +186,14 @@ interface CartInterface extends BootableControllerInterface, ShopResolverInterfa
      * @param string $key Identifiant de qualification de la ligne
      * @param array $attributes Liste des attributs de la ligne
      *
-     * @return CartLineList
+     * @return CartLineListInterface
      */
     public function update($key, $attributes);
 
     /**
      * Url d'action de mise à jour des produits du panier d'achat
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
-     *
-     * @param null|int|\WP_Post|\tiFy\Plugins\Shop\Products\ProductItem $product Identification du produit. Produit de la page courante|Identifiant WP|Objet Post WP|Objet produit
+     * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
+     * de formulaire ayant pour attribut "method" POST.}
      *
      * @return string
      */

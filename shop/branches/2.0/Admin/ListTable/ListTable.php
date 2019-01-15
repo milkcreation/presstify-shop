@@ -95,7 +95,7 @@ class ListTable
                     add_action(
                         'admin_enqueue_scripts',
                         function () {
-                            partial('holder-image')->enqueue_scripts();
+                            partial('holder')->enqueue_scripts();
 
                             wp_enqueue_style(
                                 'ShopAdminProductList',
@@ -201,7 +201,7 @@ class ListTable
         if ($thumb = $product->getThumbnail([80, 80])):
         else :
             $thumb = partial(
-                'holder-image',
+                'holder',
                 [
                     'width'  => 80,
                     'height' => 80,

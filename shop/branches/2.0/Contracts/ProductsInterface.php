@@ -32,14 +32,14 @@ interface ProductsInterface extends BootableControllerInterface, PostQuery, Shop
      *
      * @param string $object_type Identifiant de qualification du type d'object (custom_post_type)
      *
-     * @return ObjectTypes\Categorized|ObjectTypes\Uncategorized
+     * @return ProductObjectType
      */
     public function getObjectType($object_type);
 
     /**
      * Récupération de la liste des classe de rappel des types d'objet
      *
-     * @return ObjectTypes\Categorized[]|ObjectTypes\Uncategorized[]
+     * @return ProductObjectType[]
      */
     public function getObjectTypeList();
 

@@ -2,23 +2,7 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Contracts\App\AppInterface;
-use tiFy\Plugins\Shop\Contracts\AddressesInterface;
-use tiFy\Plugins\Shop\Contracts\AdminInterface;
-use tiFy\Plugins\Shop\Contracts\CartInterface;
-use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
-use tiFy\Plugins\Shop\Contracts\CustomTypesInterface;
-use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
-use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
-use tiFy\Plugins\Shop\Contracts\NoticesInterface;
-use tiFy\Plugins\Shop\Contracts\OrdersInterface;
-use tiFy\Plugins\Shop\Contracts\ProductsInterface;
-use tiFy\Plugins\Shop\Contracts\SessionInterface;
-use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
-use tiFy\Plugins\Shop\Contracts\UsersInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
 
 abstract class AbstractShopSingleton implements ShopResolverInterface
 {
@@ -35,7 +19,7 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
      *
      * @param Shop $shop Classe de rappel de la boutique.
      *
-     * @return null
+     * @return void
      */
     protected function __construct(Shop $shop)
     {
@@ -45,7 +29,7 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return null
+     * @return void
      */
     private function __clone()
     {
@@ -55,7 +39,7 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return null
+     * @return void
      */
     private function __wakeup()
     {
@@ -72,10 +56,6 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
      */
     public static function make($alias, Shop $shop)
     {
-        if (isset(self::$instances[$alias])) :
-            return self::$instances[$alias];
-        endif;
-
-        return self::$instances[$alias] = new static($shop);
+        return self::$instances[$alias] = self::$instances[$alias] ?? new static($shop);
     }
 }

@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Products\ProductPurchasingOption
- * @desc Controleur de gestion d'une option d'achat.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Products;
 
 use Illuminate\Support\Arr;
@@ -17,6 +9,11 @@ use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption as ProductPurchasingOpti
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class ProductPurchasingOption
+ *
+ * @desc Controleur de gestion d'une option d'achat.
+ */
 class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOptionContract
 {
     use ShopResolverTrait;

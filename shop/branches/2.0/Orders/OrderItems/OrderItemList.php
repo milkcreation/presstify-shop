@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemList
- * @desc Controleur des éléments de commande en base de données.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use illuminate\Support\Collection;
@@ -16,6 +8,11 @@ use tiFy\Plugins\Shop\Contracts\OrderItemListInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class OrderItemList
+ *
+ * @desc Controleur des éléments de commande en base de données.
+ */
 class OrderItemList extends Collection implements OrderItemListInterface
 {
     use ShopResolverTrait;

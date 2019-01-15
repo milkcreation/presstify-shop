@@ -1,16 +1,7 @@
 <?php
 
-/**
- * @name Products
- * @desc Gestion des gammes de produits.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Products;
 
-use LogicException;
 use tiFy\PostType\Query\PostQuery;
 use tiFy\Plugins\Shop\Contracts\ProductsInterface;
 use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
@@ -18,6 +9,11 @@ use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Products
+ *
+ * @desc Gestion des gammes de produits.
+ */
 class Products extends PostQuery implements ProductsInterface
 {
     use ShopResolverTrait;
@@ -30,7 +26,7 @@ class Products extends PostQuery implements ProductsInterface
 
     /**
      * Liste des classes de rappel des gammes de produits déclarées.
-     * @var ObjectTypes\Categorized[]|ObjectTypes\Uncategorized[]
+     * @var Categorized[]|Uncategorized[]
      */
     private static $objectTypes = [];
 
@@ -47,7 +43,7 @@ class Products extends PostQuery implements ProductsInterface
      *
      * @param Shop $shop Classe de rappel de la boutique.
      *
-     * @return null
+     * @return void
      */
     protected function __construct(Shop $shop)
     {
@@ -57,7 +53,7 @@ class Products extends PostQuery implements ProductsInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return null
+     * @return void
      */
     private function __clone()
     {
@@ -67,7 +63,7 @@ class Products extends PostQuery implements ProductsInterface
     /**
      * Court-circuitage de l'implémentation.
      *
-     * @return null
+     * @return void
      */
     private function __wakeup()
     {
@@ -77,9 +73,10 @@ class Products extends PostQuery implements ProductsInterface
     /**
      * Instanciation de la classe.
      *
+     * @param string $alias
      * @param Shop $shop
      *
-     * @return AddressesInterface
+     * @return static
      */
     public static function make($alias, Shop $shop)
     {
@@ -172,9 +169,7 @@ class Products extends PostQuery implements ProductsInterface
      */
     public function getObjectType($object_type)
     {
-        if (isset(self::$objectTypes[$object_type])) :
-            return self::$objectTypes[$object_type];
-        endif;
+        return self::$objectTypes[$object_type] ?? null;
     }
 
     /**

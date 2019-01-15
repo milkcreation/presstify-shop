@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Users;
 
 use tiFy\Plugins\Shop\Contracts\UserCustomerInterface;
-use tiFy\Plugins\Shop\Orders\OrderListInterface;
+use tiFy\Plugins\Shop\Contracts\OrderListInterface;
 
 class Customer extends UserItem implements UserCustomerInterface
 {

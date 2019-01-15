@@ -7,13 +7,6 @@ use tiFy\Contracts\Kernel\ParamsBag;
 interface OrderItemTypeInterface extends ParamsBag
 {
     /**
-     * Récupération de la liste des attributs.
-     *
-     * @return array
-     */
-    public function all();
-
-    /**
      * Récupération de l'identifiant de qualification.
      * @internal Identifiant de l'élément en base de données.
      *
@@ -82,16 +75,6 @@ interface OrderItemTypeInterface extends ParamsBag
      * @return int Valeur de la clé primaire de la métadonnée enregistrée.
      */
     public function saveMeta($meta_key, $meta_value, $unique = true);
-
-    /**
-     * Définition de la valeur d'un attribut de l'élément.
-     *
-     * @param string $key Identifiant de qualification de l'attribut
-     * @param mixed $value Valeur de définition de l'attribut
-     *
-     * @return self
-     */
-    public function set($key, $value);
 
     /**
      * Définition de la liste des données de l'élément enregistrées en base de données.

@@ -1,23 +1,16 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Notices\Notices
- * @desc Gestion des messages de notification
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Notices
- * @version 1.1
- * @since 1.2.600
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Notices;
 
-use \LogicException;
+use LogicException;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\NoticesInterface;
 
+/**
+ * Class Notices
+ *
+ * @desc Gestion des messages de notification.
+ */
 class Notices extends AbstractShopSingleton implements NoticesInterface
 {
     /**

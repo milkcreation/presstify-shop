@@ -1,17 +1,14 @@
 <?php
 
-/**
- * @name Billing
- * @desc Gestion des adresses de facturation.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Plugins\Shop\Contracts\AddressBillingInterface;
 
+/**
+ * Class Billing
+ *
+ * @desc Gestion des adresses de facturation.
+ */
 class Billing extends AbstractAddress implements AddressBillingInterface
 {
     /**

@@ -1,19 +1,16 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Gateways\Gateways
- * @desc Gestion des plateformes de paiement.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Gateways;
 
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\GatewayListInterface;
 use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
 
+/**
+ * Class Gateways
+ *
+ * @desc Gestion des plateformes de paiement.
+ */
 class Gateways extends AbstractShopSingleton implements GatewaysInterface
 {
     /**

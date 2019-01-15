@@ -1,41 +1,27 @@
 <?php
 
-/**
- * @name Settings
- * @desc Controleur de gestion des réglages de la boutique
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Settings
- * @version 1.1
- * @since 1.2.596
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Settings;
 
-use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
-use tiFy\Apps\AppTrait;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterface
+/**
+ * @name Settings
+ *
+ * @desc Controleur de gestion des réglages de la boutique.
+ */
+class Settings extends ParamsBag implements SettingsInterface
 {
-    use AppTrait, ProvideTraits;
+    use ShopResolverTrait;
 
     /**
      * Instance de la classe.
-     * @var Settings
+     * @var static
      */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    protected static $instance;
 
     /**
      * Liste des réglages disponibles.
@@ -44,41 +30,58 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     protected $settings = [
         // Général > Adresse de la boutique
         'store_address', 'store_address_additionnal', 'store_city', 'store_postcode', 'store_country',
+
         // Général > Options générales
         'allowed_countries', 'shipping_countries', 'default_customer_address',
+
         // Général > Options devise
         'is_calc_taxes', 'currency', 'currency_position', 'thousand_separator', 'decimal_separator', 'decimal_number',
+
         // Produits - Général > Page de boutique
         'shop_page_id', 'cart_redirect_after_add', 'cart_enabled_list_add',
+
         // Produits - Général > Dimensions
         'weight_unit', 'dimension_unit',
+
         // Produits - Général > Avis
         // @todo
+
         // Produits - Inventaire
         'is_manage_stock', // @todo
+
         // Produits - Produits téléchargeable
         // @todo
+
         // TVA - Options TVA
         'prices_include_tax',
+
         // TVA - Taux standards
         // @todo
+
         // TVA - Taux réduit
         // @todo
+
         // TVA - Taux zéro
         // @todo
+
         // Expédition - Zone d'expédition
         // @todo
+
         // Expédition - Options de livraison
         'enable_shipping_calc', 'shipping_cost_requires_address', 'ship_to_destination', 'shipping_debug_mode',
+
         // Expédition - Classes de livraison
         // @todo
 
         // Commande - Options de commande > Processus de commande
         // @todo
+
         // Commande - Options de commande > Page de commande
         'cart_page_id', 'checkout_page_id', 'terms_page_id'
+
         // Commande - Options de commande > Terminaisons de commande
         // @todo
+
         // Commande - Options de commande > Passerelles de paiement
         // @todo
     ];
@@ -86,28 +89,31 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     /**
      * CONSTRUCTEUR.
      *
-     * @param array|object $attributes Liste des attributs de configuration.
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct($attributes = [], Shop $shop)
+    public function __construct(Shop $shop)
     {
+        $this->shop = $shop;
+        $attrs = $this->config('settings', []);
+
         foreach($this->settings as $setting) :
-            if (isset($attributes[$setting])) :
+            if (isset($attrs[$setting])) :
                 continue;
             endif;
+
             if ($value = get_option($setting)) :
-                $attributes[$setting] = $value;
+                $attrs[$setting] = $value;
             else :
                 $method = Str::camel($setting);
                 if (method_exists($this, $method)) :
-                    $attributes[$setting] = call_user_func([$this, $method]);
+                    $attrs[$setting] = call_user_func([$this, $method]);
                 endif;
             endif;
         endforeach;
 
-        parent::__construct($attributes);
+        parent::__construct($attrs);
     }
 
     /**
@@ -137,69 +143,25 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
      *
      * @return self
      */
-    public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
         endif;
 
-        return self::$instance = new self($shop->appConfig('settings', []), $shop);
+        return self::$instance = new self($shop);
     }
 
     /**
-     * Adresse de la boutique - ligne 1.
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function storeAddress()
+    public function boot()
     {
-        return $this->get('store_address', '');
+
     }
 
     /**
-     * Adresse de la boutique - ligne 2.
-     *
-     * @return string
-     */
-    public function storeAddressAdditionnal()
-    {
-        return $this->get('store_address_additionnal', '');
-    }
-
-    /**
-     * Ville de la boutique.
-     *
-     * @return string
-     */
-    public function storeCity()
-    {
-        return $this->get('store_city', '');
-    }
-
-    /**
-     * Code postal de la boutique.
-     *
-     * @return string
-     */
-    public function storePostcode()
-    {
-        return $this->get('store_postcode', '');
-    }
-
-    /**
-     * Pays de la boutique.
-     *
-     * @return string
-     */
-    public function storeCountry()
-    {
-        return $this->get('store_country', '');
-    }
-
-    /**
-     * Liste des pays de vente.
-     *
-     * @return string|array
+     * {@inheritdoc}
      */
     public function allowedCountries()
     {
@@ -207,139 +169,7 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Liste des pays de livraison.
-     *
-     * @return string|array
-     */
-    public function shippingCountries()
-    {
-        return $this->get('shipping_countries', 'all');
-    }
-
-    /**
-     * Adresse par défaut du client.
-     *
-     * @return string
-     */
-    public function defaultCustomerAddress()
-    {
-        return $this->get('default_customer_address', '');
-    }
-
-    /**
-     * Activation et calcul de la TVA.
-     *
-     * @return bool
-     */
-    public function isCalcTaxes()
-    {
-        return (bool)$this->get('is_calc_taxes', false);
-    }
-
-    /**
-     * Devise monétaire des tarifs.
-     *
-     * @return string
-     */
-    public function currency()
-    {
-        return $this->get('currency', 'EUR');
-    }
-
-    /**
-     * Position de la devise pour l'affichage des tarifs.
-     *
-     * @return string left|right|left_space|right_space
-     */
-    public function currencyPosition()
-    {
-        return in_array($this->get('currency_position'), ['right', 'left', 'right_space', 'left_space']) ? $this->get('currency_position') : 'right';
-    }
-
-    /**
-     * Séparateur des milliers.
-     *
-     * @return string
-     */
-    public function thousandSeparator()
-    {
-        return $this->get('thousand_separator', '');
-    }
-
-    /**
-     * Séparateur des décimales.
-     *
-     * @return string
-     */
-    public function decimalSeparator()
-    {
-        return $this->get('decimal_separator', ',');
-    }
-
-    /**
-     * Nombre de décimales.
-     *
-     * @return int
-     */
-    public function decimalNumber()
-    {
-        return (int)$this->get('decimal_number', 2);
-    }
-
-    /**
-     * Identifiant de qualification de la page d'affichage de l'accueil de la boutique.
-     *
-     * @return int
-     */
-    public function shopPageId()
-    {
-        return (int)$this->get('shop_page_id', 0);
-    }
-
-    /**
-     * Identifiant de qualification de la page d'affichage du panier.
-     *
-     * @return int
-     */
-    public function cartPageId()
-    {
-        return (int)$this->get('cart_page_id', 0);
-    }
-
-    /**
-     * Identifiant de qualification de la page de commande.
-     *
-     * @return int
-     */
-    public function checkoutPageId()
-    {
-        return (int)$this->get('checkout_page_id', 0);
-    }
-
-    /**
-     * Identifiant de qualification de la page des conditions générales de vente.
-     *
-     * @return int
-     */
-    public function termsPageId()
-    {
-        return (int)$this->get('terms_page_id', 0);
-    }
-
-    /**
-     * Redirection vers le panier après l'ajout d'un article.
-     *
-     * @return bool
-     */
-    public function cartRedirectAfterAdd()
-    {
-        return $this->get('cart_redirect_after_add', false);
-    }
-
-    /**
-     * Activation du bouton d'ajout au panier depuis les pages listes.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function cartEnableListAdd()
     {
@@ -347,19 +177,71 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Unité de poids.
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function weightUnit()
+    public function cartPageId()
     {
-        return $this->get('weight_unit', 'kg');
+        return (int)$this->get('cart_page_id', 0);
     }
 
     /**
-     * Unité de dimension.
-     *
-     * @return string
+     * {@inheritdoc}
+     */
+    public function cartRedirectAfterAdd()
+    {
+        return $this->get('cart_redirect_after_add', false);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function checkoutPageId()
+    {
+        return (int)$this->get('checkout_page_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function currency()
+    {
+        return $this->get('currency', 'EUR');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function currencyPosition()
+    {
+        return in_array($this->get('currency_position'), ['right', 'left', 'right_space', 'left_space']) ? $this->get('currency_position') : 'right';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function decimalNumber()
+    {
+        return (int)$this->get('decimal_number', 2);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function decimalSeparator()
+    {
+        return $this->get('decimal_separator', ',');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function defaultCustomerAddress()
+    {
+        return $this->get('default_customer_address', '');
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function dimensionUnit()
     {
@@ -367,9 +249,15 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Activation de la gestion des stocks.
-     *
-     * @return bool
+     * {@inheritdoc}
+     */
+    public function isCalcTaxes()
+    {
+        return (bool)$this->get('is_calc_taxes', false);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function isManageStock()
     {
@@ -377,9 +265,7 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Vérifie si les tarifs des produits saisie inclus la TVA (prix TTC ou HT).
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isPricesIncludeTax()
     {
@@ -387,9 +273,7 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Vérifie si le calculateur de frais du panier est actif.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isShippingCalcEnabled()
     {
@@ -397,9 +281,7 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Vérifie s'il faut masquer les frais de livraison tant qu'aucune adresse de livraison n'est renseignée.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isShippingCostRequiresAddress()
     {
@@ -407,9 +289,23 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Destination de livraison.
-     *
-     * @return string shipping|billing|billing_only
+     * {@inheritdoc}
+     */
+    public function isShippingDebugMode()
+    {
+        return (bool)$this->get('shipping_debug_mode', false);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function shippingCountries()
+    {
+        return $this->get('shipping_countries', 'all');
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function shipToDestination()
     {
@@ -417,12 +313,74 @@ class Settings extends Fluent implements SettingsInterface, ProvideTraitsInterfa
     }
 
     /**
-     * Activation du mode de débogage de la livraison.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function isShippingDebugMode()
+    public function shopPageId()
     {
-        return (bool)$this->get('shipping_debug_mode', false);
+        return (int)$this->get('shop_page_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storeAddress()
+    {
+        return $this->get('store_address', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storeAddressAdditionnal()
+    {
+        return $this->get('store_address_additionnal', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storeCity()
+    {
+        return $this->get('store_city', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storeCountry()
+    {
+        return $this->get('store_country', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storePostcode()
+    {
+        return $this->get('store_postcode', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function termsPageId()
+    {
+        return (int)$this->get('terms_page_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function thousandSeparator()
+    {
+        return $this->get('thousand_separator', '');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function weightUnit()
+    {
+        return $this->get('weight_unit', 'kg');
     }
 }

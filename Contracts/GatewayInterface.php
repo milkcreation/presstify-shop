@@ -14,13 +14,6 @@ interface GatewayInterface extends ParamsBag
     public function checkoutPaymentForm();
 
     /**
-     * Récupération de la liste attributs de configuration par défaut.
-     *
-     * @return array
-     */
-    public function defaults();
-
-    /**
      * Récupération de l'intitulé de qualification.
      *
      * @return string

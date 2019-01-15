@@ -1,18 +1,15 @@
 <?php
 
-/**
- * @name Functions
- * @desc Controleur de gestion des fonctions utiles.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
 
+/**
+ * Class Functions
+ *
+ * @desc Controleur de gestion des fonctions utiles.
+ */
 class Functions extends AbstractShopSingleton implements FunctionsInterface
 {
     /**

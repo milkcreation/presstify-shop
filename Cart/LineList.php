@@ -1,19 +1,16 @@
 <?php
 
-/**
- * @name LineList
- * @desc Controleur de récupération des données de la liste des lignes du panier d'achat.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Collection;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
 
+/**
+ * Class LineList
+ *
+ * @desc Controleur de récupération des données de la liste des lignes du panier d'achat.
+ */
 class LineList extends Collection implements CartLineListInterface
 {
     /**

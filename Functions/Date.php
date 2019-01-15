@@ -1,14 +1,5 @@
 <?php
 
-/**
- * @name Date
- * @desc Controleur de gestion de dates
- * @namespace \tiFy\Plugins\Shop\Functions
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use DateTime;
@@ -17,6 +8,11 @@ use tiFy\Plugins\Shop\Contracts\FunctionsDateInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Date
+ *
+ * @desc Controleur de gestion de dates.
+ */
 class Date extends DateTime implements FunctionsDateInterface
 {
     use ShopResolverTrait;

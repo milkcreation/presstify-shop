@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name ProductItem
- * @desc Controleur de récupération des données d'un produit.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Products;
 
 use tiFy\PostType\Query\PostQueryItem;
@@ -17,6 +9,11 @@ use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class ProductItem
+ *
+ * @desc Controleur de récupération des données d'un produit.
+ */
 class ProductItem extends PostQueryItem implements ProductItemInterface
 {
     use ShopResolverTrait;

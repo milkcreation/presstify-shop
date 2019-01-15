@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItem
- * @desc Controleur d'un élément de commande en base de données.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use tiFy\Kernel\Params\ParamsBag;
@@ -15,6 +7,11 @@ use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class OrderItem
+ *
+ * @desc Controleur d'un élément de commande en base de données.
+ */
 class OrderItem extends ParamsBag implements OrderItemInterface
 {
     use ShopResolverTrait;

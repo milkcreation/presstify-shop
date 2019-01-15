@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Session\Session
- * @desc Gestion des données portées par la session.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Session;
 
 use tiFy\Contracts\User\SessionManager;
@@ -17,7 +9,8 @@ use tiFy\Plugins\Shop\Contracts\SessionInterface;
 
 /**
  * Class Session
- * @package tiFy\Plugins\Shop\Session
+ *
+ * @desc Gestion des données portées par la session.
  *
  * @mixin SessionStore
  */
@@ -55,6 +48,8 @@ class Session extends AbstractShopSingleton implements SessionInterface
         if (method_exists($this->store, $name)) :
             return call_user_func_array([$this->store, $name], $args);
         endif;
+
+        return null;
     }
 
     /**

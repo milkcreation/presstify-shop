@@ -1,17 +1,14 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProduct
- * @desc Controleur d'une ligne d'article associée à une commande.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 
+/**
+ * Class OrderItemTypeProduct
+ *
+ * @desc Controleur d'une ligne d'article associée à une commande.
+ */
 class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
     /**

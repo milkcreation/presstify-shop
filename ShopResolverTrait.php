@@ -9,7 +9,7 @@ use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
 use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
-use tiFy\Plugins\Shop\Contracts\GatewayInterface;
+use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
 use tiFy\Plugins\Shop\Contracts\ProductsInterface;
 use tiFy\Plugins\Shop\Contracts\NoticesInterface;
@@ -89,7 +89,7 @@ trait ShopResolverTrait
     /**
      * {@inheritdoc}
      *
-     * @return GatewayInterface
+     * @return GatewaysInterface
      */
     public function gateways()
     {

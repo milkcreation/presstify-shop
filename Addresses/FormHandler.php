@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name FormHandler
- * @desc Traitement des formulaires d'adresses.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Contracts\Form\FactoryRequest;
@@ -18,6 +10,10 @@ use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class FormHandler
+ * @desc Traitement des formulaires d'adresses.
+ */
 class FormHandler extends AddonController implements AddressFormHandlerInterface
 {
     use ShopResolverTrait;

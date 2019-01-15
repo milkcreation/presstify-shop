@@ -6,7 +6,6 @@ use tiFy\View\ViewController;
 
 /**
  * Class ShopViewController
- * ---------------------------------------------------------------------------------------------------------------------
  */
 class ShopViewController extends ViewController
 {
@@ -32,5 +31,7 @@ class ShopViewController extends ViewController
                 $arguments
             );
         endif;
+
+        return null;
     }
 }

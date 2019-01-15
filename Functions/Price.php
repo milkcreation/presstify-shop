@@ -1,19 +1,16 @@
 <?php
 
-/**
- * @name Price
- * @desc Controleur de gestion des tarifs de la boutique.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\Contracts\FunctionsPriceInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Price
+ *
+ * @desc Controleur de gestion des tarifs de la boutique.
+ */
 class Price implements FunctionsPriceInterface
 {
     use ShopResolverTrait;

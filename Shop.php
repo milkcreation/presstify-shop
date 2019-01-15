@@ -6,16 +6,12 @@
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package presstify-plugins/shop
  * @namespace \tiFy\Plugins\Shop
- * @version 2.0.15
+ * @version 2.0.16
  */
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Contracts\App\AppInterface;
-use tiFy\Contracts\Container\ContainerInterface;
 use tiFy\Plugins\Shop\Contracts\ShopInterface;
-use tiFy\Plugins\Shop\ShopResolverTrait;
-
 
 /**
  * Class Shop

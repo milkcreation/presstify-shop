@@ -1,18 +1,15 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Gateways\Cheque\Cheque
- * @desc Plateforme de paiement par chèque.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Gateways\Cheque;
 
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Gateways\AbstractGateway;
 
+/**
+ * Class Cheque
+ *
+ * @desc Plateforme de paiement par chèque.
+ */
 class Cheque extends AbstractGateway
 {
     /**

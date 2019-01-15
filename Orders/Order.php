@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\Order
- * @desc Controleur de commande.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders;
 
 use Exception;
@@ -23,6 +15,11 @@ use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 use WP_Post;
 
+/**
+ * Class Order
+ *
+ * @desc Controleur de commande.
+ */
 class Order extends PostQueryItem implements OrderInterface
 {
     use ShopResolverTrait;
@@ -195,14 +192,6 @@ class Order extends PostQueryItem implements OrderInterface
 
         $count       = isset($this->items[$type]) ? count($this->items[$type]) : 0;
         $this->items = Arr::add($this->items, $type . '.new:' . $type . $count, $item);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function all()
-    {
-        return $this->toArray();
     }
 
     /**
@@ -575,16 +564,6 @@ class Order extends PostQueryItem implements OrderInterface
 
             \update_post_meta($this->getId(), "_{$address_type}_address_index", implode(' ', $address_data));
         endforeach;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function set($key, $value)
-    {
-        Arr::set($this->attributes, $key, $value);
-
-        return $this;
     }
 
     /**

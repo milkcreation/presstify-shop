@@ -15,6 +15,9 @@ class UserItem extends UserQueryItem implements UserItemInterface
     /**
      * CONSTRUCTEUR.
      *
+     * @param WP_User $user
+     * @param Shop $shop
+     *
      * @return void
      */
     public function __construct(WP_User $user, Shop $shop)

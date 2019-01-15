@@ -3,8 +3,6 @@
 namespace tiFy\Plugins\Shop;
 
 use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
 
 abstract class AbstractShopBinding implements ShopResolverInterface
 {

@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Gateways\GatewayList
- * @desc Gestion de la liste des plateformes de paiement déclarées.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Collection;
@@ -16,6 +8,11 @@ use tiFy\Plugins\Shop\Contracts\GatewayListInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class GatewayList
+ *
+ * @desc Gestion de la liste des plateformes de paiement déclarées.
+ */
 class GatewayList implements GatewayListInterface
 {
     use ShopResolverTrait;

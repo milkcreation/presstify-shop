@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\OrderItems\AbstractOrderItemType
- * @desc Controleur d'un élément associé à une commande.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
 use tiFy\Kernel\Params\ParamsBag;
@@ -17,6 +9,11 @@ use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class AbstractOrderItemType
+ *
+ * @desc Controleur d'un élément associé à une commande.
+ */
 abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeInterface
 {
     use ShopResolverTrait;
@@ -181,16 +178,6 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
         $db = $this->orders()->getDb();
 
         return $db->meta()->add($id, $meta_key, $meta_value);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function set($key, $value)
-    {
-        $this[$key] = $value;
-
-        return $this;
     }
 
     /**

@@ -28,13 +28,6 @@ interface OrderInterface extends PostQueryItem
     public function addItem($item);
 
     /**
-     * Récupération de la liste des attributs.
-     *
-     * @return array
-     */
-    public function all();
-
-    /**
      *
      */
     public function create();
@@ -253,16 +246,6 @@ interface OrderInterface extends PostQueryItem
      * @return void
      */
     public function saveMetas();
-
-    /**
-     * Définition d'un attribut.
-     *
-     * @param string $key Identifiant de qualification déclaré.
-     * @param mixed $value Valeur de définition de l'attribut.
-     *
-     * @return $this
-     */
-    public function set($key, $value);
 
     /**
      * Définition d'un attribut de l'adresse de facturation.

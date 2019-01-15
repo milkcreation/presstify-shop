@@ -60,6 +60,7 @@ class Users extends UserQuery implements UsersInterface
     /**
      * Instanciation de la classe.
      *
+     * @param string $alias
      * @param Shop $shop
      *
      * @return Users

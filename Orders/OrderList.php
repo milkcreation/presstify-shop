@@ -1,21 +1,17 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Orders\OrderList
- * @desc Controleur de liste des commandes.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders;
 
 use tiFy\PostType\Query\PostQueryCollection;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderListInterface;
-use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class OrderList
+ *
+ * @desc Controleur de liste des commandes.
+ */
 class OrderList extends PostQueryCollection implements OrderListInterface
 {
     use ShopResolverTrait;

@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name Cart
- * @desc Gestion du panier d'achat.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
@@ -18,6 +10,11 @@ use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
 use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
 use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
 
+/**
+ * Class Cart
+ *
+ * @desc Gestion du panier d'achat.
+ */
 class Cart extends AbstractShopSingleton implements CartInterface
 {
     /**

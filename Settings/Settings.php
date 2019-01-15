@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name Settings
- * @desc Controleur de gestion des réglages de la boutique.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Settings;
 
 use Illuminate\Support\Str;
@@ -16,6 +8,11 @@ use tiFy\Plugins\Shop\Contracts\SettingsInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * @name Settings
+ *
+ * @desc Controleur de gestion des réglages de la boutique.
+ */
 class Settings extends ParamsBag implements SettingsInterface
 {
     use ShopResolverTrait;

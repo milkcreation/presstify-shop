@@ -1,13 +1,5 @@
 <?php
 
-/**
- * @name Line
- * @desc Controleur de récupération des données d'une ligne d'article dans le panier d'achat.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Cart;
 
 use tiFy\Kernel\Params\ParamsBag;
@@ -16,6 +8,11 @@ use tiFy\Plugins\Shop\Contracts\CartLineInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class Line
+ *
+ * @desc Controleur de récupération des données d'une ligne d'article dans le panier d'achat.
+ */
 class Line extends ParamsBag implements CartLineInterface
 {
     use ShopResolverTrait;

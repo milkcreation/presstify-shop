@@ -2,10 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Products\ObjectType;
 
-use Illuminate\Support\Arr;
 use tiFy\Kernel\Params\ParamsBag;
-use tiFy\PostType\PostType;
-use tiFy\PostType\Metadata\Post as MetadataPost;
 use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Products\ProductItem;
 use tiFy\Plugins\Shop\Shop;
@@ -56,11 +53,8 @@ abstract class AbstractObjectType extends ParamsBag implements ProductObjectType
             '_grouped_products', '_composition_products'
         ];
 
-        /** @var MetadataPost $postMetaController */
-        $postMetaController = app(MetadataPost::class);
-
         foreach ($single_meta_keys as $single_meta_key) :
-            $postMetaController->register($this->getName(), $single_meta_key, true);
+            post_type()->post_meta()->register($this->getName(), $single_meta_key, true);
         endforeach;
     }
 
@@ -84,10 +78,7 @@ abstract class AbstractObjectType extends ParamsBag implements ProductObjectType
         add_action(
             'init',
             function () {
-                /** @var PostType $postTypeController */
-                $postTypeController = app(PostType::class);
-
-                $postTypeController->register(
+                post_type()->register(
                     $this->getName(),
                     $this->all()
                 );

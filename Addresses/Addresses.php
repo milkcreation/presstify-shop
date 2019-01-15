@@ -1,19 +1,16 @@
 <?php
 
-/**
- * @name Addresses
- * @desc Gestion des adresses : livraison|facturation|pays
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Shop;
 
+/**
+ * Class Addresses
+ *
+ * @desc Gestion des adresses : livraison|facturation|pays
+ */
 class Addresses extends AbstractShopSingleton implements AddressesInterface
 {
     /**

@@ -7,14 +7,14 @@ use Illuminate\Support\Arr;
 use League\Fractal\Manager as DataManager;
 use League\Fractal\Resource\Collection;
 use tiFy\Contracts\Kernel\QueryCollection;
-use tiFy\Kernel\Http\Request;
-use tiFy\Kernel\Params\ParamsBagTrait;
+use tiFy\Contracts\Kernel\Request;
+use tiFy\Kernel\Params\ParamsBag;
 use tiFy\Plugins\Shop\Api\FractalArraySerializer as DataSerializer;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class AbstractWpPosts
+class AbstractWpPosts extends ParamsBag
 {
-    use ParamsBagTrait, ShopResolverTrait;
+    use ShopResolverTrait;
 
     /**
      * Instance du gestionnaire de données.
@@ -63,6 +63,8 @@ class AbstractWpPosts
     public function __construct()
     {
         $this->manager = (new DataManager())->setSerializer(new DataSerializer());
+
+        parent::__construct();
     }
 
     /**
@@ -110,7 +112,7 @@ class AbstractWpPosts
      *
      * @return array|QueryCollection
      */
-    public function getItems($request)
+    public function getItems(Request $request)
     {
         $this->parse($request->all());
 

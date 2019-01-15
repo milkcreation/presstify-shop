@@ -1,17 +1,14 @@
 <?php
 
-/**
- * @name \tiFy\Plugins\Shop\Gateways\CashOnDelivery\CashOnDelivery
- * @desc Plateforme de paiement à la livraison.
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Gateways\CashOnDelivery;
 
 use tiFy\Plugins\Shop\Gateways\AbstractGateway;
 
+/**
+ * Class CashOnDelivery
+ *
+ * @desc Plateforme de paiement à la livraison.
+ */
 class CashOnDelivery extends AbstractGateway
 {
     /**

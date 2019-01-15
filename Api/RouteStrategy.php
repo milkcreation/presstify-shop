@@ -13,29 +13,29 @@ class RouteStrategy extends JsonStrategy
     /**
      * {@inheritdoc}
      */
-    public function invokeRouteCallable(Route $route, ServerRequestInterface $request) : ResponseInterface
+    public function invokeRouteCallable(Route $route, ServerRequestInterface $request): ResponseInterface
     {
         /** @var RouteContract $route */
         $route->setCurrent();
 
-	    $controller = $route->getCallable($this->getContainer());
+        $controller = $route->getCallable($this->getContainer());
 
-	    $resolved = call_user_func_array($controller, $route->getVars());
+        $resolved = call_user_func_array($controller, $route->getVars());
 
-	    if ($this->isJsonEncodable($resolved)) :
-		    $body = json_encode($resolved['body']);
+        if ($this->isJsonEncodable($resolved)) :
+            $body = json_encode($resolved['body']);
 
-	        $response = $this->responseFactory->createResponse(200);
+            $response = $this->responseFactory->createResponse(200);
 
-		    foreach($resolved['headers'] as $name => $value) :
+            foreach ($resolved['headers'] as $name => $value) :
                 $this->addDefaultResponseHeader("x-{$name}", $value);
-		    endforeach;
+            endforeach;
 
-		    $response->getBody()->write($body);
-	    endif;
+            $response->getBody()->write($body);
+        endif;
 
-	    $response = $this->applyDefaultResponseHeaders($response);
+        $response = $this->applyDefaultResponseHeaders($response);
 
-	    return $response;
+        return $response;
     }
 }

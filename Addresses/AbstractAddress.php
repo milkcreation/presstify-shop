@@ -41,7 +41,7 @@ abstract class AbstractAddress implements AddressInterface
     /**
      * CONSTRUCTEUR.
      *
-     * @param AddressesInterface $address Instance de la classe de gestion des adresses.
+     * @param AddressesInterface $addresses Instance de la classe de gestion des adresses.
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
@@ -78,7 +78,7 @@ abstract class AbstractAddress implements AddressInterface
 
                 $attrs['addons']['shop.addresses.form_handler'] = ['controller' => $this];
 
-                form()->add('ShopFormAddress-' . $this->getId(), $attrs);
+                form()->register('ShopFormAddress-' . $this->getId(), $attrs);
             }
         );
     }

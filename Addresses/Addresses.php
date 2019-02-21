@@ -1,198 +1,50 @@
 <?php
 
-/**
- * @name Addresses
- * @desc Gestion des adresses : livraison|facturation|pays
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Address
- * @version 1.1
- * @since 1.2.600
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Addresses;
 
-use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Form\Addons\AddonsController;
+use tiFy\Plugins\Shop\AbstractShopSingleton;
+use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Shop;
 
-class Addresses extends AppController implements AddressesInterface
+/**
+ * Class Addresses
+ *
+ * @desc Gestion des adresses : livraison|facturation|pays
+ */
+class Addresses extends AbstractShopSingleton implements AddressesInterface
 {
     /**
-     * Instance de la classe
-     * @var AddressesInterface
+     * {@inheritdoc}
      */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Classe de rappel de gestion de l'adresse de facturation
-     * @var BillingInterface
-     */
-    protected $billing;
-
-    /**
-     * Classe de rappel de gestion de l'adresse de livraison
-     * @var ShippingInterface
-     */
-    protected $shipping;
-
-    /**
-     * CONSTRUCTEUR
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
+    public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
-
-        $this->appAddAction('tify_form_addon_register');
+        parent::__construct($shop);
     }
 
     /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    private function __clone()
+    public function boot()
     {
+        form()->addonRegister(
+            'shop.addresses.form_handler',
+            app('shop.addresses.form_handler', [$this->shop])
+        );
 
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe
-     *
-     * @param Shop $shop
-     *
-     * @return AddressesInterface
-     */
-    public static function make(Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        self::$instance = new self($shop);
-
-        if(! self::$instance instanceof AddressesInterface) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge devrait être une instance de %s', 'tify'),
-                    AddressesInterface::class
-                ),
-                500
-            );
-        endif;
-
-        return self::$instance;
-    }
-
-    /**
-     * Déclaration de l'addon de traitement des formulaire.
-     *
-     * @param AddonsController $addonsController Classe de rappel de gestion des addons de formulaire.
-     *
-     * @return void
-     */
-    final public function tify_form_addon_register($addonsController)
-    {
         $this->billing();
         $this->shipping();
-
-        $form_handler_class = $this->shop->provider()->getMapController('addresses.form_handler');
-        if(! in_array(FormHandlerInterface::class, class_implements($form_handler_class))) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
-                    FormHandlerInterface::class
-                ),
-                500
-            );
-        endif;
-
-        $addonsController->register(
-            'tify_shop_address_form_handler',
-            $form_handler_class,
-            $this->shop
-        );
     }
 
     /**
-     * Récupération du controleur de gestion de l'adresse de facturation
-     *
-     * @return BillingInterface
-     *
-     * @throw LogicException
+     * {@inheritdoc}
      */
-    final public function billing()
+    public function billing()
     {
-        if ($this->billing) :
-            return $this->billing;
-        endif;
-
-        $this->billing = $this->shop->provide('addresses.billing');
-        if(! $this->billing instanceof BillingInterface) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
-                    BillingInterface::class
-                ),
-                500
-            );
-        endif;
-
-        return $this->billing;
+        return app('shop.addresses.billing', [$this, $this->shop]);
     }
 
     /**
-     * Récupération du controleur de gestion de l'adresse de livraison
-     *
-     * @return ShippingInterface
-     */
-    final public function shipping()
-    {
-        if ($this->shipping) :
-            return $this->shipping;
-        endif;
-
-        $this->shipping = $this->shop->provide('addresses.shipping');
-        if(! $this->shipping instanceof ShippingInterface) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit implémenter %s', 'tify'),
-                    ShippingInterface::class
-                ),
-                500
-            );
-        endif;
-
-        return $this->shipping;
-    }
-
-    /**
-     * Définition des champs de formulaire par défaut
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function defaultFields()
     {
@@ -279,5 +131,13 @@ class Addresses extends AppController implements AddressesInterface
                 'order'        => 90,
             ]
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function shipping()
+    {
+        return app('shop.addresses.shipping', [$this, $this->shop]);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\Db\DbItemInterface;
+use tiFy\Contracts\Db\DbFactory;
 use tiFy\Contracts\PostType\PostQuery;
 
 interface OrdersInterface extends BootableControllerInterface, PostQuery, ShopResolverInterface
@@ -26,7 +26,7 @@ interface OrdersInterface extends BootableControllerInterface, PostQuery, ShopRe
     /**
      * Récupération du controleur de base de données.
      *
-     * @return null|DbItemInterface
+     * @return null|DbFactory
      */
     public function getDb();
 

@@ -4,13 +4,13 @@ namespace tiFy\Plugins\Shop\Orders;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use tiFy\Db\Db;
-use tiFy\Contracts\Db\DbItemInterface;
+use tiFy\Contracts\Db\DbFactory;
 use tiFy\PostType\Query\PostQuery;
 use tiFy\Plugins\Shop\Contracts\OrdersInterface;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
+use WP_Post;
 
 /**
  * Class Orders
@@ -29,7 +29,7 @@ class Orders extends PostQuery implements OrdersInterface
 
     /**
      * Classe de rappel de la base de données
-     * @var DbItemInterface
+     * @var DbFactory
      */
     protected $db;
 
@@ -99,9 +99,7 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function boot()
     {
-        /** @var Db $db */
-        $db = app('db');
-        $db->add(
+        db()->register(
             'shop.order.items',
             [
                 'install'    => true,
@@ -171,16 +169,11 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function getDb()
     {
-        if ($this->db instanceof DbItemInterface) :
+        if ($this->db instanceof DbFactory) :
             return $this->db;
         else :
-            /** @var Db $db */
-            $db = app('db');
-
-            return $this->db = $db->get('shop.order.items');
+            return $this->db = db()->get('shop.order.items');
         endif;
-
-        return null;
     }
 
     /**
@@ -406,10 +399,12 @@ class Orders extends PostQuery implements OrdersInterface
             endif;
         endif;
 
-        if ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) :
-            if (($order = $this->orders()->getItem($order_awaiting_payment)) && ! $order->hasStatus($this->getNotEmptyCartStatus())) :
-                $this->cart()->destroy();
-            endif;
+        if (
+            ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) &&
+            ($order = $this->orders()->getItem($order_awaiting_payment)) &&
+            ! $order->hasStatus($this->getNotEmptyCartStatus())
+        ) :
+            $this->cart()->destroy();
         endif;
     }
 
@@ -424,7 +419,7 @@ class Orders extends PostQuery implements OrdersInterface
     /**
      * {@inheritdoc}
      */
-    public function resolveItem(\WP_Post $wp_post)
+    public function resolveItem(WP_Post $wp_post)
     {
         return app('shop.orders.order', [$wp_post, $this->shop]);
     }

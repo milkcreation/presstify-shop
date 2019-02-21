@@ -13,7 +13,7 @@ abstract class AbstractShopBinding implements ShopResolverInterface
      *
      * @param Shop $shop Classe de rappel de la boutique.
      *
-     * @return null
+     * @return void
      */
     public function __construct(Shop $shop)
     {

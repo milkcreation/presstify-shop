@@ -213,7 +213,8 @@ class Settings extends ParamsBag implements SettingsInterface
      */
     public function currencyPosition()
     {
-        return in_array($this->get('currency_position'), ['right', 'left', 'right_space', 'left_space']) ? $this->get('currency_position') : 'right';
+        return in_array($this->get('currency_position'), ['right', 'left', 'right_space', 'left_space'])
+            ? $this->get('currency_position') : 'right';
     }
 
     /**

@@ -7,6 +7,7 @@ use League\Route\Route;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use tiFy\Contracts\Routing\Route as RouteContract;
+use Zend\Diactoros\Response;
 
 class RouteStrategy extends JsonStrategy
 {
@@ -34,7 +35,7 @@ class RouteStrategy extends JsonStrategy
             $response->getBody()->write($body);
         endif;
 
-        $response = $this->applyDefaultResponseHeaders($response);
+        $response = $this->applyDefaultResponseHeaders($response ?? new Response());
 
         return $response;
     }

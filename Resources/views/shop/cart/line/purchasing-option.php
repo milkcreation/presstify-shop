@@ -8,5 +8,4 @@
  * @var tiFy\Plugins\Shop\Contracts\ProductPurchasingOption $option
  */
 ?>
-
 <?php echo $option->getLabel(); ?> : <?php echo $option->getValue(); ?>

@@ -73,7 +73,7 @@ class Date extends DateTime implements FunctionsDateInterface
      */
     public function utc($format = null)
     {
-        return (new self(null, false, $this->shop))
+        return (new static(null, false, $this->shop))
             ->setTimestamp($this->getTimestamp())
             ->format($format ? : self::SQL);
     }

@@ -4,9 +4,6 @@ namespace tiFy\Plugins\Shop;
 
 use tiFy\View\ViewController;
 
-/**
- * Class ShopViewController
- */
 class ShopViewController extends ViewController
 {
     /**

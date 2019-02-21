@@ -24,12 +24,9 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
      */
     public function boot()
     {
-        add_action(
-            'wp_loaded',
-            function() {
-                $this->notices = $this->session()->get('notices', []);
-            }
-        );
+        add_action('wp_loaded', function() {
+            $this->notices = $this->session()->get('notices', []);
+        });
     }
 
     /**

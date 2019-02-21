@@ -8,6 +8,7 @@ use tiFy\Plugins\Shop\Contracts\ProductObjectType;
 use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
+use WP_Post;
 
 /**
  * Class ProductItem
@@ -33,12 +34,12 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
     /**
      * CONSTRUCTEUR
      *
-     * @param \WP_Post $wp_post
+     * @param WP_Post $wp_post
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(\WP_Post $wp_post, Shop $shop)
+    public function __construct(WP_Post $wp_post, Shop $shop)
     {
         $this->shop = $shop;
 

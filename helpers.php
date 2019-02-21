@@ -215,9 +215,6 @@ if (!function_exists('shop_signin')) :
     /**
      * Récupération de l'authentification à la boutique.
      *
-     * @param string $key Identifiant de qualification de l'option
-     * @param string $default Valeur de retour par défaut
-     *
      * @return tiFy\Contracts\User\UserSignInItemInterface
      */
     function shop_signin()

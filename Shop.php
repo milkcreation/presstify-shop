@@ -1,21 +1,16 @@
 <?php
 
-/**
- * @name Shop
- * @desc Extension PresstiFy de gestion de boutique en ligne.
- * @author Jordy Manner <jordy@milkcreation.fr>
- * @package presstify-plugins/shop
- * @namespace \tiFy\Plugins\Shop
- * @version 2.0.16
- */
-
 namespace tiFy\Plugins\Shop;
 
 use tiFy\Plugins\Shop\Contracts\ShopInterface;
 
 /**
  * Class Shop
+ *
+ * @desc Extension PresstiFy de gestion de boutique en ligne.
+ * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
+ * @version 2.0.17
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------

@@ -27,12 +27,9 @@ class Session extends AbstractShopSingleton implements SessionInterface
      */
     public function boot()
     {
-        events()->listen(
-            'user.session.register',
-            function (SessionManager $session) {
-                $this->store = $session->register('tify_shop');
-            }
-        );
+        events()->listen('user.session.register', function (SessionManager $session) {
+            $this->store = $session->register('tify_shop');
+        });
     }
 
     /**

@@ -35,4 +35,17 @@ class ProductList extends PostQueryCollection implements ProductListInterface
 
         parent::__construct($items);
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param \WP_Post $post
+     * @param int $key Clé d'indice de l'élément.
+     *
+     * @return ProductItem
+     */
+    public function wrap($post, $key = null)
+    {
+        return $this->items[$key] = app('shop.products.item', [$post, $this->shop]);
+    }
 }

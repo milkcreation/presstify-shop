@@ -35,4 +35,17 @@ class OrderList extends PostQueryCollection implements OrderListInterface
 
         parent::__construct($items);
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param \WP_Post $post
+     * @param int $key Clé d'indice de l'élément.
+     *
+     * @return OrderInterface
+     */
+    public function wrap($post, $key = null)
+    {
+        return $this->items[$key] = app('shop.orders.order', [$post, $this->shop]);
+    }
 }

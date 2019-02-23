@@ -7,7 +7,7 @@ use tiFy\Contracts\Form\FormFactory;
 use tiFy\Form\AddonController;
 use tiFy\Plugins\Shop\Contracts\AddressInterface;
 use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Contracts\ShopInterface;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
 /**
@@ -21,27 +21,22 @@ class FormHandler extends AddonController implements AddressFormHandlerInterface
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Instance de la boutique.
+     * @param string $name Nom de qualification.
+     * @param array $attrs Liste des attributs de configuration.
+     * @param FormFactory $form Formulaire associé.
+     * @param ShopInterface $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct($name, $attrs, FormFactory $form, ShopInterface $shop)
     {
         $this->shop = $shop;
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function __invoke($name, $attrs = [], FormFactory $form)
-    {
         parent::__construct($name, $attrs, $form);
-
-        return $this;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function boot()
     {
@@ -49,7 +44,7 @@ class FormHandler extends AddonController implements AddressFormHandlerInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function onRequestSubmit(FactoryRequest $request)
     {

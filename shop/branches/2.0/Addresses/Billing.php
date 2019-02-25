@@ -12,7 +12,7 @@ use tiFy\Plugins\Shop\Contracts\AddressBillingInterface;
 class Billing extends AbstractAddress implements AddressBillingInterface
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function fields()
     {

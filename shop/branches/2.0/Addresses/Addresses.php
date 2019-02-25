@@ -4,6 +4,7 @@ namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
+use tiFy\Plugins\Shop\Shop;
 
 /**
  * Class Addresses
@@ -13,20 +14,29 @@ use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 class Addresses extends AbstractShopSingleton implements AddressesInterface
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     */
+    public function __construct(Shop $shop)
+    {
+        parent::__construct($shop);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function boot()
     {
-        form()->addonRegister('shop.addresses.form_handler', function($name, $attrs, $form) {
-            return app('shop.addresses.form_handler', [$name, $attrs, $form, $this->shop]);
-        });
+        form()->addonRegister(
+            'shop.addresses.form_handler',
+            app('shop.addresses.form_handler', [$this->shop])
+        );
 
         $this->billing();
         $this->shipping();
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function billing()
     {
@@ -34,7 +44,7 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function defaultFields()
     {
@@ -124,7 +134,7 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function shipping()
     {

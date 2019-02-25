@@ -1,33 +1,21 @@
 <?php
 
-/**
- * @name Date
- * @desc Controleur de gestion de dates
- * @namespace \tiFy\Plugins\Shop\Functions
- * @package presstify-plugins/shop
- * @version 1.0.2
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use DateTime;
 use DateTimeZone;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\Contracts\FunctionsDateInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Date extends DateTime implements DateInterface, ProvideTraitsInterface
+/**
+ * Class Date
+ *
+ * @desc Controleur de gestion de dates.
+ */
+class Date extends DateTime implements FunctionsDateInterface
 {
-    use ProvideTraits;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * Format de date MySql
@@ -36,20 +24,20 @@ class Date extends DateTime implements DateInterface, ProvideTraitsInterface
     const SQL = 'Y-m-d H:i:s';
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
      * @param string $time
      * @param bool|string|DateTimeZone $timezone
-     * @param Shop $shop
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
+     *
+     * @throws \Exception
      */
     public function __construct($time = 'now', $timezone = true, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Définition de la zone géographique
         if ($timezone instanceof DateTimeZone) :
         elseif ($timezone === true) :
             $timezone = new DateTimeZone(\get_option('timezone_string'));
@@ -73,11 +61,7 @@ class Date extends DateTime implements DateInterface, ProvideTraitsInterface
     }
 
     /**
-     * Récupération de la date.
-     *
-     * @param string $format Format d'affichage de la date. MySQL par default
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function get($format = null)
     {
@@ -85,15 +69,11 @@ class Date extends DateTime implements DateInterface, ProvideTraitsInterface
     }
 
     /**
-     * Récupération de la date basé sur le temps universel
-     *
-     * @param string $format Format d'affichage de la date. MySQL par default
-     *
-     * @return string
+     * {@inheritdoc}
      */
     public function utc($format = null)
     {
-        return (new self(null, false, $this->shop))
+        return (new static(null, false, $this->shop))
             ->setTimestamp($this->getTimestamp())
             ->format($format ? : self::SQL);
     }

@@ -35,4 +35,14 @@ class OrderList extends PostQueryCollection implements OrderListInterface
 
         parent::__construct($items);
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return OrderInterface
+     */
+    public function wrap($post, $key = null)
+    {
+        return $this->items[$key] = app('shop.orders.order', [$post, $this->shop]);
+    }
 }

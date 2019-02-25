@@ -88,6 +88,14 @@ class Total extends ParamsBag implements CartTotalInterface
     /**
      * {@inheritdoc}
      */
+    public function __toString()
+    {
+        return (string) $this->getGlobal();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getDiscountTax()
     {
         return (float)$this->get('discount_tax', 0);
@@ -211,13 +219,5 @@ class Total extends ParamsBag implements CartTotalInterface
     public function getShippingTotal()
     {
         return (float)$this->get('shipping_total', 0);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __toString()
-    {
-        return (string) $this->getGlobal();
     }
 }

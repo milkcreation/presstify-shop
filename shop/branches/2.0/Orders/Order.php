@@ -25,18 +25,6 @@ class Order extends PostQueryItem implements OrderInterface
     use ShopResolverTrait;
 
     /**
-     * Classe de rappel de traitement de la liste des éléments associés à la commande.
-     * @var OrderItems
-     */
-    protected $order_items;
-
-    /**
-     * Liste des éléments associés à la commande.
-     * @var array
-     */
-    protected $items = [];
-
-    /**
      * Liste des données de commande par défaut.
      *
      * @var array
@@ -97,6 +85,12 @@ class Order extends PostQueryItem implements OrderInterface
     ];
 
     /**
+     * Liste des éléments associés à la commande.
+     * @var array
+     */
+    protected $items = [];
+
+    /**
      * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
      * @var array
      */
@@ -122,6 +116,18 @@ class Order extends PostQueryItem implements OrderInterface
         'version'              => '_order_version',
         'prices_include_tax'   => '_prices_include_tax',
     ];
+
+    /**
+     * Classe de rappel de traitement de la liste des éléments associés à la commande.
+     * @var OrderItems
+     */
+    protected $order_items;
+
+    /**
+     * Identifiant de qualification de la transaction.
+     * @return string
+     */
+    protected $transaction_id = '';
 
     /**
      * CONSTRUCTEUR.
@@ -460,8 +466,10 @@ class Order extends PostQueryItem implements OrderInterface
         endif;
 
         foreach ($this->metas_map as $attr_key => $meta_key) :
-            $this->set($attr_key,
-                \get_post_meta($id, $meta_key, true) ?: $this->get($attr_key, Arr::get($this->defaults, $attr_key)));
+            $this->set(
+                $attr_key,
+                get_post_meta($id, $meta_key, true) ?: $this->get($attr_key, Arr::get($this->defaults, $attr_key))
+            );
         endforeach;
 
         foreach (['billing', 'shipping'] as $address_type) :

@@ -169,7 +169,7 @@ class Edit
                 [
                     'name'     => 'product-type',
                     'value'    => $product->getProductType(),
-                    'options'  => $product_type_options
+                    'choices'  => $product_type_options
                 ]
             );
         else :
@@ -177,7 +177,7 @@ class Edit
                 'hidden',
                 [
                     'name'    => 'product-type',
-                    'options' => 'simple'
+                    'choices' => 'simple'
                 ]
             );
         endif;

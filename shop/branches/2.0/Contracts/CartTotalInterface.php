@@ -7,6 +7,13 @@ use tiFy\Contracts\Kernel\ParamsBag;
 interface CartTotalInterface extends ParamsBag
 {
     /**
+     * Récupération du montant total global.
+     *
+     * @return float
+     */
+    public function __toString();
+
+    /**
      * Récupération de la taxe appliquée au montant de la remise.
      *
      * @return float

@@ -192,6 +192,9 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         // Méthode de paiement
         $this->session()->put('chosen_payment_method', $data['payment_method']);
 
+        // DEBUG - données de session
+        // var_dump($this->session()->all());
+
         // Vérification de l'intégrité des données soumises par le formulaire de paiement
         // Données de facturation
         $fieldset_errors = [];

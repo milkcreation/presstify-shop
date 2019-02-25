@@ -51,36 +51,33 @@ abstract class AbstractAddress implements AddressInterface
         $this->shop = $shop;
         $this->addresses = $addresses;
 
-        add_action(
-            'init',
-            function () {
-                $this->user = $this->shop->users()->getItem();
+        add_action('init', function () {
+            $this->user = $this->shop->users()->getItem();
 
-                /**
-                 * Traitement de la liste des champs.
-                 * {@internal Ajout du préfixe aux identifiants de champ et récupération de la valeur.}
-                 */
-                $attrs = $this->formAttrs();
-                foreach ($attrs['fields'] as $slug => &$fattrs) :
-                    if (!isset($fattrs['name'])) :
-                        $fattrs['name'] = $this->getId() . '_' . $slug;
-                    endif;
+            /**
+             * Traitement de la liste des champs.
+             * {@internal Ajout du préfixe aux identifiants de champ et récupération de la valeur.}
+             */
+            $attrs = $this->formAttrs();
+            foreach ($attrs['fields'] as $slug => &$fattrs) :
+                if (!isset($fattrs['name'])) :
+                    $fattrs['name'] = $this->getId() . '_' . $slug;
+                endif;
 
-                    if (!isset($fattrs['value'])) :
-                        $method = 'get' . $this->getId() . Str::studly($slug);
-                        $fattrs['value'] = $this->shop->session()->get($this->getId() . '.' . $slug)
-                            ?: (method_exists($this->user, $method)
-                                ? call_user_func([$this->user, $method])
-                                : ''
-                            );
-                    endif;
-                endforeach;
+                if (!isset($fattrs['value'])) :
+                    $method = 'get' . $this->getId() . Str::studly($slug);
+                    $fattrs['value'] = $this->shop->session()->get($this->getId() . '.' . $slug)
+                        ?: (method_exists($this->user, $method)
+                            ? call_user_func([$this->user, $method])
+                            : ''
+                        );
+                endif;
+            endforeach;
 
-                $attrs['addons']['shop.addresses.form_handler'] = ['controller' => $this];
+            $attrs['addons']['shop.addresses.form_handler'] = ['controller' => $this];
 
-                form()->register('ShopFormAddress-' . $this->getId(), $attrs);
-            }
-        );
+            form()->register('ShopFormAddress-' . $this->getId(), $attrs);
+        });
     }
 
     /**

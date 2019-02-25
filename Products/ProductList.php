@@ -35,4 +35,14 @@ class ProductList extends PostQueryCollection implements ProductListInterface
 
         parent::__construct($items);
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return ProductItemInterface
+     */
+    public function wrap($post, $key = null)
+    {
+        return $this->items[$key] = app('shop.products.item', [$post, $this->shop]);
+    }
 }

@@ -8,6 +8,8 @@ use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
 use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
+use WP_Post;
+use WP_Screen;
 
 class Edit
 {
@@ -39,48 +41,40 @@ class Edit
         $this->objectType = $object_type;
         $this->objectName = $this->objectType->getName();
 
-        add_action(
-            'current_screen',
-            function (\WP_Screen $wp_screen)
-            {
-                if ($wp_screen->id !== (string)$this->objectName) :
-                    return;
-                endif;
+        add_action('current_screen', function (WP_Screen $wp_screen) {
+            if ($wp_screen->id !== (string)$this->objectName) :
+                return;
+            endif;
 
-                add_action(
-                    'admin_enqueue_scripts',
-                    function() {
-                        field('select-js')->enqueue_scripts();
-                        field('toggle-switch')->enqueue_scripts();
+            add_action('admin_enqueue_scripts', function() {
+                field('select-js')->enqueue_scripts();
+                field('toggle-switch')->enqueue_scripts();
 
-                        wp_enqueue_script(
-                            'ShopAdminProductEdit',
-                            $this->resourcesUrl() . '/assets/js/admin-edit.js',
-                            ['jquery'],
-                            171219,
-                            true
-                        );
-
-                        wp_enqueue_style(
-                            'ShopAdminProductEdit',
-                            $this->resourcesUrl() . '/assets/css/admin-edit.css',
-                            [],
-                            171219
-                        );
-                    }
+                wp_enqueue_script(
+                    'ShopAdminProductEdit',
+                    $this->resourcesUrl() . '/assets/js/admin-edit.js',
+                    ['jquery'],
+                    171219,
+                    true
                 );
-            }
-        );
+
+                wp_enqueue_style(
+                    'ShopAdminProductEdit',
+                    $this->resourcesUrl() . '/assets/css/admin-edit.css',
+                    [],
+                    171219
+                );
+            });
+        });
 
         /** @var MetaboxManager $metabox */
         $metabox = resolve('metabox');
 
-        $metabox->tab(
-            [
-                'title' => [$this, 'panelHeader'],
-            ],
-            "{$this->objectType}@post_type"
-        );
+        $metabox->tab([
+            'title' => function (WP_Post $post) {
+                return $this->panelHeader($post);
+            },
+        ], "{$this->objectType}@post_type");
 
         // Définition des onglets de saisie par défaut
         $default_tabs = [
@@ -146,19 +140,19 @@ class Edit
     /**
      * Titre du panneau de saisie
      *
-     * @param \WP_Post $post
+     * @param WP_Post $post
      *
      * @return string
      */
     public function panelHeader($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         $product_type_selector = '';
         if ($product_types = $product->getProductTypes()) :
             $product_type_options = [];
             foreach ($product_types as $product_type) :
-                $product_type_options[$product_type] = $this->shop
+                $product_type_options[$product_type] = $this->shop()
                     ->products()
                     ->getProductTypeDisplayName($product_type);
             endforeach;
@@ -188,13 +182,13 @@ class Edit
     /**
      * Saisie des options générales
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function generalPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/general', compact('post', 'product'));
     }
@@ -202,13 +196,13 @@ class Edit
     /**
      * Saisie des données d'inventaire
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function inventoryPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/inventory', compact('post', 'product'));
     }
@@ -216,13 +210,13 @@ class Edit
     /**
      * Saisie des données de livraison
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function shippingPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/shipping', compact('post', 'product'));
     }
@@ -230,13 +224,13 @@ class Edit
     /**
      * Saisie des données de produits liés
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function linkedPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/linked', compact('post', 'product'));
     }
@@ -244,13 +238,13 @@ class Edit
     /**
      * Saisie des données d'attributs
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function attributesPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/attributes', compact('post', 'product'));
     }
@@ -258,13 +252,13 @@ class Edit
     /**
      * Saisie des données de variations
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function variationsPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/variations', compact('post', 'product'));
     }
@@ -272,13 +266,13 @@ class Edit
     /**
      * Saisie des données de advanced
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
     public function advancedPanel($post)
     {
-        $product = $this->shop->products()->getItem($post);
+        $product = $this->products()->getItem($post);
 
         return $this->viewer('admin/edit/advanced', compact('post', 'product'));
     }

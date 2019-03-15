@@ -114,7 +114,7 @@ class Orders extends AbstractWpPosts
      *
      * @return array
      */
-    public function setItem($item)
+    public function setItem(OrderInterface $item)
     {
         $lines = new Collection($item->getItems('line_item'), [$this, 'setLineItem']);
 
@@ -150,7 +150,7 @@ class Orders extends AbstractWpPosts
      *
      * @return array
      */
-    public function setLineItem($item)
+    public function setLineItem(OrderItemTypeProductInterface $item)
     {
         return [
             'id'                 => $item->getId(),

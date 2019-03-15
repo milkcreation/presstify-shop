@@ -13,7 +13,7 @@ use tiFy\Plugins\Shop\Contracts\AdminInterface;
 class Admin extends AbstractShopSingleton implements AdminInterface
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function boot()
     {

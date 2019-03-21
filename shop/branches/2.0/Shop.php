@@ -10,7 +10,7 @@ use tiFy\Plugins\Shop\Contracts\ShopInterface;
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.20
+ * @version 2.0.21
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------

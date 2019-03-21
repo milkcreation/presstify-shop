@@ -3,8 +3,6 @@
 namespace tiFy\Plugins\Shop\Users;
 
 use tiFy\User\Query\UserQuery;
-use tiFy\User\Role\Role;
-use tiFy\User\SignIn\SignIn;
 use tiFy\Plugins\Shop\Contracts\UsersInterface;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
@@ -79,15 +77,11 @@ class Users extends UserQuery implements UsersInterface
      */
     public function boot()
     {
-        /** @var Role $role */
-        $role = app('user.role');
         foreach ($this->config('roles', []) as $name => $attrs) :
-            $role->add($name, $attrs);
+            user()->role()->register($name, $attrs);
         endforeach;
 
-        /** @var SignIn $signIn */
-        $signIn = app('user.signin');
-        $signIn->add('shop', $this->config('signin', []));
+        user()->signin()->register('shop', $this->config('signin', []));
     }
 
     /**
@@ -139,9 +133,6 @@ class Users extends UserQuery implements UsersInterface
      */
     public function signin()
     {
-        /** @var SignIn $signIn */
-        $signIn = app('user.signin');
-
-        return $signIn->get('shop');
+        return user()->signin()->get('shop');
     }
 }

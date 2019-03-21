@@ -2,7 +2,8 @@
 
 namespace tiFy\Plugins\Shop\Session;
 
-use tiFy\Contracts\User\SessionManager;
+use BadMethodCallException;
+use Exception;
 use tiFy\Contracts\User\SessionStore;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\SessionInterface;
@@ -27,29 +28,26 @@ class Session extends AbstractShopSingleton implements SessionInterface
      */
     public function boot()
     {
-        events()->listen(
-            'user.session.register',
-            function (SessionManager $session) {
-                $this->store = $session->register('tify_shop');
-            }
-        );
+        $this->store = user()->session()->register('tify_shop')->get('tify_shop');
     }
 
     /**
-     * Appel des dynamique des méthodes.
+     * Délégation d'appel des méthodes du controleur de données de session associé.
      *
-     * @param string $name
-     * @param array $args
+     * @param string $name Nom de la méthode à appeler.
+     * @param array $arguments Liste des variables passées en argument.
      *
      * @return mixed
+     *
+     * @throws BadMethodCallException
      */
-    public function __call($name, $args)
+    public function __call($name, $arguments)
     {
-        if (method_exists($this->store, $name)) :
-            return call_user_func_array([$this->store, $name], $args);
-        endif;
-
-        return null;
+        try {
+            return $this->store->$name(...$arguments);
+        } catch (Exception $e) {
+            throw new BadMethodCallException(sprintf(__('La méthode %s n\'est pas disponible.', 'tify'), $name));
+        }
     }
 
     /**

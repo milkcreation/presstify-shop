@@ -73,7 +73,7 @@ class Users extends UserQuery implements UsersInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function boot()
     {
@@ -81,11 +81,13 @@ class Users extends UserQuery implements UsersInterface
             user()->role()->register($name, $attrs);
         endforeach;
 
-        user()->signin()->register('shop', $this->config('signin', []));
+        add_action('after_setup_tify', function () {
+            user()->signin()->register('shop', $this->config('signin', []));
+        });
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function current()
     {
@@ -109,7 +111,7 @@ class Users extends UserQuery implements UsersInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getItem($user = null)
     {
@@ -129,7 +131,7 @@ class Users extends UserQuery implements UsersInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function signin()
     {

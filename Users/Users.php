@@ -81,9 +81,7 @@ class Users extends UserQuery implements UsersInterface
             user()->role()->register($name, $attrs);
         endforeach;
 
-        add_action('after_setup_tify', function () {
-            user()->signin()->register('shop', $this->config('signin', []));
-        });
+        user()->signin()->register('shop', $this->config('signin', []));
     }
 
     /**

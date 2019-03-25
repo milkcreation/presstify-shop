@@ -2,6 +2,18 @@
 
 use tiFy\Plugins\Shop\Shop;
 
+if (!function_exists('shop')) {
+    /**
+     * Récupération de l'instance de la boutique
+     *
+     * @return string
+     */
+    function shop(): ?Shop {
+        return app()->get('shop');
+    }
+}
+
+
 if (!function_exists('shop_action')) :
     /**
      * Récupération de l'url d'une action de traitement.
@@ -14,10 +26,7 @@ if (!function_exists('shop_action')) :
      */
     function shop_action($alias, $parameters = [], $absolute = false)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->action($alias, $parameters, $absolute);
+        return shop()->action($alias, $parameters, $absolute);
     }
 endif;
 
@@ -34,10 +43,7 @@ if (!function_exists('shop_cart_add_url')) :
      */
     function shop_cart_add_url($product)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->cart()->addUrl($product);
+        return shop()->cart()->addUrl($product);
     }
 endif;
 
@@ -52,10 +58,7 @@ if (!function_exists('shop_cart_count')) :
      */
     function shop_cart_count($quantity = true)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $quantity ? $shop->cart()->countQuantity() : $shop->cart()->count();
+        return $quantity ? shop()->cart()->countQuantity() : shop()->cart()->count();
     }
 endif;
 
@@ -69,10 +72,7 @@ if (!function_exists('shop_cart_update_url')) :
      */
     function shop_cart_update_url()
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->cart()->updateUrl();
+        return shop()->cart()->updateUrl();
     }
 endif;
 
@@ -86,10 +86,7 @@ if (!function_exists('shop_cart_remove_url')) :
      */
     function shop_cart_remove_url($key)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->cart()->removeUrl($key);
+        return shop()->cart()->removeUrl($key);
     }
 endif;
 
@@ -103,10 +100,7 @@ if (!function_exists('shop_checkout_process_url')) :
      */
     function shop_checkout_process_url()
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->checkout()->processUrl();
+        return shop()->checkout()->processUrl();
     }
 endif;
 
@@ -118,10 +112,7 @@ if (!function_exists('shop_form_billing')) :
      */
     function shop_form_billing()
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->addresses()->billing()->form();
+        return shop()->addresses()->billing()->form();
     }
 endif;
 
@@ -133,10 +124,7 @@ if (!function_exists('shop_notices')) :
      */
     function shop_notices()
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return (string)$shop->notices();
+        return (string) shop()->notices();
     }
 endif;
 
@@ -150,10 +138,7 @@ if (!function_exists('shop_page_is')) :
      */
     function shop_page_is($name)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->functions()->page()->is($name);
+        return shop()->functions()->page()->is($name);
     }
 endif;
 
@@ -168,10 +153,7 @@ if (!function_exists('shop_price_html')) :
      */
     function shop_price_html($price, $format = '')
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->functions()->price()->html($price, $format);
+        return shop()->functions()->price()->html($price, $format);
     }
 endif;
 
@@ -186,10 +168,7 @@ if (!function_exists('shop_product')) :
      */
     function shop_product($product)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->products()->getItem($product);
+        return shop()->products()->getItem($product);
     }
 endif;
 
@@ -204,10 +183,7 @@ if (!function_exists('shop_setting')) :
      */
     function shop_setting($key, $default = '')
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->settings()->get($key, $default);
+        return shop()->settings()->get($key, $default);
     }
 endif;
 
@@ -215,14 +191,11 @@ if (!function_exists('shop_signin')) :
     /**
      * Récupération de l'authentification à la boutique.
      *
-     * @return tiFy\Contracts\User\UserSignInItemInterface
+     * @return tiFy\Contracts\User\SigninFactory
      */
     function shop_signin()
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->users()->signin();
+        return shop()->users()->signin();
     }
 endif;
 
@@ -236,9 +209,6 @@ if (!function_exists('shop_url')) :
      */
     function shop_url($name)
     {
-        /** @var Shop $shop */
-        $shop = resolve('shop');
-
-        return $shop->functions()->url()->page($name);
+        return shop()->functions()->url()->page($name);
     }
 endif;

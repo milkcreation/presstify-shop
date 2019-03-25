@@ -4,7 +4,6 @@ namespace tiFy\Plugins\Shop;
 
 use \LogicException;
 use tiFy\App\Container\AppServiceProvider;
-// Controllers
 use tiFy\Plugins\Shop\Actions\Actions;
 use tiFy\Plugins\Shop\Addresses\Addresses;
 use tiFy\Plugins\Shop\Addresses\Billing as AddressesBilling;
@@ -53,7 +52,6 @@ use tiFy\Plugins\Shop\Users\Users;
 use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
 use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
 use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
-// Contracts
 use tiFy\Plugins\Shop\Contracts\AddressesInterface;
 use tiFy\Plugins\Shop\Contracts\AddressBillingInterface;
 use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
@@ -254,7 +252,7 @@ class ShopServiceProvider extends AppServiceProvider
             $this->app
                 ->singleton(
                     $abstract,
-                    function ($app) use ($abstract) {
+                    function () use ($abstract) {
                         $concrete = $this->getConcrete($abstract);
 
                         try {
@@ -286,7 +284,9 @@ class ShopServiceProvider extends AppServiceProvider
             unset($this->customs[$abstract]);
 
             if ($resolved instanceof BootableControllerInterface) :
-                add_action('tify_app_boot', [$resolved, 'boot'], 11);
+                add_action('after_setup_theme', function () use ($resolved) {
+                    $resolved->boot();
+                });
             endif;
         endforeach;
 

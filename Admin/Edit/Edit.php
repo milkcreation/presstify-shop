@@ -68,7 +68,7 @@ class Edit
         });
 
         /** @var MetaboxManager $metabox */
-        $metabox = resolve('metabox');
+        $metabox = app('metabox');
 
         $metabox->tab([
             'title' => function (WP_Post $post) {

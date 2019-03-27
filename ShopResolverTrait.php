@@ -33,7 +33,7 @@ trait ShopResolverTrait
     public function action($alias, $parameters = [], $absolute = false)
     {
         /** @var Actions $actions */
-        return ($actions = resolve('shop.actions'))
+        return ($actions = app('shop.actions'))
             ? $actions->url($alias, $parameters, $absolute)
             : '';
     }
@@ -45,7 +45,7 @@ trait ShopResolverTrait
      */
     public function addresses()
     {
-        return resolve('shop.addresses.controller');
+        return app('shop.addresses.controller');
     }
 
     /**
@@ -55,7 +55,7 @@ trait ShopResolverTrait
      */
     public function cart()
     {
-        return resolve('shop.cart.controller');
+        return app('shop.cart.controller');
     }
 
     /**
@@ -65,7 +65,7 @@ trait ShopResolverTrait
      */
     public function checkout()
     {
-        return resolve('shop.checkout.controller');
+        return app('shop.checkout.controller');
     }
 
     /**
@@ -83,7 +83,7 @@ trait ShopResolverTrait
      */
     public function functions()
     {
-        return resolve('shop.functions.controller');
+        return app('shop.functions.controller');
     }
 
     /**
@@ -93,7 +93,7 @@ trait ShopResolverTrait
      */
     public function gateways()
     {
-        return resolve('shop.gateways.controller');
+        return app('shop.gateways.controller');
     }
 
     /**
@@ -103,7 +103,7 @@ trait ShopResolverTrait
      */
     public function orders()
     {
-        return resolve('shop.orders.controller');
+        return app('shop.orders.controller');
     }
 
     /**
@@ -113,7 +113,7 @@ trait ShopResolverTrait
      */
     public function provider()
     {
-        return resolve(ShopServiceProvider::class);
+        return app(ShopServiceProvider::class);
     }
 
     /**
@@ -123,7 +123,7 @@ trait ShopResolverTrait
      */
     public function products()
     {
-        return resolve('shop.products.controller');
+        return app('shop.products.controller');
     }
 
     /**
@@ -133,7 +133,7 @@ trait ShopResolverTrait
      */
     public function notices()
     {
-        return resolve('shop.notices.controller');
+        return app('shop.notices.controller');
     }
 
     /**
@@ -143,7 +143,7 @@ trait ShopResolverTrait
      */
     public function session()
     {
-        return resolve('shop.session.controller');
+        return app('shop.session.controller');
     }
 
     /**
@@ -153,7 +153,7 @@ trait ShopResolverTrait
      */
     public function settings()
     {
-        return resolve('shop.settings.controller');
+        return app('shop.settings.controller');
     }
 
     /**
@@ -163,7 +163,7 @@ trait ShopResolverTrait
      */
     public function shop()
     {
-        return resolve('shop');
+        return app('shop');
     }
 
     /**
@@ -193,7 +193,7 @@ trait ShopResolverTrait
      */
     public function users()
     {
-        return resolve('shop.users.controller');
+        return app('shop.users.controller');
     }
 
     /**
@@ -204,7 +204,7 @@ trait ShopResolverTrait
     public function viewer($view = null, $data = [])
     {
         /** @var ViewEngine $viewer */
-        $viewer = resolve('shop.viewer');
+        $viewer = app('shop.viewer');
 
         if (func_num_args() === 0) :
             return $viewer;

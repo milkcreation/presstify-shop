@@ -8,8 +8,9 @@ if (!function_exists('shop')) {
      *
      * @return string
      */
-    function shop(): ?Shop {
-        return app()->get('shop');
+    function shop(): ?Shop
+    {
+        return app('shop');
     }
 }
 
@@ -124,7 +125,7 @@ if (!function_exists('shop_notices')) :
      */
     function shop_notices()
     {
-        return (string) shop()->notices();
+        return (string)shop()->notices();
     }
 endif;
 

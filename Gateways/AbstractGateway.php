@@ -203,14 +203,11 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
             return;
         endif;
         /** @var Logger $logger */
-        $logger = app()->bound("shop.gateways.logger.{$this->getId()}")
+        $logger = app()->has("shop.gateways.logger.{$this->getId()}")
             ? app("shop.gateways.logger.{$this->getId()}")
-            : app()->singleton(
-                "shop.gateways.logger.{$this->getId()}",
-                function () {
-                    return app('logger', ["shop.gateways.{$this->getId()}"]);
-                }
-            )->build();
+            : app()->share("shop.gateways.logger.{$this->getId()}", function () {
+                return app('logger', ["shop.gateways.{$this->getId()}"]);
+            })->build();
 
         $levels = $logger::getLevels();
 

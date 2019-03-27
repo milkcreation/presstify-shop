@@ -39,7 +39,7 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function page()
     {
-        return app('shop.functions.page', [$this->shop]);
+        return app('shop.functions.page');
     }
 
     /**
@@ -47,7 +47,7 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function price()
     {
-        return app('shop.functions.price', [$this->shop]);
+        return app('shop.functions.price');
     }
 
     /**
@@ -55,6 +55,6 @@ class Functions extends AbstractShopSingleton implements FunctionsInterface
      */
     public function url()
     {
-        return app('shop.functions.url', [$this->shop]);
+        return app('shop.functions.url');
     }
 }

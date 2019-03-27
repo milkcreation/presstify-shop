@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop;
 
+use Psr\Container\ContainerInterface;
 use tiFy\Plugins\Shop\Contracts\ShopInterface;
 
 /**
@@ -10,7 +11,7 @@ use tiFy\Plugins\Shop\Contracts\ShopInterface;
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.23
+ * @version 2.0.24
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------
@@ -41,13 +42,30 @@ final class Shop implements ShopInterface
     use ShopResolverTrait;
 
     /**
+     * Conteneur d'injection de dépendances.
+     * @var ContainerInterface
+     */
+    protected $container;
+
+    /**
      * CONSTRUCTEUR.
+     *
+     * @param ContainerInterface $container Conteneur d'injection de dépendances.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(ContainerInterface $container)
     {
+        $this->container = $container;
         $this->shop = $this;
+    }
+
+    /**
+     *
+     */
+    public function _resolve($alias, ...$args)
+    {
+        return app("shop.{$alias}", $args);
     }
 
     /**

@@ -16,24 +16,28 @@ abstract class AbstractAddress implements AddressInterface
 
     /**
      * Identifiant de qualification.
+     *
      * @var string
      */
     protected $id = '';
 
     /**
      * Instance de la classe de gestion des adresses.
+     *
      * @var AddressesInterface
      */
     protected $addresses;
 
     /**
      * Instance de la classe de gestion du formulaire.
+     *
      * @var FormFactory
      */
     protected $form = null;
 
     /**
      * Instance de la classe de l'utilisateur courant.
+     *
      * @var UserItemInterface
      */
     protected $user;
@@ -48,7 +52,7 @@ abstract class AbstractAddress implements AddressInterface
      */
     public function __construct(AddressesInterface $addresses, Shop $shop)
     {
-        $this->shop = $shop;
+        $this->shop      = $shop;
         $this->addresses = $addresses;
 
         add_action('init', function () {
@@ -65,7 +69,7 @@ abstract class AbstractAddress implements AddressInterface
                 endif;
 
                 if (!isset($fattrs['value'])) :
-                    $method = 'get' . $this->getId() . Str::studly($slug);
+                    $method          = 'get' . $this->getId() . Str::studly($slug);
                     $fattrs['value'] = $this->shop->session()->get($this->getId() . '.' . $slug)
                         ?: (method_exists($this->user, $method)
                             ? call_user_func([$this->user, $method])
@@ -109,7 +113,7 @@ abstract class AbstractAddress implements AddressInterface
      */
     public function fields()
     {
-        $fields = [];
+        $fields   = [];
         $defaults = $this->addresses->defaultFields();
 
         foreach ($defaults as $slug => $attrs) :
@@ -139,16 +143,16 @@ abstract class AbstractAddress implements AddressInterface
     public function formAttrs()
     {
         return [
-            'attrs' => [
-                'id'    => 'FormShopAddress--'. $this->getId(),
-                'class'    => 'FormShopAddress FormShopAddress--'. $this->getId()
+            'attrs'     => [
+                'id'    => 'FormShopAddress--' . $this->getId(),
+                'class' => 'FormShopAddress FormShopAddress--' . $this->getId()
             ],
-            'addons'          => $this->addons(),
-            'buttons'         => $this->buttons(),
-            'fields'          => $this->fields(),
-            'notices'         => $this->notices(),
-            'options'         => $this->options(),
-            'callbacks'       => $this->callbacks()
+            'addons'    => $this->addons(),
+            'buttons'   => $this->buttons(),
+            'fields'    => $this->fields(),
+            'notices'   => $this->notices(),
+            'options'   => $this->options(),
+            'callbacks' => $this->callbacks()
         ];
     }
 

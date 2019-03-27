@@ -61,14 +61,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
                     $attrs['enabled'] = true;
                 endif;
 
-                $gateways[$id] = app(
-                    "shop.gateway.{$id}",
-                    [
-                        $id,
-                        $attrs,
-                        $this->shop
-                    ]
-                );
+                $gateways[$id] = app("shop.gateway.{$id}", [$id, $attrs, $this->shop]);
             endif;
         endforeach;
 
@@ -84,7 +77,7 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
 
         if (!in_array($alias, $this->registered)) :
             $concrete = $this->provider()->getConcrete($alias);
-            app()->singleton($alias, $concrete);
+            app()->add($alias, $concrete);
             array_push($this->registered, $alias);
         endif;
     }

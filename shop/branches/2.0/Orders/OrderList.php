@@ -5,6 +5,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use tiFy\PostType\Query\PostQueryCollection;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderListInterface;
+use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
 /**
@@ -29,9 +30,9 @@ class OrderList extends PostQueryCollection implements OrderListInterface
      *
      * @return void
      */
-    public function __construct($items = [])
+    public function __construct($items = [], Shop $shop)
     {
-        $this->shop = resolve('shop');
+        $this->shop = $shop;
 
         parent::__construct($items);
     }

@@ -58,22 +58,22 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     public function defaults()
     {
         return [
-            'order_button_text'    => '',
-            'enabled'              => true,
-            'title'                => '',
-            'description'          => '',
-            'method_title'         => '',
-            'method_description'   => '',
-            'has_fields'           => false,
-            'countries'            => [],
             'availability'         => '',
-            'icon'                 => '',
             'choosen'              => false,
-            'supports'             => ['products'],
-            'max_amount'           => 0,
-            'view_transaction_url' => '',
-            'tokens'               => [],
+            'countries'            => [],
             'debug'                => false,
+            'description'          => '',
+            'enabled'              => true,
+            'has_fields'           => false,
+            'icon'                 => '',
+            'max_amount'           => 0,
+            'method_description'   => '',
+            'method_title'         => '',
+            'order_button_text'    => '',
+            'supports'             => ['products'],
+            'title'                => '',
+            'tokens'               => [],
+            'view_transaction_url' => ''
         ];
     }
 

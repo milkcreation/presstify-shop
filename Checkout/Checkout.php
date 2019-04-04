@@ -334,7 +334,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
             $order->set($key, $value);
         endforeach;
 
-        events()->trigger('tify.plugins.shop.checkout.create_order', [&$this]);
+        events()->trigger('shop.checkout.create_order', [&$this]);
 
         $order->create();
 
@@ -347,6 +347,8 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
 
             $result = $gateway->processPayment($order);
         endif;
+
+        events()->trigger('shop.checkout.proceeded', [&$this, $order]);
 
         wp_redirect(Arr::get($result, 'redirect', $redirect));
         exit;

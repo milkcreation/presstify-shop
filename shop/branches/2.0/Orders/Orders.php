@@ -391,7 +391,7 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function onReceived()
     {
-        if ($order_id = request()->getProperty('GET')->getInt('order-received', 0)) :
+        if ($order_id = request()->query->getInt('order-received', 0)) :
             $order_key = request()->query('key', '');
 
             if (($order = $this->orders()->getItem($order_id)) && ($order->getOrderKey() === $order_key)) :

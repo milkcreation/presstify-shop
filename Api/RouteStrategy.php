@@ -7,12 +7,12 @@ use League\Route\Route;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use tiFy\Contracts\Routing\Route as RouteContract;
-use Zend\Diactoros\Response;
+use tiFy\Http\Response;
 
 class RouteStrategy extends JsonStrategy
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function invokeRouteCallable(Route $route, ServerRequestInterface $request): ResponseInterface
     {
@@ -21,22 +21,22 @@ class RouteStrategy extends JsonStrategy
 
         $controller = $route->getCallable($this->getContainer());
 
-        $resolved = call_user_func_array($controller, $route->getVars());
+        $args = array_values($route->getVars());
+        array_push($args, $request);
+        $resolved = $controller(...$args);
 
-        if ($this->isJsonEncodable($resolved)) :
+        $response = Response::convertToPsr();
+        if ($this->isJsonEncodable($resolved)) {
             $body = json_encode($resolved['body']);
 
             $response = $this->responseFactory->createResponse(200);
 
-            foreach ($resolved['headers'] as $name => $value) :
+            foreach ($resolved['headers'] as $name => $value) {
                 $this->addDefaultResponseHeader("x-{$name}", $value);
-            endforeach;
+            }
 
             $response->getBody()->write($body);
-        endif;
-
-        $response = $this->applyDefaultResponseHeaders($response ?? new Response());
-
-        return $response;
+        }
+        return $this->applyDefaultResponseHeaders($response);
     }
 }

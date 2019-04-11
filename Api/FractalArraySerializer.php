@@ -7,26 +7,24 @@ use League\Fractal\Serializer\ArraySerializer;
 class FractalArraySerializer extends ArraySerializer
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function collection($resourceKey, array $data)
     {
-        if ($resourceKey) :
+        if ($resourceKey) {
             return [$resourceKey => $data];
-        endif;
-
+        }
         return $data;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function item($resourceKey, array $data)
     {
-        if ($resourceKey) :
+        if ($resourceKey) {
             return [$resourceKey => $data];
-        endif;
-
+        }
         return $data;
     }
 }

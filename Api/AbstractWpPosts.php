@@ -7,8 +7,8 @@ use Illuminate\Support\Arr;
 use League\Fractal\Manager as DataManager;
 use League\Fractal\Resource\Collection;
 use tiFy\Contracts\Kernel\QueryCollection;
-use tiFy\Contracts\Kernel\Request;
-use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Contracts\Http\Request;
+use tiFy\Support\ParamsBag;
 use tiFy\Plugins\Shop\Api\FractalArraySerializer as DataSerializer;
 use tiFy\Plugins\Shop\ShopResolverTrait;
 
@@ -63,12 +63,10 @@ class AbstractWpPosts extends ParamsBag
     public function __construct()
     {
         $this->manager = (new DataManager())->setSerializer(new DataSerializer());
-
-        parent::__construct();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function endpointGet($id = 0)
     {
@@ -95,7 +93,7 @@ class AbstractWpPosts extends ParamsBag
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function endpointPost($id = 0)
     {
@@ -114,13 +112,13 @@ class AbstractWpPosts extends ParamsBag
      */
     public function getItems(Request $request)
     {
-        $this->parse($request->all());
+        $this->set($request->all())->parse();
 
         return $this->shop()->orders()->getCollection($this->get('query_args', []));
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getManager()
     {
@@ -128,10 +126,12 @@ class AbstractWpPosts extends ParamsBag
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function parse($attrs = [])
+    public function parse()
     {
+        parent::parse();
+
         if ($this->id) :
             $this->set('query_args.p', $this->id);
         else :

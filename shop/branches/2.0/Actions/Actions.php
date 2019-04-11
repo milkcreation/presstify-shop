@@ -16,7 +16,7 @@ class Actions extends AbstractShopSingleton implements ActionsContract
     protected $items = [];
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function boot()
     {
@@ -26,36 +26,32 @@ class Actions extends AbstractShopSingleton implements ActionsContract
         // Commandes - Validation de paiement
         $this->items['order.payment_complete'] = router()->post('/shop/order/payment_complete/{order_id:number}',
             function ($order_id) {
-                if (is_user_logged_in() && ($user = $this->users()->getItem())) :
-                    if($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) :
+                if (is_user_logged_in() && ($user = $this->users()->getItem())) {
+                    if ($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) {
                         $order->paymentComplete();
-                    endif;
+                    }
 
                     $location = request()->get('_wp_http_referer')
-                        ? : (request()->headers->get('referer') ? : home_url('/'));
+                        ?: (request()->headers->get('referer') ?: home_url('/'));
 
                     return new RedirectResponse($location);
-                else :
+                } else {
                     wp_die(
                         __('Votre utilisateur n\'est pas habilité à effectuer cette action', 'tify'),
                         __('Mise à jour de la commande impossible', 'tify'),
                         500
                     );
                     return '';
-                endif;
+                }
             }
         );
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function url($alias, $parameters = [], $absolute = false)
     {
-        if (isset($this->items[$alias])) :
-            return $this->items[$alias]->getUrl($parameters, $absolute);
-        else :
-            return '';
-        endif;
+        return isset($this->items[$alias]) ? $this->items[$alias]->getUrl($parameters, $absolute) : '';
     }
 }

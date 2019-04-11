@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Api\Orders;
 
 use Carbon\Carbon;
 use League\Fractal\Resource\Collection;
-use tiFy\Contracts\Kernel\Request;
+use tiFy\Contracts\Http\Request;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Api\AbstractWpPosts;
@@ -35,7 +35,7 @@ class Orders extends AbstractWpPosts
      */
     public function getItems(Request $request)
     {
-        $this->parse($request->all());
+        $this->set($request->all())->parse();
 
         return $this->shop()->orders()->getCollection($this->get('query_args', []));
     }
@@ -43,9 +43,9 @@ class Orders extends AbstractWpPosts
     /**
      * {@inheritdoc}
      */
-    public function parse($attrs = [])
+    public function parse()
     {
-        parent::parse($attrs);
+        parent::parse();
 
         if (!$this->id) :
             $meta_query = ['relation' => 'AND'];

@@ -10,7 +10,7 @@ use tiFy\Plugins\Shop\Contracts\Api as ApiContract;
 class Api extends AbstractShopSingleton implements ApiContract
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function boot()
     {

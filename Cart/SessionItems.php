@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Support\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -51,7 +51,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsInterface
         $this->shop = $shop;
         $this->cart = $cart;
 
-        parent::__construct($this->attributes);
+        $this->set($this->attributes);
     }
 
     /**
@@ -59,15 +59,15 @@ class SessionItems extends ParamsBag implements CartSessionItemsInterface
      */
     public function destroy($persistent = true)
     {
-        foreach($this->all() as $key => $default) :
+        foreach($this->all() as $key => $default) {
             $this->session()->put($key, $default);
-        endforeach;
+        }
         $this->session()->put('order_awaiting_payment', 0);
         $this->session()->save();
 
-        if ($persistent) :
-            \delete_user_option($this->users()->getItem()->getId(), '_tify_shop_cart');
-        endif;
+        if ($persistent) {
+            delete_user_option($this->users()->getItem()->getId(), '_tify_shop_cart');
+        }
     }
 
     /**
@@ -83,32 +83,28 @@ class SessionItems extends ParamsBag implements CartSessionItemsInterface
          * @var array $coupon_discount_tax_totals
          * @var array $removed_cart_contents
          */
-        foreach($this->toArray() as $key => $default) :
+        foreach($this->all() as $key => $default) {
             ${$key} = $this->session()->get($key, $default);
-        endforeach;
+        }
 
-        $stored_cart = get_user_option('_tify_shop_cart') ? : ['cart' => []];
-
-        if ($stored_cart) :
+        if ($stored_cart = get_user_option('_tify_shop_cart') ? : ['cart' => []]) {
             $cart = array_merge($cart, Arr::get($stored_cart, 'cart', []));
-        endif;
+        }
 
-        if ($cart) :
-            foreach ($cart as $key => $line) :
+        if (!empty($cart)) {
+            foreach ($cart as $key => $line) {
                 $product = $this->products()->getItem($line['product_id']);
                 $quantity = $line['quantity'];
 
-                if (!$product || ($quantity < 0)) :
+                if (!$product || ($quantity < 0)) {
                     continue;
-                endif;
-
-                if (!$product->isPurchasable()) :
+                } else if (!$product->isPurchasable()) {
                     // do_action( 'woocommerce_remove_cart_item_from_session', $key, $values );
-                else :
+                } else {
                     $this->cart->add($key, compact('key', 'quantity', 'product'));
-                endif;
-            endforeach;
-        endif;
+                }
+            }
+        }
 
         $this->cart->calculate();
     }
@@ -123,33 +119,27 @@ class SessionItems extends ParamsBag implements CartSessionItemsInterface
 
         // Préparation de la session
         $cart = [];
-        $lines = $this->cart->lines()->toArray();
-        foreach($lines as $key => $line) :
+        $lines = $this->cart->lines();
+
+        foreach($lines as $key => $line) {
             unset($line['product']);
-            $cart[$key] = $line;
-        endforeach;
+            $cart[$key] = $line->all();
+        }
 
         // Mise à jour des données de session
-        $attributes = array_merge(
-            $this->all(),
-            [
-                'cart'        => $cart,
-                'cart_totals' => $cart_totals
-            ]
-        );
+        $attributes = array_merge($this->all(), [
+            'cart'        => $cart,
+            'cart_totals' => $cart_totals
+        ]);
 
-        foreach($attributes as $key => $value) :
+        foreach($attributes as $key => $value) {
             $this->session()->put($key, $value);
-        endforeach;
+        }
 
         $this->session()->save();
 
-        if ($user_id = get_current_user_id()) :
-            update_user_option(
-                $user_id,
-                '_tify_shop_cart',
-                ['cart' => $cart]
-            );
-        endif;
+        if ($user_id = get_current_user_id()) {
+            update_user_option($user_id, '_tify_shop_cart', ['cart' => $cart]);
+        }
     }
 }

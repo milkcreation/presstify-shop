@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\App\Container\AppServiceProvider;
+use tiFy\Container\ServiceProvider;
 use tiFy\Contracts\Form\FormFactory;
 use tiFy\Plugins\Shop\Actions\Actions;
 use tiFy\Plugins\Shop\Addresses\Addresses;
@@ -53,7 +53,7 @@ use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
 use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
 use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
 
-class ShopServiceProvider extends AppServiceProvider
+class ShopServiceProvider extends ServiceProvider
 {
     /**
      * Liste des alias de qualification des services fournis.

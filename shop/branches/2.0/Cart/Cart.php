@@ -51,58 +51,40 @@ class Cart extends AbstractShopSingleton implements CartInterface
             $this->initNotices();
 
             // Ajout d'un article au panier
-            router(
-                'shop.cart.add',
-                [
-                    'method' => 'POST',
-                    'path'   => '/ajouter-au-panier/{product_name}',
-                    'cb'     => [$this, 'addHandler']
-                ]
-            );
+            router('shop.cart.add', [
+                'method' => 'POST',
+                'path'   => '/ajouter-au-panier/{product_name}',
+                'cb'     => [$this, 'addHandler']
+            ]);
 
             // Mise à jour des articles du panier
-            router(
-                'shop.cart.update',
-                [
-                    'method' => 'POST',
-                    'path'   => '/mise-a-jour-du-panier',
-                    'cb'     => [$this, 'updateHandler']
-                ]
-            );
+            router('shop.cart.update', [
+                'method' => 'POST',
+                'path'   => '/mise-a-jour-du-panier',
+                'cb'     => [$this, 'updateHandler']
+            ]);
 
             // Suppression d'un article du panier
-            router(
-                'shop.cart.remove',
-                [
-                    'method' => 'GET',
-                    'path'   => '/supprimer-du-panier/{line_key}',
-                    'cb'     => [$this, 'removeHandler']
-                ]
-            );
+            router('shop.cart.remove', [
+                'method' => 'GET',
+                'path'   => '/supprimer-du-panier/{line_key}',
+                'cb'     => [$this, 'removeHandler']
+            ]);
         }, 25);
-        add_action(
-            'init',
-            function() {
-                $this->sessionItems()->getCart();
-            },
-            999999
-        );
 
-        add_action(
-            'get_header',
-            function () {
-                if (
-                    $this->functions()->page()->isCart() &&
-                    ! $this->getList() &&
-                    ($message = $this->getNotice('is_empty'))
-                ) :
-                    $this->notices()->add(
-                        $message,
-                        'info'
-                    );
-                endif;
+        add_action('init', function() {
+            $this->sessionItems()->getCart();
+        }, 999999);
+
+        add_action('get_header', function () {
+            if (
+                $this->functions()->page()->isCart() &&
+                ! $this->getList() &&
+                ($message = $this->getNotice('is_empty'))
+            ) {
+                $this->notices()->add($message, 'info');
             }
-        );
+        });
     }
 
     /**
@@ -110,13 +92,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function add($key, $attributes)
     {
-        $this->lines()->put(
-            $key,
-            app(
-                'shop.cart.line',
-                [$attributes, $this, $this->shop]
-            )
-        );
+        $this->lines()->put($key, app('shop.cart.line', [$attributes, $this, $this->shop]));
     }
 
     /**
@@ -128,21 +104,21 @@ class Cart extends AbstractShopSingleton implements CartInterface
          * Vérification d'existance du produit et récupération
          * @var \tiFy\Plugins\Shop\Products\ProductItem $product
          */
-        if (!$product = $this->products()->getItem($product_name)) :
+        if (!$product = $this->products()->getItem($product_name)) {
             return;
-        endif;
+        }
 
         $request = request();
 
         // Récupération de la quantité de produit
-        if (!$quantity = $request->request->getInt('quantity', 1)) :
+        if (!$quantity = $request->request->getInt('quantity', 1)) {
             return;
-        endif;
+        }
 
         // Vérifie si un produit peut être commandé
-        if (!$product->isPurchasable()) :
+        if (!$product->isPurchasable()) {
             return;
-        endif;
+        }
 
         // Options d'achat
         $purchasing_options = $request->request->get('purchasing_options', []);
@@ -319,10 +295,9 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function lines()
     {
-        if (is_null($this->lines)) :
+        if (is_null($this->lines)) {
             $this->lines = app('shop.cart.line_list', [[]]);
-        endif;
-
+        }
         return $this->lines;
     }
 

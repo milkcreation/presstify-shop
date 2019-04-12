@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Support\ParamsBag;
 use tiFy\Plugins\Shop\Contracts\CartInterface;
 use tiFy\Plugins\Shop\Contracts\CartLineInterface;
 use tiFy\Plugins\Shop\Shop;
@@ -37,11 +37,11 @@ class Line extends ParamsBag implements CartLineInterface
         $this->cart = $cart;
         $this->shop = $shop;
 
-        parent::__construct($attrs);
+        $this->set($attrs)->parse();
 
-        if ($this->getProduct()) :
+        if ($this->getProduct()) {
             $this['product_id'] = $this->getProductId();
-        endif;
+        }
     }
 
     /**

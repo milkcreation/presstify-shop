@@ -14,7 +14,6 @@ if (!function_exists('shop')) {
     }
 }
 
-
 if (!function_exists('shop_action')) :
     /**
      * Récupération de l'url d'une action de traitement.

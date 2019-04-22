@@ -14,19 +14,16 @@ class Api extends AbstractShopSingleton implements ApiContract
      */
     public function boot()
     {
-        router()->group(
-            '/shop/api',
-            function (RouteGroup $router) {
-                // Racine - Documentation
-                $router->get('/', [$this, 'rootEndpoint']);
+        router()->group('/shop/api', function (RouteGroup $router) {
+            // Racine - Documentation
+            $router->get('/', [$this, 'rootEndpoint']);
 
-                // Commandes
-                $router->get('/orders[/{id:number}]', [app('shop.api.orders'), 'endpointGet']);
-                $router->post('/orders[/{id:number}]', [app('shop.api.orders'), 'endpointPost']);
-            }
-        )
-                ->setStrategy(new RouteStrategy(new ResponseFactory()))
-                ->middleware(new RouteMiddleware());
+            // Commandes
+            $router->get('/orders[/{id:number}]', [app('shop.api.orders'), 'endpointGet']);
+            $router->post('/orders[/{id:number}]', [app('shop.api.orders'), 'endpointPost']);
+        })
+            ->setStrategy(new RouteStrategy(new ResponseFactory()))
+            ->middleware(new RouteMiddleware());
     }
 
     /**

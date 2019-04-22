@@ -1,77 +1,49 @@
 <?php
 
-/**
- * @name OrderItem
- * @desc Controleur d'un élément de commande en base de données.
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use Illuminate\Support\Fluent;
-use tiFy\Apps\AppTrait;
+use tiFy\Kernel\Params\ParamsBag;
+use tiFy\Plugins\Shop\Contracts\OrderItemInterface;
 use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInterface
+/**
+ * Class OrderItem
+ *
+ * @desc Controleur d'un élément de commande en base de données.
+ */
+class OrderItem extends ParamsBag implements OrderItemInterface
 {
-    use AppTrait, ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param array $attributes {
-     *      Liste des attributs de l'élément.
-     *
+     * Liste des attributs
+     * @var array $attributes {
      *      @var int $order_item_id
      *      @var string $order_item_name
      *      @var string $order_item_type
      *      @var string $order_id
      * }
-     * @param Shop $shop Classe de rappel de la boutique.
+     */
+    protected $attributes = [];
+
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @param array $attrs Liste des attributs de l'élément.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct($attributes = [], Shop $shop)
+    public function __construct($attrs = [], Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique.
         $this->shop = $shop;
 
-        parent::__construct($attributes);
+        parent::__construct($attrs);
     }
 
     /**
-     * Récupération d'une metadonnée d'élement associé à la commande
-     *
-     * @param string $meta_key Clé d'index de la métadonnée à récupérer.
-     * @param bool $single Type de récupération. single|multi.
-     *
-     * @return mixed
-     */
-    public function getMeta($meta_key, $single = true)
-    {
-        return $this->orders()->getDb()->meta()->get($this->getId(), $meta_key, $single);
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification.
-     *
-     * @internal Identifiant de l'élément en base de données.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getId()
     {
@@ -79,9 +51,15 @@ class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInter
     }
 
     /**
-     * Récupération de l'intitulé de qualification.
-     *
-     * @return string
+     * {@inheritdoc}
+     */
+    public function getMeta($meta_key, $single = true)
+    {
+        return $this->orders()->getDb()->meta()->get($this->getId(), $meta_key, $single);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getName()
     {
@@ -89,22 +67,18 @@ class OrderItem extends Fluent implements ProvideTraitsInterface, OrderItemInter
     }
 
     /**
-     * Récupération du type d'élement associé à la commande
-     *
-     * @return string coupon|fee|line_item|shipping|tax
-     */
-    public function getType()
-    {
-        return (string)$this->get('order_item_type', '');
-    }
-
-    /**
-     * Récupération de l'identifiant de qualification de la commande.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getOrderId()
     {
         return (int)$this->get('order_id', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getType()
+    {
+        return (string)$this->get('order_item_type', '');
     }
 }

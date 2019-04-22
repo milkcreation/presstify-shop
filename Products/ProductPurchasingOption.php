@@ -87,10 +87,9 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      */
     public function getValue($default = null)
     {
-        if (is_null($this->selected)) :
+        if (is_null($this->selected)) {
             return $default;
-        endif;
-
+        }
         return Arr::get($this->getValueList(), $this->selected, $default);
     }
 
@@ -127,12 +126,9 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      */
     public function renderCartLine()
     {
-        return $this->viewer(
-            'shop/cart/line/purchasing-option',
-            [
-                'option' => $this
-            ]
-        );
+        return $this->viewer('shop/cart/line/purchasing-option', [
+            'option' => $this
+        ]);
     }
 
     /**
@@ -140,13 +136,10 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      */
     public function renderProduct()
     {
-        return $this->viewer(
-            'shop/product/purchasing-option',
-            [
-                'option' => $this,
-                'field' => $this->get('field')
-            ]
-        );
+        return $this->viewer('shop/product/purchasing-option', [
+            'option' => $this,
+            'field' => $this->get('field')
+        ]);
     }
 
     /**

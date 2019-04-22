@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\User\UserQuery;
-use tiFy\Contracts\User\UserSignInItemInterface;
+use tiFy\Contracts\User\SigninFactory;
 
 interface UsersInterface extends BootableControllerInterface, ShopResolverInterface, UserQuery
 {
@@ -27,7 +27,7 @@ interface UsersInterface extends BootableControllerInterface, ShopResolverInterf
     /**
      * Instance du formulaire d'authentification.
      *
-     * @return null|UserSignInItemInterface
+     * @return null|SigninFactory
      */
     public function signin();
 }

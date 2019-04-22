@@ -235,7 +235,7 @@ class Price implements FunctionsPriceInterface
 
         return sprintf(
             $format,
-            \number_format($price, $decimals, $dec_point, $thousands_sep),
+            number_format($price, $decimals, $dec_point, $thousands_sep),
             $this->currencySymbol($currency)
         );
     }

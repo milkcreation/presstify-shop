@@ -45,7 +45,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function checkoutPaymentForm()
     {
@@ -53,7 +53,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function defaults()
     {
@@ -78,7 +78,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getDescription()
     {
@@ -86,7 +86,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getIcon()
     {
@@ -94,7 +94,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getId()
     {
@@ -102,7 +102,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getMethodDescription()
     {
@@ -110,7 +110,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getMethodTitle()
     {
@@ -118,7 +118,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getOrderButtonText()
     {
@@ -126,21 +126,23 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     *
+     *
      */
-    public function getReturnUrl($order = null)
+    public function getReturnUrl(?OrderInterface $order = null)
     {
-        if ($order) :
+        if ($order) {
             return $order->getCheckoutOrderReceivedUrl();
-        else :
+        } else {
             return $this->functions()->url()->checkoutOrderReceivedPage([
                 'order-received' => '',
             ]);
-        endif;
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getTitle()
     {
@@ -148,7 +150,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function hasFields()
     {
@@ -156,7 +158,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function icon()
     {
@@ -166,7 +168,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isAvailable()
     {
@@ -174,7 +176,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isChoosen()
     {
@@ -182,7 +184,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isEnabled()
     {
@@ -190,18 +192,18 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function log($message, $type = 'INFO', $context = [])
     {
-        if (!$this->get('debug', false)) :
+        if (!$this->get('debug', false)) {
             return;
-        endif;
+        }
 
         $Type = Str::upper($type);
-        if (!in_array($Type, ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'])) :
+        if (!in_array($Type, ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'])) {
             return;
-        endif;
+        }
         /** @var Logger $logger */
         $logger = app()->has("shop.gateways.logger.{$this->getId()}")
             ? app("shop.gateways.logger.{$this->getId()}")
@@ -215,7 +217,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function processPayment(OrderInterface $order)
     {

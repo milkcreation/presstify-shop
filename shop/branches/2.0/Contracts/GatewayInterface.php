@@ -56,11 +56,11 @@ interface GatewayInterface extends ParamsBag
     /**
      * Url de retour (Page de remerciement).
      *
-     * @param null|OrderInterface $order Classe de rappel de la commande.
+     * @param OrderInterface|null $order Classe de rappel de la commande.
      *
      * @return string
      */
-    public function getReturnUrl($order = null);
+    public function getReturnUrl(?OrderInterface $order = null);
 
     /**
      * Récupération de l'intitulé de qualification.

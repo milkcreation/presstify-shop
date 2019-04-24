@@ -13,7 +13,7 @@ use tiFy\Plugins\Shop\Gateways\AbstractGateway;
 class Cheque extends AbstractGateway
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function defaults()
     {
@@ -37,17 +37,17 @@ class Cheque extends AbstractGateway
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function processPayment(OrderInterface $order)
     {
         // @todo Mise à jour du status vers en attente.
-        if ($order->getTotal() > 0) :
+        if ($order->getTotal() > 0) {
             $order->updateStatus('order-on-hold');
             $order->addNote(__('En attente du réglement par chèque', 'tify'));
-        else :
+        } else {
             $order->paymentComplete();
-        endif;
+        }
 
         // @todo Mise à jour des stocks.
 

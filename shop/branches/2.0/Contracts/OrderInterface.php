@@ -227,6 +227,15 @@ interface OrderInterface extends PostQueryItem
     public function read();
 
     /**
+     * Suppression de la liste des éléments de la commande.
+     *
+     * @param string $type Type d'élément de la commande à supprimer. Défaut null, pour tous.
+     *
+     * @return void
+     */
+    public function removeItems(?string $type = null): void;
+
+    /**
      * Sauvegarde de la commande
      *
      * @return void

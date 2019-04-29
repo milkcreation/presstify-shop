@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Api\Orders;
 
-use Carbon\Carbon;
 use League\Fractal\Resource\Collection;
 use tiFy\Contracts\Http\Request;
+use tiFy\Support\DateTime;
 use tiFy\Plugins\Shop\Contracts\OrderInterface;
 use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Api\AbstractWpPosts;
@@ -47,24 +47,24 @@ class Orders extends AbstractWpPosts
     {
         parent::parse();
 
-        if (!$this->id) :
+        if (!$this->id) {
             $meta_query = ['relation' => 'AND'];
-            if ($shop = $this->parseShop()) :
+            if ($shop = $this->parseShop()) {
                 $meta_query[] = [
                     'key'     => '_shop_pxv_id',
                     'value'   => $shop,
                     'compare' => 'IN'
                 ];
-            endif;
-            if ($transaction_id = $this->parseTransactionId()) :
+            }
+            if ($transaction_id = $this->parseTransactionId()) {
                 $meta_query[] = [
                     'key'     => '_transaction_id',
                     'value'   => $transaction_id,
                     'compare' => 'IN'
                 ];
-            endif;
+            }
             $this->set('query_args.meta_query', $meta_query);
-        endif;
+        }
     }
 
     /**
@@ -74,10 +74,9 @@ class Orders extends AbstractWpPosts
      */
     public function parseShop()
     {
-        if ($shop = request()->get('shop', '')) :
+        if ($shop = request()->get('shop', '')) {
             $shop = array_unique(array_map('trim', explode(',', $shop)));
-        endif;
-
+        }
         return $shop;
     }
 
@@ -100,10 +99,9 @@ class Orders extends AbstractWpPosts
      */
     public function parseTransactionId()
     {
-        if ($transaction_id = request()->get('transaction_id', '')) :
+        if ($transaction_id = request()->get('transaction_id', '')) {
             $transaction_id = array_unique(array_map('trim', explode(',', $transaction_id)));
-        endif;
-
+        }
         return $transaction_id;
     }
 
@@ -126,9 +124,8 @@ class Orders extends AbstractWpPosts
             'order_total'    => $item->getTotal(),
             'total_paid'     => $item->get('date_paid') ? $item->getTotal() : 0,
             'date_paid'      => $item->get('date_paid')
-                ? Carbon::createFromTimestamp(
-                    $item->get('date_paid'), get_option('timezone_string')
-                )->toDateTimeString()
+                ? DateTime::createFromTimestamp($item->get('date_paid'), DateTime::getGlobalTimeZone())
+                    ->toDateTimeString()
                 : '0000-00-00 00:00:00',
             'transaction_id' => $item->get('transaction_id') ?: 0,
             'payment_method' => $item->getPaymentMethod(),

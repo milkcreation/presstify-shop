@@ -145,10 +145,9 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function create()
     {
-        if (! $id = wp_insert_post(['post_type' => $this->objectName])) :
+        if (! $id = wp_insert_post(['post_type' => $this->objectName])) {
             return null;
-        endif;
-
+        }
         return $this->getItem($id);
     }
 

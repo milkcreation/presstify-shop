@@ -33,14 +33,31 @@ class OrderItems implements OrderItemsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     */
+    public function delete(?string $type = null)
+    {
+        $db = $this->orders()->getDb();
+        $where = ['order_id' => $this->order->getId()];
+        if (!is_null($type)) {
+            $where += ['order_item_type' => $type];
+        }
+        if ($ids = $db->select()->col_ids($where)) {
+            foreach($ids as $id) {
+                $db->meta()->deleteAll($id);
+                $db->handle()->delete($where);
+            }
+        };
+    }
+
+    /**
+     * @inheritdoc
      */
     public function getCollection($query_args = [])
     {
-        if($items = $this->query($query_args)) :
-            $items =  array_map([$this, 'getItem'], $items);
-        endif;
-
+        if($items = $this->query($query_args)) {
+            $items = array_map([$this, 'getItem'], $items);
+        }
         return app('shop.orders.order_item_list', [$items, $this->shop]);
     }
 
@@ -49,45 +66,41 @@ class OrderItems implements OrderItemsInterface
      */
     public function getItem($id = null)
     {
-        if ($id instanceof OrderItemInterface) :
+        if ($id instanceof OrderItemInterface) {
             $item = $id;
-        elseif ($item = $this->query(
+        } elseif ($item = $this->query(
                 [
                     'order_item_id' => $id,
                     'order_id' => $this->order->getId()
                 ]
             )
-        ) :
+        ) {
             $item = current($item);
-        else :
+        } else {
             return null;
-        endif;
+        }
 
-        switch($item->getType()) :
+        switch($item->getType()) {
             case 'line_item' :
                 return app('shop.orders.order_item_type_product', [$item, $this->order, $this->shop]);
-            break;
-        endswitch;
-
+                break;
+        }
         return null;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function query($query_args = [])
     {
         $query_args['order_id'] = $this->order->getId();
 
-        if (!$items = $this->orders()->getDb()->select()->rows($query_args, ARRAY_A)) :
+        if (!$items = $this->orders()->getDb()->select()->rows($query_args, ARRAY_A)) {
             return [];
-        endif;
-
-        return array_map(
-            function(array $attrs){
+        } else {
+            return array_map(function (array $attrs) {
                 return app('shop.orders.order_item', [$attrs, $this->shop]);
-            },
-            $items
-        );
+            }, $items);
+        }
     }
 }

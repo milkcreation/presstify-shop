@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Orders;
 
@@ -154,7 +154,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function addNote($note, $is_customer = false, $by_user = false)
     {
-        if ( ! $this->getId()) {
+        if (!$this->getId()) {
             return 0;
         }
 
@@ -195,7 +195,7 @@ class Order extends PostQueryItem implements OrderInterface
     {
         $type = $item->getType();
 
-        $count       = isset($this->items[$type]) ? count($this->items[$type]) : 0;
+        $count = isset($this->items[$type]) ? count($this->items[$type]) : 0;
         $this->items = Arr::add($this->items, $type . '.new:' . $type . $count, $item);
     }
 
@@ -401,7 +401,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function needProcessing()
     {
-        if ( ! $line_items = $this->getItems('line_item')) {
+        if (!$line_items = $this->getItems('line_item')) {
             return false;
         }
 
@@ -420,7 +420,7 @@ class Order extends PostQueryItem implements OrderInterface
     public function paymentComplete($transaction_id = '')
     {
         try {
-            if ( ! $this->getId()) {
+            if (!$this->getId()) {
                 return false;
             }
             $this->session()->pull('order_awaiting_payment', false);
@@ -466,7 +466,7 @@ class Order extends PostQueryItem implements OrderInterface
     {
         $this->attributes = array_merge($this->defaults, $this->attributes);
 
-        if ( ! $id = $this->getId()) {
+        if (!$id = $this->getId()) {
             return;
         }
 
@@ -503,6 +503,20 @@ class Order extends PostQueryItem implements OrderInterface
     /**
      * @inheritdoc
      */
+    public function removeItems(?string $type = null): void
+    {
+        if (!empty($type)) {
+            $this->order_items->delete($type);
+            unset($this->items[$type]);
+        } else {
+            $this->order_items->delete();
+            $this->items = [];
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function save()
     {
         // Mise à jour des données de post
@@ -530,7 +544,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function saveItems()
     {
-        if (! $this->items) {
+        if (!$this->items) {
             return;
         }
         foreach ($this->items as $group => $group_items) {
@@ -546,7 +560,7 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function saveMetas()
     {
-        if (! $this->metas_map || ! $this->getId()) {
+        if (!$this->metas_map || !$this->getId()) {
             return;
         }
         foreach ($this->metas_map as $attr_key => $meta_key) {
@@ -597,17 +611,17 @@ class Order extends PostQueryItem implements OrderInterface
      */
     public function updateStatus($new_status)
     {
-        if ( ! $this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) {
+        if (!$this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) {
             return false;
         }
 
         $this->set('status', $new_status);
 
-        if ( ! $this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) {
+        if (!$this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) {
             $this->set('date_paid', $this->functions()->date()->utc('U'));
         }
 
-        if ( ! $this->get('date_completed') && $this->hasStatus('completed')) {
+        if (!$this->get('date_completed') && $this->hasStatus('completed')) {
             $this->set('date_completed', $this->functions()->date()->utc('U'));
         }
 

@@ -5,6 +5,11 @@ namespace tiFy\Plugins\Shop\Contracts;
 interface OrderItemsInterface
 {
     /**
+     * Suppression de la liste des éléments
+     */
+    public function delete(?string $type = null);
+
+    /**
      * Récupération des données d'une liste d'éléments selon des critères de requête.
      *
      * @param array $query_args Liste des arguments de requête.

@@ -64,24 +64,25 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
      */
     public function __construct($item = 0, OrderInterface $order, Shop $shop)
     {
+        $this->order = $order;
         $this->shop = $shop;
 
         parent::__construct($this->attributes);
 
-        if ($item instanceof OrderItemInterface) :
+        if ($item instanceof OrderItemInterface) {
             $this->setDatas($item);
             $this->setMetas($item);
-        elseif (is_numeric($item) && $item > 0) :
+        } elseif (is_numeric($item) && $item > 0) {
             $item = app('shop.orders.order_items', [$this->order, $this->shop])->get($item);
             $this->setDatas($item);
             $this->setMetas($item);
-        else :
+        } else {
             $this->set('order_id', $order->getId());
-        endif;
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getId()
     {
@@ -89,7 +90,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getName()
     {
@@ -97,7 +98,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getOrder()
     {
@@ -105,7 +106,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getOrderId()
     {
@@ -113,7 +114,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getType()
     {
@@ -121,7 +122,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isType($type)
     {
@@ -129,7 +130,7 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function save()
     {
@@ -144,59 +145,56 @@ abstract class AbstractOrderItemType extends ParamsBag implements OrderItemTypeI
                 'order_id'        => $this->getOrderId()
             ]
         )
-        ) :
+        ) {
             $this->set('id', $id);
             $this->saveMetas();
-        endif;
-
+        }
         return $this->getId();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function saveMetas()
     {
-        if (!$this->metas_map) :
+        if (!$this->metas_map) {
             return;
-        endif;
+        }
 
-        foreach ($this->metas_map as $attr_key => $meta_key) :
+        foreach ($this->metas_map as $attr_key => $meta_key) {
             $this->saveMeta($meta_key, $this->get($attr_key), true);
-        endforeach;
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function saveMeta($meta_key, $meta_value, $unique = true)
     {
-        if (!$id = $this->getId()) :
+        if (!$id = $this->getId()) {
             return 0;
-        endif;
+        }
 
-        $db = $this->orders()->getDb();
-
-        return $db->meta()->add($id, $meta_key, $meta_value);
+        return $this->orders()->getDb()->meta()->add($id, $meta_key, $meta_value);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function setDatas(OrderItemInterface $item)
     {
-        foreach ($this->datas_map as $key => $data_key) :
+        foreach ($this->datas_map as $key => $data_key) {
             $this->set($key, $item->get($data_key));
-        endforeach;
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function setMetas(OrderItemInterface $item)
     {
-        foreach ($this->metas_map as $key => $meta_key) :
+        foreach ($this->metas_map as $key => $meta_key) {
             $this->set($key, $item->getMeta($meta_key));
-        endforeach;
+        }
     }
 }

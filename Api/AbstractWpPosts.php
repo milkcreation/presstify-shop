@@ -2,12 +2,13 @@
 
 namespace tiFy\Plugins\Shop\Api;
 
-use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Psr\Http\Message\ServerRequestInterface;
 use League\Fractal\Manager as DataManager;
 use League\Fractal\Resource\Collection;
 use tiFy\Contracts\Kernel\QueryCollection;
 use tiFy\Contracts\Http\Request;
+use tiFy\Support\DateTime;
 use tiFy\Support\ParamsBag;
 use tiFy\Plugins\Shop\Api\FractalArraySerializer as DataSerializer;
 use tiFy\Plugins\Shop\ShopResolverTrait;
@@ -70,25 +71,27 @@ class AbstractWpPosts extends ParamsBag
      */
     public function endpointGet($id = 0)
     {
-        $this->id = $id;
+        $this->id = ($id instanceof ServerRequestInterface) ? 0 : $id;
 
         $items = $this->getItems(request());
+
+        $per_page = $this->get('query_args.posts_per_page');
 
         $headers = $this->id
             ? []
             : [
                 'total'        => $items->count(),
                 'total-founds' => $items->getFounds(),
-                'total-pages'  => ceil($items->getFounds() / $this->get('query_args.posts_per_page'))
+                'total-pages'  => $per_page<0
+                    ? $items->getFounds() : ceil($items->getFounds() / $per_page)
             ];
 
-        if (request()->get('raw')) :
+        if (request()->get('raw')) {
             $body = $items->all();
-        else :
+        } else {
             $resources = new Collection($items, [$this, 'setItem']);
-            $body      = $this->getManager()->createData($resources)->toArray();
-        endif;
-
+            $body = $this->getManager()->createData($resources)->toArray();
+        }
         return compact('body', 'headers');
     }
 
@@ -98,7 +101,7 @@ class AbstractWpPosts extends ParamsBag
     public function endpointPost($id = 0)
     {
         $headers = [];
-        $body    = [];
+        $body = [];
 
         return compact('body', 'headers');
     }
@@ -132,9 +135,9 @@ class AbstractWpPosts extends ParamsBag
     {
         parent::parse();
 
-        if ($this->id) :
+        if ($this->id) {
             $this->set('query_args.p', $this->id);
-        else :
+        } else {
             $this->set('query_args.paged', $this->parsePage());
 
             $this->set('query_args.posts_per_page', $this->parsePerPage());
@@ -145,15 +148,21 @@ class AbstractWpPosts extends ParamsBag
 
             $this->set('query_args.post_status', $this->parseStatus());
 
-            $date_query = ['column' => 'post_date'];
-            if ($after = $this->parseAfter()) :
+            $date_query = [];
+            if ($after = $this->parseAfter()) {
                 $date_query['after'] = $after;
-            endif;
-            if ($before = $this->parseBefore()) :
-                $date_query['after'] = $before;
-            endif;
-            $this->set('query_args.date_query', $date_query);
-        endif;
+            }
+            if ($before = $this->parseBefore()) {
+                $date_query['before'] = $before;
+            }
+            if ($date_query) {
+                $date_query += [
+                    'column' => 'post_date',
+                    'inclusive' => true
+                ];
+                $this->set('query_args.date_query.0', $date_query);
+            }
+        }
     }
 
     /**
@@ -163,10 +172,9 @@ class AbstractWpPosts extends ParamsBag
      */
     public function parseAfter()
     {
-        if ($start = request()->get('after', '')) :
-            $start = (Carbon::parse($start, get_option('timezone_string')))->toDateTimeString();
-        endif;
-
+        if ($start = request()->get('after', '')) {
+            $start = DateTime::parse($start, DateTime::getGlobalTimeZone())->toDateString();
+        }
         return $start;
     }
 
@@ -177,10 +185,9 @@ class AbstractWpPosts extends ParamsBag
      */
     public function parseBefore()
     {
-        if ($end = request()->get('before', '')) :
-            $end = (Carbon::parse($end, get_option('timezone_string')))->toDateTimeString();
-        endif;
-
+        if ($end = request()->get('before', '')) {
+            $end = DateTime::parse($end, DateTime::getGlobalTimeZone())->toDateString();
+        }
         return $end;
     }
 
@@ -191,10 +198,9 @@ class AbstractWpPosts extends ParamsBag
      */
     public function parsePerPage()
     {
-        if ($per_page = request()->get('per_page', 0)) :
-            $per_page = absint($per_page);
-        endif;
-
+        if ($per_page = request()->get('per_page', 0)) {
+            $per_page = intval($per_page);
+        }
         return $per_page ?: $this->per_page;
     }
 
@@ -205,10 +211,9 @@ class AbstractWpPosts extends ParamsBag
      */
     public function parsePage()
     {
-        if ($page = request()->get('page', 0)) :
+        if ($page = request()->get('page', 0)) {
             $page = absint($page);
-        endif;
-
+        }
         return $page ?: 1;
     }
 
@@ -241,15 +246,14 @@ class AbstractWpPosts extends ParamsBag
      */
     public function parseStatus()
     {
-        if ($status = request()->get('status', '')) :
+        if ($status = request()->get('status', '')) {
             $status = ($status === 'any')
                 ? $this->statuses
                 : array_unique(array_map('trim', explode(',', $status)));
             $status = array_intersect($status, $this->statuses);
-        else :
+        } else {
             $status = Arr::wrap($this->status);
-        endif;
-
+        }
         return $status;
     }
 }

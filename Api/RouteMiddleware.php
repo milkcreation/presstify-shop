@@ -28,7 +28,7 @@ class RouteMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $psrRequest, RequestHandlerInterface $handler) : ResponseInterface
     {
-        $request = request()->createFromPsr($psrRequest);
+        $request = request();
 
         if (!$this->isAuth($request)) {
             $response = Response::convertToPsr();

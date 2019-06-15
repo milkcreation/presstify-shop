@@ -47,8 +47,8 @@ class Edit
             endif;
 
             add_action('admin_enqueue_scripts', function() {
-                field('select-js')->enqueue_scripts();
-                field('toggle-switch')->enqueue_scripts();
+                field('select-js')->enqueue();
+                field('toggle-switch')->enqueue();
 
                 wp_enqueue_script(
                     'ShopAdminProductEdit',

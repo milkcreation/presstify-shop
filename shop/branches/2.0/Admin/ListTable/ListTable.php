@@ -95,7 +95,7 @@ class ListTable
                     add_action(
                         'admin_enqueue_scripts',
                         function () {
-                            partial('holder')->enqueue_scripts();
+                            partial('holder')->enqueue();
 
                             wp_enqueue_style(
                                 'ShopAdminProductList',

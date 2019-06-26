@@ -13,6 +13,7 @@ use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
 use tiFy\Plugins\Shop\Shop;
 use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Support\DateTime;
 use WP_Post;
 
 /**
@@ -309,6 +310,14 @@ class Order extends PostQueryItem implements OrderInterface
     public function getOrderKey()
     {
         return (string)$this->get('order_key', '');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPaidDatetime(): ?DateTime
+    {
+        return ($date = $this->get('date_paid', 0)) ? DateTime::createFromTimestamp($date) : null;
     }
 
     /**

@@ -16,12 +16,9 @@ class Customer extends UserItem implements UserCustomerInterface
      */
     public function getOrderList($query_args = [])
     {
-        $query_args = array_merge(
-            [
-                'order' => 'ASC'
-            ],
-            $query_args
-        );
+        $query_args = array_merge([
+            'order' => 'ASC'
+        ], $query_args);
 
         $query_args['meta_query'] = [
             [

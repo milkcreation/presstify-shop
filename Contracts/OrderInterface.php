@@ -4,6 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use Illuminate\Support\Collection;
 use tiFy\Contracts\PostType\PostQueryItem;
+use tiFy\Support\DateTime;
 
 interface OrderInterface extends PostQueryItem
 {
@@ -123,6 +124,13 @@ interface OrderInterface extends PostQueryItem
      * @return string
      */
     public function getOrderKey();
+
+    /**
+     * Récupération de la date de réglement.
+     *
+     * @return DateTime|null
+     */
+    public function getPaidDatetime(): ?DateTime;
 
     /**
      * Récupération de la méthode de paiement.

@@ -3,12 +3,12 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use tiFy\PostType\Query\PostQueryItem;
-use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
-use tiFy\Plugins\Shop\Contracts\ProductObjectType;
-use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Concerns\ShopAwareTrait;
+use tiFy\Plugins\Shop\Contracts\{
+    ProductItemInterface,
+    ProductObjectType,
+    ProductPurchasingOption};
 use tiFy\Plugins\Shop\ShopResolverTrait;
-use WP_Post;
 
 /**
  * Class ProductItem
@@ -17,7 +17,7 @@ use WP_Post;
  */
 class ProductItem extends PostQueryItem implements ProductItemInterface
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait, ShopResolverTrait;
 
     /**
      * Classe de rappel de l'Object Type.
@@ -30,21 +30,6 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
      * @var ProductPurchasingOption[]
      */
     protected $purchasingOptions;
-
-    /**
-     * CONSTRUCTEUR
-     *
-     * @param WP_Post $wp_post
-     * @param Shop $shop Instance de la boutique.
-     *
-     * @return void
-     */
-    public function __construct(WP_Post $wp_post, Shop $shop)
-    {
-        $this->shop = $shop;
-
-        parent::__construct($wp_post);
-    }
 
     /**
      * {@inheritdoc}
@@ -300,9 +285,9 @@ class ProductItem extends PostQueryItem implements ProductItemInterface
 
         // Mise en avant
         $featured = request()->post('_featured', 'off');
-        if ($featured === 'on') :
+        if ($featured === 'on') {
             array_push($visibility, 'featured');
-        endif;
+        }
 
         wp_set_post_terms($this->getId(), $visibility, 'product_visibility');
     }

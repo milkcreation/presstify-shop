@@ -4,54 +4,58 @@ namespace tiFy\Plugins\Shop;
 
 use tiFy\Container\ServiceProvider;
 use tiFy\Contracts\Form\FormFactory;
-use tiFy\Plugins\Shop\Actions\Actions;
-use tiFy\Plugins\Shop\Addresses\Addresses;
-use tiFy\Plugins\Shop\Addresses\Billing as AddressesBilling;
-use tiFy\Plugins\Shop\Addresses\FormHandler as AddressesFormHandler;
-use tiFy\Plugins\Shop\Addresses\Shipping as AddressesShipping;
-use tiFy\Plugins\Shop\Admin\Admin;
-use tiFy\Plugins\Shop\Api\Api;
-use tiFy\Plugins\Shop\Api\Orders\Orders as ApiOrders;
-use tiFy\Plugins\Shop\Cart\Cart;
-use tiFy\Plugins\Shop\Cart\Line as CartLine;
-use tiFy\Plugins\Shop\Cart\LineList as CartLineList;
-use tiFy\Plugins\Shop\Cart\SessionItems as CartSessionItems;
-use tiFy\Plugins\Shop\Cart\Total as CartTotal;
-use tiFy\Plugins\Shop\Checkout\Checkout;
-use tiFy\Plugins\Shop\CustomTypes\CustomTypes;
-use tiFy\Plugins\Shop\Functions\Functions;
-use tiFy\Plugins\Shop\Functions\Date as FunctionsDate;
-use tiFy\Plugins\Shop\Functions\Page as FunctionsPage;
-use tiFy\Plugins\Shop\Functions\Price as FunctionsPrice;
-use tiFy\Plugins\Shop\Functions\Url as FunctionsUrl;
-use tiFy\Plugins\Shop\Gateways\CashOnDelivery\CashOnDelivery as GatewaysCachOnDelivery;
-use tiFy\Plugins\Shop\Gateways\Cheque\Cheque as GatewaysCheque;
-use tiFy\Plugins\Shop\Gateways\Gateways;
-use tiFy\Plugins\Shop\Gateways\GatewayList as GatewaysList;
-use tiFy\Plugins\Shop\Notices\Notices;
-use tiFy\Plugins\Shop\Orders\Orders;
-use tiFy\Plugins\Shop\Orders\Order;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItem;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemList;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeCoupon;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeFee;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeProduct;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeShipping;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItemTypeTax;
-use tiFy\Plugins\Shop\Orders\OrderList;
-use tiFy\Plugins\Shop\Products\ObjectType\Categorized as ProductsObjectTypeCategorized;
-use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized as ProductsObjectTypeUncategorized;
-use tiFy\Plugins\Shop\Products\Products;
-use tiFy\Plugins\Shop\Products\ProductItem as ProductsItem;
-use tiFy\Plugins\Shop\Products\ProductList as ProductsList;
-use tiFy\Plugins\Shop\Products\ProductPurchasingOption;
-use tiFy\Plugins\Shop\Session\Session;
-use tiFy\Plugins\Shop\Settings\Settings;
-use tiFy\Plugins\Shop\Users\Users;
-use tiFy\Plugins\Shop\Users\Customer as UsersCustomer;
-use tiFy\Plugins\Shop\Users\LoggedOut as UsersLoggedOut;
-use tiFy\Plugins\Shop\Users\ShopManager as UsersShopManager;
+use tiFy\Plugins\Shop\Contracts\{
+    ProductItemInterface as ProductContract};
+use tiFy\Plugins\Shop\{
+    Actions\Actions,
+    Addresses\Addresses,
+    Addresses\Billing as AddressesBilling,
+    Addresses\FormHandler as AddressesFormHandler,
+    Addresses\Shipping as AddressesShipping,
+    Admin\Admin,
+    Api\Api,
+    Api\Orders\Orders as ApiOrders,
+    Cart\Cart,
+    Cart\Line as CartLine,
+    Cart\LineList as CartLineList,
+    Cart\SessionItems as CartSessionItems,
+    Cart\Total as CartTotal,
+    Checkout\Checkout,
+    CustomTypes\CustomTypes,
+    Functions\Functions,
+    Functions\Date as FunctionsDate,
+    Functions\Page as FunctionsPage,
+    Functions\Price as FunctionsPrice,
+    Functions\Url as FunctionsUrl,
+    Gateways\CashOnDelivery\CashOnDelivery as GatewaysCachOnDelivery,
+    Gateways\Cheque\Cheque as GatewaysCheque,
+    Gateways\Gateways,
+    Gateways\GatewayList as GatewaysList,
+    Notices\Notices,
+    Orders\Orders,
+    Orders\Order,
+    Orders\OrderItems\OrderItems,
+    Orders\OrderItems\OrderItem,
+    Orders\OrderItems\OrderItemList,
+    Orders\OrderItems\OrderItemTypeCoupon,
+    Orders\OrderItems\OrderItemTypeFee,
+    Orders\OrderItems\OrderItemTypeProduct,
+    Orders\OrderItems\OrderItemTypeShipping,
+    Orders\OrderItems\OrderItemTypeTax,
+    Orders\OrderList,
+    Products\ObjectType\Categorized as ProductsObjectTypeCategorized,
+    Products\ObjectType\Uncategorized as ProductsObjectTypeUncategorized,
+    Products\Products,
+    Products\ProductItem as ProductsItem,
+    Products\ProductList as ProductsList,
+    Products\ProductPurchasingOption,
+    Session\Session,
+    Settings\Settings,
+    Users\Users,
+    Users\Customer as UsersCustomer,
+    Users\LoggedOut as UsersLoggedOut,
+    Users\ShopManager as UsersShopManager};
+use WP_Post;
 
 class ShopServiceProvider extends ServiceProvider
 {
@@ -521,7 +525,7 @@ class ShopServiceProvider extends ServiceProvider
             return $concrete::make('shop.orders.controller', $this->getContainer()->get('shop'));
         });
 
-        $this->getContainer()->add('shop.orders.order', function (\WP_Post $post) {
+        $this->getContainer()->add('shop.orders.order', function (WP_Post $post) {
             $concrete = $this->getConcrete('shop.orders.order');
 
             return new $concrete($post, $this->getContainer()->get('shop'));
@@ -596,10 +600,13 @@ class ShopServiceProvider extends ServiceProvider
             return $concrete::make('shop.products.controller', $this->getContainer()->get('shop'));
         });
 
-        $this->getContainer()->add('shop.products.item', function (\WP_Post $wp_post) {
+        $this->getContainer()->add('shop.products.item', function (WP_Post $wp_post) {
             $concrete = $this->getConcrete('shop.products.item');
 
-            return new $concrete($wp_post, $this->getContainer()->get('shop'));
+            /** @var ProductContract $instance */
+            $instance = new $concrete($wp_post);
+
+            return $instance->setShop($this->getContainer()->get('shop'));
         });
 
         $this->getContainer()->add('shop.products.list', function ($items) {

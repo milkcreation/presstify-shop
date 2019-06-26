@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\PostType\PostQueryItem;
 
-interface ProductItemInterface extends PostQueryItem
+interface ProductItemInterface extends PostQueryItem, ShopAwareTrait
 {
     /**
      * Récupération des attributs.

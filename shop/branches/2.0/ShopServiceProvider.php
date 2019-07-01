@@ -1,11 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop;
 
 use tiFy\Container\ServiceProvider;
 use tiFy\Contracts\Form\FormFactory;
 use tiFy\Plugins\Shop\Contracts\{
-    ProductItemInterface as ProductContract};
+    ProductItemInterface as ProductContract,
+    ShopInterface as ShopContract};
 use tiFy\Plugins\Shop\{
     Actions\Actions,
     Addresses\Addresses,
@@ -64,6 +65,7 @@ class ShopServiceProvider extends ServiceProvider
      * @var array
      */
     protected $aliases = [
+        'shop'                                 => Shop::class,
         'shop.actions'                         => Actions::class,
         'shop.addresses.controller'            => Addresses::class,
         'shop.addresses.billing'               => AddressesBilling::class,
@@ -201,13 +203,17 @@ class ShopServiceProvider extends ServiceProvider
     ];
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function boot()
+    public function boot(): void
     {
         $providers = config('shop.providers', []);
         array_walk($providers, function ($value, $key) {
-            $this->customs["shop.{$key}"] = $value;
+            if ($key === 'shop') {
+                $this->customs['shop'] = $value;
+            } else {
+                $this->customs["shop.{$key}"] = $value;
+            }
         });
 
         add_action('after_setup_theme', function () {
@@ -232,12 +238,15 @@ class ShopServiceProvider extends ServiceProvider
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function register()
+    public function register(): void
     {
         $this->getContainer()->share('shop', function () {
-            return new Shop($this->getContainer());
+            /** @var ShopContract $concrete  */
+            $concrete = $this->getConcrete('shop');
+
+            return new $concrete($this->getContainer());
         });
 
         $this->registerActions();
@@ -261,7 +270,7 @@ class ShopServiceProvider extends ServiceProvider
     /**
      * @todo
      */
-    public function registerActions()
+    public function registerActions(): void
     {
         $this->getContainer()->share('shop.actions', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -276,7 +285,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerAddresses()
+    public function registerAddresses(): void
     {
         $this->getContainer()->share('shop.addresses.controller', function () {
             $concrete = $this->getConcrete('shop.addresses.controller');
@@ -314,7 +323,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerAdmin()
+    public function registerAdmin(): void
     {
         $this->getContainer()->share('shop.admin.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -329,7 +338,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerApi()
+    public function registerApi(): void
     {
         $this->getContainer()->share('shop.api', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -350,7 +359,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerCart()
+    public function registerCart(): void
     {
         $this->getContainer()->share('shop.cart.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -399,7 +408,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerCheckout()
+    public function registerCheckout(): void
     {
         $this->getContainer()->share('shop.checkout.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -414,7 +423,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerCustomTypes()
+    public function registerCustomTypes(): void
     {
         $this->getContainer()->share('shop.custom_types.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -429,7 +438,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerFunctions()
+    public function registerFunctions(): void
     {
         $this->getContainer()->share('shop.functions.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -468,7 +477,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerGateways()
+    public function registerGateways(): void
     {
         $this->getContainer()->share('shop.gateways.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -501,7 +510,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerNotices()
+    public function registerNotices(): void
     {
         $this->getContainer()->share('shop.notices.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -516,7 +525,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerOrders()
+    public function registerOrders(): void
     {
         $this->getContainer()->share('shop.orders.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -591,7 +600,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerProducts()
+    public function registerProducts(): void
     {
         $this->getContainer()->share('shop.products.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -641,7 +650,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerSession()
+    public function registerSession(): void
     {
         $this->getContainer()->share('shop.session.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -656,7 +665,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerSettings()
+    public function registerSettings(): void
     {
         $this->getContainer()->share('shop.settings.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -671,7 +680,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerUsers()
+    public function registerUsers(): void
     {
         $this->getContainer()->share('shop.users.controller', function () {
             /** @var AbstractShopSingleton $concrete */
@@ -704,7 +713,7 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerViewer()
+    public function registerViewer(): void
     {
         $this->getContainer()->share('shop.viewer', function () {
             $default_dir = __DIR__ . '/Resources/views';

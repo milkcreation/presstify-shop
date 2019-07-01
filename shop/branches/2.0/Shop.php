@@ -11,7 +11,7 @@ use tiFy\Plugins\Shop\Contracts\ShopInterface;
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.35
+ * @version 2.0.36
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ use tiFy\Plugins\Shop\Contracts\ShopInterface;
  * Dans le dossier de config, créer le fichier shop.php
  * @see /vendor/presstify-plugins/shop/Resources/config/shop.php Exemple de configuration
  */
-final class Shop implements ShopInterface
+class Shop implements ShopInterface
 {
     use ShopResolverTrait;
 

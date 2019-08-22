@@ -1,43 +1,33 @@
 <?php
 
-/**
- * @name OrderItemProduct
- * @desc Controleur d'une ligne d'article associée à une commande
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders\OrderItems
- * @version 1.1
- * @since 1.1
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders\OrderItems;
 
-use tiFy\Plugins\Shop\Products\ProductItemInterface;
+use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
 
+/**
+ * Class OrderItemTypeProduct
+ *
+ * @desc Controleur d'une ligne d'article associée à une commande.
+ */
 class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTypeProductInterface
 {
-    /**
-     * Classe de rappel du produit associé.
-     * @var ProductItemInterface
-     */
-    protected $product;
-
     /**
      * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
      * @var array
      */
     protected $metas_map = [
-        'product_id'     => '_product_id',
-        'variation_id'   => '_variation_id',
-        'quantity'       => '_qty',
-        'tax_class'      => '_tax_class',
-        'subtotal'       => '_line_subtotal',
-        'subtotal_class' => '_line_subtotal_tax',
-        'total'          => '_line_total',
-        'total_tax'      => '_line_tax',
-        'taxes'          => '_line_tax_data'
+        'product_id'         => '_product_id',
+        'product_sku'        => '_product_sku',
+        'product'            => '_product',
+        'variation_id'       => '_variation_id',
+        'quantity'           => '_qty',
+        'tax_class'          => '_tax_class',
+        'subtotal'           => '_line_subtotal',
+        'subtotal_class'     => '_line_subtotal_tax',
+        'total'              => '_line_total',
+        'total_tax'          => '_line_tax',
+        'taxes'              => '_line_tax_data',
+        'purchasing_options' => '_purchasing_options'
     ];
 
     /**
@@ -64,19 +54,15 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     ];
 
     /**
-     * Récupération du type d'élement associé à la commande.
-     *
-     * @return string line_item
+     * {@inheritdoc}
      */
-    public function getType()
+    public function getProduct()
     {
-        return 'line_item';
+        return app('params.bag', [$this->get('product', [])]);
     }
 
     /**
-     * Récupération de l'identifiant de qualification du produit associé.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getProductId()
     {
@@ -84,19 +70,15 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de l'identifiant de qualification de la variation de produit associée.
-     *
-     * @return int
+     * {@inheritdoc}
      */
-    public function getVariationId()
+    public function getPurchasingOptions()
     {
-        return (int)$this->get('variation_id', 0);
+        return $this->get('purchasing_options', []);
     }
 
     /**
-     * Récupération de la quantité d'article du produit associé.
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getQuantity()
     {
@@ -104,19 +86,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de la classe de taxe appliqué à la commande.
-     *
-     * @return string
-     */
-    public function getTaxClass()
-    {
-        return (string)$this->get('tax_class', '');
-    }
-
-    /**
-     * Récupération du montant du sous-total de la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getSubtotal()
     {
@@ -124,9 +94,7 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du montant du sous-total appliqué à la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
     public function getSubtotalTax()
     {
@@ -134,29 +102,15 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération du montant total de la commande.
-     *
-     * @return float
+     * {@inheritdoc}
      */
-    public function getTotal()
+    public function getTaxClass()
     {
-        return (float)$this->get('total', 0);
+        return (string)$this->get('tax_class', '');
     }
 
     /**
-     * Récupération du montant total de la taxe appliqué à la commande.
-     *
-     * @return float
-     */
-    public function getTotalTax()
-    {
-        return (float)$this->get('total_tax', 0);
-    }
-
-    /**
-     * Récupération de la liste des taxes appliquées à la commande.
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getTaxes()
     {
@@ -164,18 +118,34 @@ class OrderItemTypeProduct extends AbstractOrderItemType implements OrderItemTyp
     }
 
     /**
-     * Récupération de la classe de rappel du produit associé.
-     *
-     * @return null|ProductItemInterface
+     * {@inheritdoc}
      */
-    public function getProduct()
+    public function getTotal()
     {
-        if ($this->product instanceof ProductItemInterface) :
-            return $this->product;
-        elseif ($id = $this->getProductId()) :
-            return $this->product = $this->provide('products.controller')->get($id);
-        else :
-            return null;
-        endif;
+        return (float)$this->get('total', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTotalTax()
+    {
+        return (float)$this->get('total_tax', 0);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getType()
+    {
+        return 'line_item';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVariationId()
+    {
+        return (int)$this->get('variation_id', 0);
     }
 }

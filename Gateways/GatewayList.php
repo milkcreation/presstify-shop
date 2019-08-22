@@ -1,29 +1,21 @@
 <?php
 
-/**
- * @name GatewayList
- * @desc Gestion des plateformes de paiement déclarées
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Gateways
- * @version 1.1
- * @since 1.3.1
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Gateways;
 
 use Illuminate\Support\Collection;
+use tiFy\Plugins\Shop\Contracts\GatewayInterface;
+use tiFy\Plugins\Shop\Contracts\GatewayListInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
+/**
+ * Class GatewayList
+ *
+ * @desc Gestion de la liste des plateformes de paiement déclarées.
+ */
 class GatewayList implements GatewayListInterface
 {
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * Classe de rappel de gestion de la liste des plateformes.
@@ -35,23 +27,19 @@ class GatewayList implements GatewayListInterface
      * CONSTRUCTEUR.
      *
      * @param GatewayInterface[] $items
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
     public function __construct($items = [], Shop $shop)
     {
-        // Définitation de la classe de rappel de gestion de la liste des plateformes
+        $this->shop = $shop;
         $this->collect = new Collection($items);
 
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
     }
 
     /**
-     * Récupération de la liste complète des plateformes de paiement déclarées.
-     *
-     * @return GatewayInterface[]
+     * {@inheritdoc}
      */
     public function all()
     {
@@ -59,9 +47,7 @@ class GatewayList implements GatewayListInterface
     }
 
     /**
-     * Récupération de la liste des plateformes de paiement disponibles.
-     *
-     * @return GatewayInterface[]
+     * {@inheritdoc}
      */
     public function available()
     {
@@ -74,11 +60,7 @@ class GatewayList implements GatewayListInterface
     }
 
     /**
-     * Récupération d'une plateforme de paiement déclarée.
-     *
-     * @param string $id Identifiant de qualification de la plateforme
-     *
-     * @return null|GatewayInterface
+     * {@inheritdoc}
      */
     public function get($id)
     {

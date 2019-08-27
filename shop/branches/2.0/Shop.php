@@ -1,17 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop;
 
-use Psr\Container\ContainerInterface;
+use Psr\Container\ContainerInterface as Container;
 use tiFy\Plugins\Shop\Contracts\ShopInterface;
 
 /**
- * Class Shop
- *
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.37
+ * @version 2.0.38
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------
@@ -43,18 +41,18 @@ class Shop implements ShopInterface
 
     /**
      * Conteneur d'injection de dépendances.
-     * @var ContainerInterface
+     * @var Container
      */
     protected $container;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param ContainerInterface $container Conteneur d'injection de dépendances.
+     * @param Container $container Conteneur d'injection de dépendances.
      *
      * @return void
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(Container $container)
     {
         $this->container = $container;
         $this->shop = $this;

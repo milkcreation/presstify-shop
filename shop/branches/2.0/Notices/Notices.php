@@ -44,7 +44,7 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
      */
     public function add($message, $type = 'success')
     {
-        if (!did_action('wp_loaded')) :
+        if (!did_action('wp_loaded')) {
             throw new LogicException(
                 __(
                     'L\'ajout de message de notification ne devrait pas être fait ' . '
@@ -53,11 +53,13 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
                 ),
                 500
             );
-        endif;
+        }
+        $type = strtolower($type);
+        $type = ($type === 'notice') ? 'success' : $type;
 
-        if (!isset($this->notices[$type])) :
+        if (!isset($this->notices[$type])) {
             $this->notices[$type] = [];
-        endif;
+        }
         $this->notices[$type][] = $message;
 
         $this->session()->put('notices', $this->notices);

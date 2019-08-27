@@ -246,7 +246,7 @@ class ShopServiceProvider extends ServiceProvider
             /** @var ShopContract $concrete  */
             $concrete = $this->getConcrete('shop');
 
-            return new $concrete($this->getContainer());
+            return new $concrete($this->getContainer()->get('app'));
         });
 
         $this->registerActions();
@@ -686,7 +686,7 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.users.controller');
 
-            return $concrete::make('shop.users.controller', $this->getContainer()->get('shop'));
+            return new $concrete($this->getContainer()->get('shop'));
         });
 
         $this->getContainer()->add('shop.users.customer', function (\WP_User $user) {

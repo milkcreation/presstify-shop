@@ -9,31 +9,22 @@ use tiFy\Plugins\Shop\Contracts\OrderInterface;
 class Checkout extends AbstractShopSingleton implements CheckoutInterface
 {
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function boot()
-    {
-
-    }
+    public function boot() {}
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function createOrderItemsCoupon(OrderInterface $order)
-    {
-
-    }
+    public function createOrderItemsCoupon(OrderInterface $order) {}
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function createOrderItemsFee(OrderInterface $order)
-    {
-
-    }
+    public function createOrderItemsFee(OrderInterface $order) {}
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function createOrderItemsProduct(OrderInterface $order)
     {
@@ -80,23 +71,17 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function createOrderItemsShipping(OrderInterface $order)
-    {
-
-    }
+    public function createOrderItemsShipping(OrderInterface $order) {}
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function createOrderItemsTax(OrderInterface $order)
-    {
-
-    }
+    public function createOrderItemsTax(OrderInterface $order) {}
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function process()
     {
@@ -343,7 +328,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function processUrl()
     {

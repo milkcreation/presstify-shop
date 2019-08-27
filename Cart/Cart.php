@@ -1,20 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\CartInterface;
-use tiFy\Plugins\Shop\Contracts\CartLineInterface;
-use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
-use tiFy\Plugins\Shop\Contracts\CartSessionItemsInterface;
-use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
+use tiFy\Plugins\Shop\{
+    AbstractShopSingleton,
+    Contracts\CartInterface,
+    Contracts\CartLineInterface,
+    Contracts\CartLineListInterface,
+    Contracts\CartSessionItemsInterface,
+    Contracts\ProductItemInterface
+};
+use tiFy\Support\{MessagesBag, Proxy\Redirect, Proxy\Request};
 
-/**
- * Class Cart
- *
- * @desc Gestion du panier d'achat.
- */
 class Cart extends AbstractShopSingleton implements CartInterface
 {
     /**
@@ -54,32 +52,32 @@ class Cart extends AbstractShopSingleton implements CartInterface
             router('shop.cart.add', [
                 'method' => 'POST',
                 'path'   => '/ajouter-au-panier/{product_name}',
-                'cb'     => [$this, 'addHandler']
+                'cb'     => [$this, 'addHandler'],
             ]);
 
             // Mise à jour des articles du panier
             router('shop.cart.update', [
                 'method' => 'POST',
                 'path'   => '/mise-a-jour-du-panier',
-                'cb'     => [$this, 'updateHandler']
+                'cb'     => [$this, 'updateHandler'],
             ]);
 
             // Suppression d'un article du panier
             router('shop.cart.remove', [
                 'method' => 'GET',
                 'path'   => '/supprimer-du-panier/{line_key}',
-                'cb'     => [$this, 'removeHandler']
+                'cb'     => [$this, 'removeHandler'],
             ]);
         }, 25);
 
-        add_action('init', function() {
+        add_action('init', function () {
             $this->sessionItems()->getCart();
         }, 999999);
 
         add_action('get_header', function () {
             if (
                 $this->functions()->page()->isCart() &&
-                ! $this->getList() &&
+                !$this->getList() &&
                 ($message = $this->getNotice('is_empty'))
             ) {
                 $this->notices()->add($message, 'info');
@@ -88,7 +86,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function add($key, $attributes)
     {
@@ -96,74 +94,66 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function addHandler($product_name)
     {
-        /**
-         * Vérification d'existance du produit et récupération
-         * @var \tiFy\Plugins\Shop\Products\ProductItem $product
-         */
+        $notices = new MessagesBag();
+        $redirect = Request::header('referer', get_home_url());
+
         if (!$product = $this->products()->getItem($product_name)) {
-            return;
-        }
+            // > Produit inexistant.
+            $notices->error(__('Le produit n\'existe pas.', 'tify'));
+        } elseif (!$quantity = Request::instance()->request->getInt('quantity', 1)) {
+            // > Impossible de définir la quantité de produit.
+            $notices->error(__('La quantité de produit ne peut être définie.', 'tify'));
+        } elseif (!$product->isPurchasable()) {
+            // > Le produit n'est pas commandable.
+            $notices->error(__('Le produit ne peut être commandé.', 'tify'));
+        } else {
+            // Options d'achat
+            $purchasing_options = Request::input('purchasing_options', []);
 
-        $request = request();
+            // Identification de la ligne du panier (doit contenir toutes les options d'unicité).
+            $key = md5(implode('_', [$product->getid(), maybe_serialize($purchasing_options)]));
+            if ($exists = $this->get($key)) {
+                $quantity += $exists->getQuantity();
+            }
 
-        // Récupération de la quantité de produit
-        if (!$quantity = $request->request->getInt('quantity', 1)) {
-            return;
-        }
-
-        // Vérifie si un produit peut être commandé
-        if (!$product->isPurchasable()) {
-            return;
-        }
-
-        // Options d'achat
-        $purchasing_options = $request->request->get('purchasing_options', []);
-
-        // Identification de la ligne du panier (doit contenir toutes les options d'unicité).
-        $key = md5(
-            implode(
-                '_',
-                [
-                    $product->getid(),
-                    maybe_serialize($purchasing_options)
-                ]
-            )
-        );
-        if ($exists = $this->get($key)) :
-            $quantity += $exists->getQuantity();
-        endif;
-
-        $this->add(
-            $key,
-            compact(
+            $this->add($key, compact(
                 'key',
                 'quantity',
                 'product',
                 'purchasing_options'
-            )
-        );
+            ));
 
-        // Mise à jour des données de session
-        $this->sessionItems()->update();
+            // Mise à jour des données de session
+            $this->sessionItems()->update();
 
-        // Message de notification
-        if ($message = $this->getNotice('successfully_added')) :
-            $this->notices()->add($message);
-        endif;
+            $notices->success(
+                $this->getNotice('successfully_added')
+                    ?: __('Le produit a été ajouté au panier avec succès', 'tify')
+            );
 
-        // Définition de l'url de redirection
-        if ($redirect = $request->request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $product->getPermalink()) :
-        else :
-            $redirect = wp_get_referer();
-        endif;
+            // Définition de l'url de redirection
+            if ($redirect = Request::input('_wp_http_referer', '')) {
+            } elseif ($redirect = $product->getPermalink()) {
+            } else {
+                $redirect = Request::header('referer', get_home_url());
+            }
+        }
 
-        wp_redirect(($redirect ?: get_home_url()));
-        exit;
+        if ($notices->exists()) {
+            foreach ($notices->fetch() as $notice) {
+                $this->shop->session()->notices()->add($notice['message'], $notices::getLevelName($notice['level']));
+            }
+        }
+
+        if ($redirect) {
+            return Redirect::to($redirect);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -176,12 +166,12 @@ class Cart extends AbstractShopSingleton implements CartInterface
         endif;
 
         return ($product instanceof ProductItemInterface)
-             ? route('shop.cart.add', [$product->getSlug()])
-             : '';
+            ? route('shop.cart.add', [$product->getSlug()])
+            : '';
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function calculate()
     {
@@ -189,7 +179,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function count()
     {
@@ -197,7 +187,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function countQuantity()
     {
@@ -205,7 +195,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function destroy()
     {
@@ -215,7 +205,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function flush()
     {
@@ -223,7 +213,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function get($key)
     {
@@ -231,7 +221,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getProductsWeight()
     {
@@ -243,7 +233,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getList()
     {
@@ -251,7 +241,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getNotice($name, $default = '')
     {
@@ -259,7 +249,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getTotals()
     {
@@ -267,7 +257,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function initNotices()
     {
@@ -276,14 +266,14 @@ class Cart extends AbstractShopSingleton implements CartInterface
                 'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
                 'successfully_updated' => __('Votre panier a été mis à jour avec succès.', 'tify'),
                 'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
-                'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify')
+                'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify'),
             ],
             $this->config('cart.notices', [])
         );
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function isEmpty()
     {
@@ -291,7 +281,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function lines()
     {
@@ -302,7 +292,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function needPayment()
     {
@@ -310,7 +300,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function needShipping()
     {
@@ -318,7 +308,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function remove($key)
     {
@@ -326,7 +316,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function removeHandler($key)
     {
@@ -359,7 +349,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function removeUrl($key)
     {
@@ -367,7 +357,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function sessionItems()
     {
@@ -375,7 +365,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function update($key, $attributes)
     {
@@ -391,7 +381,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function updateUrl()
     {
@@ -399,7 +389,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function updateHandler()
     {

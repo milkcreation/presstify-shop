@@ -3,11 +3,15 @@
 namespace tiFy\Plugins\Shop\Products;
 
 use tiFy\PostType\Query\PostQuery;
-use tiFy\Plugins\Shop\Contracts\ProductsInterface;
-use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
-use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\{
+    Contracts\ProductsInterface,
+    Products\ObjectType\Categorized,
+    Products\ObjectType\Uncategorized,
+    Shop,
+    ShopResolverTrait
+};
+use WP_Post;
+use WP_Query;
 
 /**
  * Class Products
@@ -55,20 +59,14 @@ class Products extends PostQuery implements ProductsInterface
      *
      * @return void
      */
-    private function __clone()
-    {
-
-    }
+    private function __clone() {}
 
     /**
      * Court-circuitage de l'implémentation.
      *
      * @return void
      */
-    private function __wakeup()
-    {
-
-    }
+    private function __wakeup() {}
 
     /**
      * Instanciation de la classe.
@@ -147,7 +145,7 @@ class Products extends PostQuery implements ProductsInterface
                 break;
         endswitch;
 
-        $wp_query = new \WP_Query;
+        $wp_query = new WP_Query;
         $posts = $wp_query->query($args);
         if ($wp_query->found_posts) :
             return $this->getItem(reset($posts));
@@ -315,7 +313,7 @@ class Products extends PostQuery implements ProductsInterface
     /**
      * {@inheritdoc}
      */
-    public function resolveItem(\WP_Post $wp_post)
+    public function resolveItem(WP_Post $wp_post)
     {
         $concrete = $this->getObjectType($wp_post->post_type)->getItemController();
 

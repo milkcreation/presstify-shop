@@ -4,18 +4,24 @@ namespace tiFy\Plugins\Shop;
 
 use tiFy\Contracts\View\ViewController;
 use tiFy\Contracts\View\ViewEngine;
-use tiFy\Plugins\Shop\Contracts\Actions;
-use tiFy\Plugins\Shop\Contracts\AddressesInterface;
-use tiFy\Plugins\Shop\Contracts\CartInterface;
-use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
-use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
-use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
-use tiFy\Plugins\Shop\Contracts\OrdersInterface;
-use tiFy\Plugins\Shop\Contracts\ProductsInterface;
-use tiFy\Plugins\Shop\Contracts\NoticesInterface;
-use tiFy\Plugins\Shop\Contracts\SessionInterface;
-use tiFy\Plugins\Shop\Contracts\SettingsInterface;
-use tiFy\Plugins\Shop\Contracts\UsersInterface;
+use tiFy\Plugins\Shop\{
+    Contracts\Actions,
+    Contracts\AddressesInterface,
+    Contracts\CartInterface,
+    Contracts\CheckoutInterface,
+    Contracts\FunctionsInterface,
+    Contracts\GatewaysInterface,
+    Contracts\OrdersInterface,
+    Contracts\ProductsInterface,
+    Contracts\NoticesInterface,
+    Contracts\SessionInterface,
+    Contracts\SettingsInterface,
+    Contracts\UserCustomerInterface,
+    Contracts\UserItemInterface,
+    Contracts\UserLoggedOutInterface,
+    Contracts\UserShopManagerInterface,
+    Contracts\UsersInterface
+};
 
 trait ShopResolverTrait
 {
@@ -184,6 +190,14 @@ trait ShopResolverTrait
     public function resourcesUrl($path = '')
     {
         return $this->shop()->resourcesUrl($path);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function user(int $id = null)
+    {
+        return $this->users()->getItem($id);
     }
 
     /**

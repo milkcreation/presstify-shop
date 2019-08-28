@@ -40,7 +40,8 @@ interface ShopResolverInterface
 
     /**
      * Récupération des données de configuration de la boutique.
-     * @param null|string $key  Attribut de configuration. Syntaxe à point autorisée pour accéder
+     *
+     * @param null|string $key Attribut de configuration. Syntaxe à point autorisée pour accéder
      *                          aux sous niveau d'un tableau.
      *                          Renvoie la liste complète des attributs de configuration si null.
      * @param mixed $default Valeur de retour par défaut.
@@ -97,6 +98,15 @@ interface ShopResolverInterface
      * @return SessionManager
      */
     public function settings();
+
+    /**
+     * Récupération de l'instance de l'utilisateur.
+     *
+     * @param int|null $id
+     *
+     * @return UserItemInterface|UserCustomerInterface|UserShopManagerInterface|UserLoggedOutInterface
+     */
+    public function user(?int $id = null);
 
     /**
      * Récupération de la dépendance des utilisateurs de la boutique.

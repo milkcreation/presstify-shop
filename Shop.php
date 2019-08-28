@@ -1,201 +1,97 @@
-<?php
-
-/**
- * @name Shop
- * @desc Extension PresstiFy de gestion de boutique en ligne.
- * @author Jordy Manner <jordy@milkcreation.fr>
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop
- * @version 2.0.0
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop;
 
-use League\Container\Exception\NotFoundException;
-use tiFy\Apps\AppController;
-use tiFy\User\Session\StoreInterface as tiFySession;
-use tiFy\Plugins\Shop\Addresses\Addresses;
-use tiFy\Plugins\Shop\Cart\Cart;
-use tiFy\Plugins\Shop\Checkout\Checkout;
-use tiFy\Plugins\Shop\Functions\Functions;
-use tiFy\Plugins\Shop\Gateways\Gateways;
-use tiFy\Plugins\Shop\Notices\Notices;
-use tiFy\Plugins\Shop\Orders\Orders;
-use tiFy\Plugins\Shop\Products\Products;
-use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
-use tiFy\Plugins\Shop\Settings\Settings;
-use tiFy\Plugins\Shop\Users\Users;
+use Psr\Container\ContainerInterface as Container;
+use tiFy\Plugins\Shop\Contracts\ShopInterface;
 
-final class Shop extends AppController
+/**
+ * @desc Extension PresstiFy de gestion de boutique en ligne.
+ * @author Jordy Manner <jordy@milkcreation.fr>
+ * @package tiFy\Plugins\Shop
+ * @version 2.0.39
+ *
+ * Activation :
+ * ----------------------------------------------------------------------------------------------------
+ * Dans config/app.php ajouter \tiFy\Plugins\Shop\ShopServiceProvider à la liste des fournisseurs de services
+ *     chargés automatiquement par l'application.
+ * ex.
+ * <?php
+ * ...
+ * use tiFy\Plugins\Shop\ShopServiceProvider;
+ * ...
+ *
+ * return [
+ *      ...
+ *      'providers' => [
+ *          ...
+ *          ShopServiceProvider::class
+ *          ...
+ *      ]
+ * ];
+ *
+ * Configuration :
+ * ----------------------------------------------------------------------------------------------------
+ * Dans le dossier de config, créer le fichier shop.php
+ * @see /vendor/presstify-plugins/shop/Resources/config/shop.php Exemple de configuration
+ */
+class Shop implements ShopInterface
 {
-    /**
-     * Fournisseur de service
-     * @var ServiceProvider
-     */
-    protected $provider;
+    use ShopResolverTrait;
 
     /**
-     * CONSTRUCTEUR
+     * Conteneur d'injection de dépendances.
+     * @var Container
+     */
+    protected $container;
+
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @param Container $container Conteneur d'injection de dépendances.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Container $container)
     {
-        parent::__construct();
-
-        // Déclaration du fournisseur de services.
-        $this->provider = new ServiceProvider($this->appConfig('service_provider', []), $this);
-        $this->appServiceProvider($this->provider);
+        $this->container = $container;
+        $this->shop = $this;
     }
 
     /**
-     * Récupération de l'instance de la classe.
      *
-     * @return object|self
      */
-    public static function get()
+    public function _resolve($alias, ...$args)
     {
-        try {
-            return self::appInstance();
-        } catch(NotFoundException $e) {
-            wp_die($e->getMessage(), '', $e->getCode());
-            exit;
-        }
+        return app("shop.{$alias}", $args);
     }
 
     /**
-     * Récupération du fournisseur de service.
+     * Récupération du chemin absolu vers une ressource.
      *
-     * @return ServiceProvider
+     * @param string $path Chemin relatif vers un sous élément.
+     *
+     * @return string
      */
-    public function provider()
+    public function resourcesDir($path = '')
     {
-        return $this->provider;
+        $path = '/Resources/' . ltrim($path, '/');
+
+        return file_exists(__DIR__ . $path) ? __DIR__ . $path : '';
     }
 
     /**
-     * Récupération d'un service fournit par la boutique.
+     * Récupération de l'url absolue vers une ressource.
      *
-     * @param string $name Identifiant de qualification du service
-     * @param array $args Liste des variables passées en argument au service
+     * @param string $path Chemin relatif vers un sous élément.
      *
-     * @return object
+     * @return string
      */
-    public function provide($name, $args = [])
+    public function resourcesUrl($path = '')
     {
-        return $this->provider()->get($name, $args);
-    }
+        $cinfo = class_info($this);
+        $path = '/Resources/' . ltrim($path, '/');
 
-    /**
-     * Récupération de la classe de rappel de gestion des adresses : livraison|facturation
-     *
-     * @return object|Addresses
-     */
-    public function addresses()
-    {
-        return $this->provide('addresses.controller');
-    }
-
-    /**
-     * Récupération de la dépendance panier
-     *
-     * @return object|Cart
-     */
-    public function cart()
-    {
-        return $this->provide('cart.controller');
-    }
-
-    /**
-     * Récupération de la dépendance commande
-     *
-     * @return object|Checkout
-     */
-    public function checkout()
-    {
-        return $this->provide('checkout.controller');
-    }
-
-    /**
-     * Récupération de la dépendance des fournisseurs de service
-     *
-     * @return object|Functions
-     */
-    public function functions()
-    {
-        return $this->provide('functions.controller');
-    }
-
-    /**
-     * Récupération de la dépendance commande
-     *
-     * @return object|Gateways
-     */
-    public function gateways()
-    {
-        return $this->provide('gateways.controller');
-    }
-
-    /**
-     * Récupération de la classe de rappel de gestion des commandes
-     *
-     * @return object|Orders
-     */
-    public function orders()
-    {
-        return $this->provide('orders.controller');
-    }
-
-    /**
-     * Récupération de la classe de rappel de gestion des produits
-     *
-     * @return object|Products
-     */
-    public function products()
-    {
-        return $this->provide('products.controller');
-    }
-
-    /**
-     * Récupération de la dépendance des notices
-     *
-     * @return object|Notices
-     */
-    public function notices()
-    {
-        return $this->provide('notices.controller');
-    }
-
-    /**
-     * Récupération de la classe de rappel de récupération de données de session
-     *
-     * @return object|tiFySession
-     */
-    public function session()
-    {
-        /** @var tiFySession $session */
-        $session = $this->provide('session.controller');
-
-        return $session;
-    }
-
-    /**
-     * Récupération de la dépendance des réglages de la boutique
-     *
-     * @return object|Settings
-     */
-    public function settings()
-    {
-        return $this->provide('settings.controller');
-    }
-
-    /**
-     * Récupération de la dépendance des utilisateurs de la boutique
-     *
-     * @return object|Users
-     */
-    public function users()
-    {
-        return $this->provide('users.controller');
+        return file_exists($cinfo->getDirname() . $path) ? class_info($this)->getUrl() . $path : '';
     }
 }

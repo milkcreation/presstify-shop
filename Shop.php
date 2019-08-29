@@ -9,7 +9,7 @@ use tiFy\Plugins\Shop\Contracts\ShopInterface;
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.39
+ * @version 2.0.40
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------
@@ -59,9 +59,9 @@ class Shop implements ShopInterface
     }
 
     /**
-     *
+     * @inheritDoc
      */
-    public function _resolve($alias, ...$args)
+    public function resolve($alias, ...$args)
     {
         return app("shop.{$alias}", $args);
     }
@@ -73,7 +73,7 @@ class Shop implements ShopInterface
      *
      * @return string
      */
-    public function resourcesDir($path = '')
+    public function resourcesDir($path = ''): string
     {
         $path = '/Resources/' . ltrim($path, '/');
 
@@ -87,7 +87,7 @@ class Shop implements ShopInterface
      *
      * @return string
      */
-    public function resourcesUrl($path = '')
+    public function resourcesUrl($path = ''): string
     {
         $cinfo = class_info($this);
         $path = '/Resources/' . ltrim($path, '/');

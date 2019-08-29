@@ -99,7 +99,7 @@ trait ShopResolverTrait
      */
     public function gateways()
     {
-        return app('shop.gateways.controller');
+        return app('shop.gateways');
     }
 
     /**

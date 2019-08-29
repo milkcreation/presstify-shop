@@ -191,7 +191,9 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function countQuantity()
     {
-        return $this->lines()->sum('quantity');
+        return $this->lines()->sum(function (CartLineInterface $item) {
+            return is_int($item['quantity']) ?:0;
+        });
     }
 
     /**

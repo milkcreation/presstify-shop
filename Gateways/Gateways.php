@@ -1,37 +1,25 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\GatewayListInterface;
-use tiFy\Plugins\Shop\Contracts\GatewaysInterface;
+use tiFy\Plugins\Shop\{
+    Concerns\ShopAwareTrait,
+    Contracts\GatewayInterface,
+    Contracts\GatewaysInterface,
+};
+use tiFy\Support\Collection;
 
 /**
- * Class Gateways
- *
- * @desc Gestion des plateformes de paiement.
+ * Gestion des plateformes de paiement.
  */
-class Gateways extends AbstractShopSingleton implements GatewaysInterface
+class Gateways extends Collection implements GatewaysInterface
 {
-    /**
-     * Instance du controleur de gestion de la liste des plateformes de paiement déclarées.
-     * @var GatewayListInterface
-     */
-    protected $list;
+    use ShopAwareTrait;
 
     /**
-     * Liste des identifiants de qualification des plateformes déclarées.
-     * @var string[]
+     * @inheritDoc
      */
-    protected $registered = [
-        'shop.gateways.cash_on_delivery',
-        'shop.gateways.cheque'
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    public function boot()
+    public function boot(): void
     {
         $this->_register();
     }
@@ -39,70 +27,91 @@ class Gateways extends AbstractShopSingleton implements GatewaysInterface
     /**
      * Définition de la liste des plateformes de paiement déclarées.
      *
-     * @return GatewayListInterface
+     * @return void
      */
     private function _register()
     {
         events()->trigger('tify.plugins.shop.gateways.register', [&$this]);
 
-        $gateways = [];
-        foreach($this->config("gateways", []) as $id => $attrs) :
-            if (is_numeric($id)) :
-                $id = $attrs;
-                $attrs = [];
-            endif;
-
-            if (is_callable($attrs)) :
-                $gateways[$id] = call_user_func_array($attrs, [$id, [], $this->shop]);
-            else :
-                if ($attrs === false) :
-                    $attrs = ['enabled' => false];
-                elseif (!isset($attrs['enabled'])) :
-                    $attrs['enabled'] = true;
-                endif;
-
-                $gateways[$id] = app("shop.gateway.{$id}", [$id, $attrs, $this->shop]);
-            endif;
-        endforeach;
-
-        return $this->list = app('shop.gateways.list', [$gateways, $this->shop]);
+        $this->set($this->shop->config("gateways", []));
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @return GatewaysInterface[]
      */
-    public function add($id, $concrete)
+    public function all(): array
     {
-        $alias = "shop.gateway.{$id}";
-
-        if (!in_array($alias, $this->registered)) :
-            $concrete = $this->provider()->getConcrete($alias);
-            app()->add($alias, $concrete);
-            array_push($this->registered, $alias);
-        endif;
+        return parent::all();
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @return GatewayInterface[]
      */
-    public function all()
+    public function available(): array
     {
-        return $this->list->all();
+        $filtered = $this->collect()->filter(function(GatewayInterface $item){
+            return $item->isAvailable();
+        });
+
+        return $filtered->all();
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @param string $id
+     *
+     * @return GatewayInterface
      */
-    public function available()
+    public function get($id): ?GatewayInterface
     {
-        return $this->list->available();
+        return is_string($id) ? parent::get($id): null;
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
+     *
+     * @param GatewayInterface|array|string $gateway
+     * @param string|null $alias
+     *
+     * @return GatewayInterface
      */
-    public function get($id)
+    public function walk($gateway, $alias = null): ?GatewayInterface
     {
-        return $this->list->get($id);
+        $attrs = [];
+        $enabled = true;
+
+        if (is_numeric($alias)) {
+            $alias = $gateway;
+            $attrs = [];
+            $enabled = true;
+        } elseif (is_bool($gateway)) {
+            $attrs = [];
+            $enabled = $gateway;
+            $gateway = $alias;
+        } elseif (is_array($gateway)) {
+            $attrs = $gateway;
+            $enabled = true;
+            $gateway = $alias;
+        }
+
+        if (is_string($gateway)) {
+            $gateway = $this->shop->resolve("gateway.{$gateway}");
+        }
+
+        if ($gateway instanceof GatewayInterface) {
+            $gateway->setShop($this->shop)
+                ->set($attrs)->parse()
+                ->setEnabled($enabled)
+                ->boot();
+
+            return $this->items[$alias] = $gateway;
+        } else {
+            return null;
+        }
     }
 }

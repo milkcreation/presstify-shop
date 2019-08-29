@@ -2,7 +2,10 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Plugins\Shop\Contracts\ShopResolverInterface;
+use tiFy\Plugins\Shop\{
+    Contracts\ShopInterface as ShopContract,
+    Contracts\ShopResolverInterface
+};
 
 abstract class AbstractShopSingleton implements ShopResolverInterface
 {
@@ -17,11 +20,11 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param ShopContract $shop Classe de rappel de la boutique.
      *
      * @return void
      */
-    protected function __construct(Shop $shop)
+    protected function __construct(ShopContract $shop)
     {
         $this->shop = $shop;
     }
@@ -50,11 +53,11 @@ abstract class AbstractShopSingleton implements ShopResolverInterface
      * Instanciation de la classe.
      *
      * @param string $alias Nom de qualification de la classe.
-     * @param Shop $shop Instance de la boutique
+     * @param ShopContract $shop Instance de la boutique
      *
      * @return static
      */
-    public static function make($alias, Shop $shop)
+    public static function make($alias, ShopContract $shop)
     {
         return self::$instances[$alias] = self::$instances[$alias] ?? new static($shop);
     }

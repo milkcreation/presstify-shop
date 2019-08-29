@@ -1,39 +1,31 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface GatewaysInterface extends BootableControllerInterface, ShopResolverInterface
+use tiFy\Contracts\Support\Collection;
+
+interface GatewaysInterface extends Collection, ShopAwareTrait
 {
     /**
-     * Ajout d'une déclaration de plateforme de paiement.
-     *
-     * @param string $id Identifiant de qualification de la plateforme de paiement.
-     * @param string|callable $concrete Nom de la classe ou Fonctions anonyme de résolution.
-     *
-     * @return void
-     */
-    public function add($id, $concrete);
-
-    /**
-     * Récupération de la liste complète des plateforme de paiement déclarée.
+     * {@inheritDoc}
      *
      * @return GatewayInterface[]
      */
-    public function all();
+    public function all(): array;
 
     /**
      * Récupération de la liste des plateformes de paiement disponibles.
      *
      * @return GatewayInterface[]
      */
-    public function available();
+    public function available(): array;
 
     /**
-     * Récupération de la liste complète des plateforme de paiement déclarées.
+     * {@inheritDoc}
      *
-     * @param string Identifiant de qualification de la plateforme de paiement.
+     * @param string $id
      *
-     * @return null|GatewayInterface
+     * @return GatewayInterface|null
      */
-    public function get($id);
+    public function get($id): ?GatewayInterface;
 }

@@ -1,18 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use Illuminate\Support\Str;
-use tiFy\Contracts\Kernel\Logger;
-use tiFy\Kernel\Params\ParamsBag;
-use tiFy\Plugins\Shop\Contracts\GatewayInterface;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use \Psr\Log\LoggerInterface;
+use tiFy\Plugins\Shop\{
+    Concerns\ShopAwareTrait,
+    Contracts\GatewayInterface as GatewayContract,
+    Contracts\OrderInterface as OrderContract
+};
+use tiFy\Log\Logger;
+use tiFy\Support\ParamsBag;
 
-abstract class AbstractGateway extends ParamsBag implements GatewayInterface
+abstract class AbstractGateway extends ParamsBag implements GatewayContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Identifiant de qualification de la plateforme.
@@ -28,34 +29,31 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     protected $debug = false;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param string $id Identifiant de qualification de la plateforme.
-     * @param array $attrs Liste des attributs de configuration de la plateforme.
-     * @param Shop $shop Instance de la boutique.
-     *
-     * @return void
+     * Status d'activation de la plateforme.
+     * @var bool
      */
-    public function __construct($id, $attrs = [], Shop $shop)
-    {
-        $this->id = $id;
-        $this->shop = $shop;
-
-        parent::__construct($attrs);
-    }
+    protected $enabled = true;
 
     /**
-     * @inheritdoc
+     * Instance du gestionnaire de journalisation.
+     * @var Logger|null
      */
-    public function checkoutPaymentForm()
-    {
-        echo '';
-    }
+    protected $logger;
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function defaults()
+    public function boot(): void {}
+
+    /**
+     * @inheritDoc
+     */
+    public function checkoutPaymentForm(): void {}
+
+    /**
+     * @inheritDoc
+     */
+    public function defaults(): array
     {
         return [
             'availability'         => '',
@@ -63,9 +61,9 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
             'countries'            => [],
             'debug'                => false,
             'description'          => '',
-            'enabled'              => true,
             'has_fields'           => false,
             'icon'                 => '',
+            'logger'               => [],
             'max_amount'           => 0,
             'method_description'   => '',
             'method_title'         => '',
@@ -78,89 +76,85 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->get('description', '');
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getIcon()
+    public function getIcon(): string
     {
         return $this->get('icon', '');
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getMethodDescription()
+    public function getMethodDescription(): string
     {
         return $this->get('method_description', '');
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getMethodTitle()
+    public function getMethodTitle(): string
     {
         return $this->get('method_title', '');
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getOrderButtonText()
+    public function getOrderButtonText(): string
     {
         return $this->get('order_button_text', '');
     }
 
     /**
-     * @inheritdoc
-     *
-     *
+     * @inheritDoc
      */
-    public function getReturnUrl(?OrderInterface $order = null)
+    public function getReturnUrl(?OrderContract $order = null): string
     {
         if ($order) {
             return $order->getCheckoutOrderReceivedUrl();
         } else {
-            return $this->functions()->url()->checkoutOrderReceivedPage([
-                'order-received' => '',
-            ]);
+            return $this->shop->functions()->url()->checkoutOrderReceivedPage(['order-received' => '']);
         }
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->get('title', '');
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function hasFields()
+    public function hasFields(): bool
     {
         return $this->get('has_fields', false);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function icon()
+    public function icon(): string
     {
         return $this->getIcon()
             ? '<img src="' . $this->getIcon() . '" alt="' . esc_attr($this->getTitle()) . '" />'
@@ -168,59 +162,80 @@ abstract class AbstractGateway extends ParamsBag implements GatewayInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isAvailable()
+    public function isAvailable(): bool
     {
         return $this->isEnabled();
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isChoosen()
+    public function isChoosen(): bool
     {
         return $this->get('choosen', true);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
-        return $this->get('enabled', true);
+        return $this->enabled;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function log($message, $type = 'INFO', $context = [])
+    public function logger($level = null, string $message = '', array $context = []): ?LoggerInterface
     {
-        if (!$this->get('debug', false)) {
-            return;
+        if (is_null($this->logger)) {
+            if ($logger = $this->get('logger', true)) {
+                if (!$logger instanceof Logger) {
+                    $attrs = is_array($logger) ? $logger : [];
+
+                    $logger = (new Logger($this->getId()))->setContainer(app())->setParams($attrs);
+                }
+                $this->setLogger($logger);
+            } else {
+                return null;
+            }
         }
 
-        $Type = Str::upper($type);
-        if (!in_array($Type, ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'])) {
-            return;
+        if(is_null($level)) {
+            return $this->logger;
+        } else {
+            $this->logger->log($level, $message, $context);
         }
-        /** @var Logger $logger */
-        $logger = app()->has("shop.gateways.logger.{$this->getId()}")
-            ? app("shop.gateways.logger.{$this->getId()}")
-            : app()->share("shop.gateways.logger.{$this->getId()}", function () {
-                return app('logger', ["shop.gateways.{$this->getId()}"]);
-            })->build();
-
-        $levels = $logger::getLevels();
-
-        $logger->log($levels[$Type], $message, $context);
+        return null;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function processPayment(OrderInterface $order)
+    public function processPayment(OrderContract $order): array
     {
         return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setEnabled(bool $enabled): GatewayContract
+    {
+        $this->enabled = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setLogger(LoggerInterface $logger): GatewayContract
+    {
+        $this->logger = $logger;
+
+        return $this;
     }
 }

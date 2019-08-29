@@ -5,6 +5,8 @@ namespace tiFy\Plugins\Shop;
 use tiFy\Container\ServiceProvider;
 use tiFy\Contracts\Form\FormFactory;
 use tiFy\Plugins\Shop\Contracts\{
+    GatewayInterface as GatewayContract,
+    GatewaysInterface as GatewaysContract,
     ProductItemInterface as ProductContract,
     ShopInterface as ShopContract};
 use tiFy\Plugins\Shop\{
@@ -28,10 +30,9 @@ use tiFy\Plugins\Shop\{
     Functions\Page as FunctionsPage,
     Functions\Price as FunctionsPrice,
     Functions\Url as FunctionsUrl,
-    Gateways\CashOnDelivery\CashOnDelivery as GatewaysCachOnDelivery,
-    Gateways\Cheque\Cheque as GatewaysCheque,
+    Gateways\CashOnDeliveryGateway,
+    Gateways\ChequeGateway,
     Gateways\Gateways,
-    Gateways\GatewayList as GatewaysList,
     Notices\Notices,
     Orders\Orders,
     Orders\Order,
@@ -85,10 +86,9 @@ class ShopServiceProvider extends ServiceProvider
         'shop.functions.page'                  => FunctionsPage::class,
         'shop.functions.price'                 => FunctionsPrice::class,
         'shop.functions.url'                   => FunctionsUrl::class,
-        'shop.gateway.cash_on_delivery'        => GatewaysCachOnDelivery::class,
-        'shop.gateway.cheque'                  => GatewaysCheque::class,
-        'shop.gateways.controller'             => Gateways::class,
-        'shop.gateways.list'                   => GatewaysList::class,
+        'shop.gateway.cash_on_delivery'        => CashOnDeliveryGateway::class,
+        'shop.gateway.cheque'                  => ChequeGateway::class,
+        'shop.gateways'                        => Gateways::class,
         'shop.notices.controller'              => Notices::class,
         'shop.custom_types.controller'         => CustomTypes::class,
         'shop.orders.controller'               => Orders::class,
@@ -150,8 +150,7 @@ class ShopServiceProvider extends ServiceProvider
         'shop.functions.url',
         'shop.gateway.cash_on_delivery',
         'shop.gateway.cheque',
-        'shop.gateways.controller',
-        'shop.gateways.list',
+        'shop.gateways',
         'shop.notices.controller',
         'shop.custom_types.controller',
         'shop.orders.controller',
@@ -193,7 +192,7 @@ class ShopServiceProvider extends ServiceProvider
         'checkout.controller',
         'custom_types.controller',
         'functions.controller',
-        'gateways.controller',
+        'gateways',
         'notices.controller',
         'orders.controller',
         'products.controller',
@@ -201,6 +200,12 @@ class ShopServiceProvider extends ServiceProvider
         'settings.controller',
         'users.controller'
     ];
+
+    /**
+     * Instance de la boutique.
+     * @var ShopContract
+     */
+    protected $shop;
 
     /**
      * @inheritDoc
@@ -217,7 +222,7 @@ class ShopServiceProvider extends ServiceProvider
         });
 
         add_action('after_setup_theme', function () {
-            $this->getContainer()->get('shop');
+            $this->shop = $this->getContainer()->get('shop');
 
             foreach($this->resolve as $alias) {
                 $this->getContainer()->get("shop.{$alias}")->boot();
@@ -479,29 +484,31 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerGateways(): void
     {
-        $this->getContainer()->share('shop.gateways.controller', function () {
-            /** @var AbstractShopSingleton $concrete */
-            $concrete = $this->getConcrete('shop.gateways.controller');
+        $this->getContainer()->share('shop.gateways', function (): GatewaysContract {
+            $concrete = $this->getConcrete('shop.gateways');
 
-            return $concrete::make('shop.gateways.controller', $this->getContainer()->get('shop'));
+            /** @var GatewaysContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete();
+
+            return $instance->setShop($this->shop);
         });
 
-        $this->getContainer()->add('shop.gateway.cash_on_delivery', function ($id, $attrs) {
+        $this->getContainer()->add('shop.gateway.cash_on_delivery', function (): GatewayContract {
             $concrete = $this->getConcrete('shop.gateway.cash_on_delivery');
 
-            return new $concrete($id, $attrs, $this->getContainer()->get('shop'));
+            /** @var GatewayContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete();
+
+            return $instance;
         });
 
-        $this->getContainer()->add('shop.gateway.cheque', function ($id, $attrs) {
+        $this->getContainer()->add('shop.gateway.cheque', function (): GatewayContract {
             $concrete = $this->getConcrete('shop.gateway.cheque');
 
-            return new $concrete($id, $attrs, $this->getContainer()->get('shop'));
-        });
+            /** @var GatewayContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete();
 
-        $this->getContainer()->add('shop.gateways.list', function ($items) {
-            $concrete = $this->getConcrete('shop.gateways.list');
-
-            return new $concrete($items, $this->getContainer()->get('shop'));
+            return $instance;
         });
     }
 
@@ -516,7 +523,7 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.notices.controller');
 
-            return $concrete::make('shop.notices.controller', $this->getContainer()->get('shop'));
+            return $concrete::make('shop.notices.controller', $this->shop);
         });
     }
 
@@ -531,67 +538,67 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.orders.controller');
 
-            return $concrete::make('shop.orders.controller', $this->getContainer()->get('shop'));
+            return $concrete::make('shop.orders.controller', $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order', function (WP_Post $post) {
             $concrete = $this->getConcrete('shop.orders.order');
 
-            return new $concrete($post, $this->getContainer()->get('shop'));
+            return new $concrete($post, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item', function ($attrs = []) {
             $concrete = $this->getConcrete('shop.orders.order_item');
 
-            return new $concrete($attrs, $this->getContainer()->get('shop'));
+            return new $concrete($attrs, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item_list', function ($items = []) {
             $concrete = $this->getConcrete('shop.orders.order_item_list');
 
-            return new $concrete($items, $this->getContainer()->get('shop'));
+            return new $concrete($items, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item_type_coupon', function ($item = 0, $order) {
             $concrete = $this->getConcrete('shop.orders.order_item_type_coupon');
 
-            return new $concrete($item, $order, $this->getContainer()->get('shop'));
+            return new $concrete($item, $order, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item_type_fee', function ($item = 0, $order) {
             $concrete = $this->getConcrete('shop.orders.order_item_type_fee');
 
-            return new $concrete($item, $order, $this->getContainer()->get('shop'));
+            return new $concrete($item, $order, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item_type_product', function ($item = 0, $order) {
             $concrete = $this->getConcrete('shop.orders.order_item_type_product');
 
-            return new $concrete($item, $order, $this->getContainer()->get('shop'));
+            return new $concrete($item, $order, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item_type_shipping', function ($item = 0, $order) {
             $concrete = $this->getConcrete('shop.orders.order_item_type_shipping');
 
-            return new $concrete($item, $order, $this->getContainer()->get('shop'));
+            return new $concrete($item, $order, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_item_type_tax', function ($item = 0, $order) {
             $concrete = $this->getConcrete('shop.orders.order_item_type_tax');
 
-            return new $concrete($item, $order, $this->getContainer()->get('shop'));
+            return new $concrete($item, $order, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.order_items', function ($order) {
             $concrete = $this->getConcrete('shop.orders.order_items');
 
-            return new $concrete($order, $this->getContainer()->get('shop'));
+            return new $concrete($order, $this->shop);
         });
 
         $this->getContainer()->add('shop.orders.list', function ($items) {
             $concrete = $this->getConcrete('shop.orders.list');
 
-            return new $concrete($items, $this->getContainer()->get('shop'));
+            return new $concrete($items, $this->shop);
         });
     }
 
@@ -606,42 +613,42 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.products.controller');
 
-            return $concrete::make('shop.products.controller', $this->getContainer()->get('shop'));
+            return $concrete::make('shop.products.controller', $this->shop);
         });
 
-        $this->getContainer()->add('shop.products.item', function (WP_Post $wp_post) {
+        $this->getContainer()->add('shop.products.item', function (WP_Post $wp_post): ProductContract {
             $concrete = $this->getConcrete('shop.products.item');
 
             /** @var ProductContract $instance */
             $instance = new $concrete($wp_post);
 
-            return $instance->setShop($this->getContainer()->get('shop'));
+            return $instance->setShop($this->shop);
         });
 
         $this->getContainer()->add('shop.products.list', function ($items) {
             $concrete = $this->getConcrete('shop.products.list');
 
-            return new $concrete($items, $this->getContainer()->get('shop'));
+            return new $concrete($items, $this->shop);
         });
 
         $this->getContainer()->add('shop.products.purchasing_option', function ($name, $attrs, $product) {
             $concrete = $this->getConcrete('shop.products.purchasing_option');
 
-            return new $concrete($name, $attrs, $product, $this->getContainer()->get('shop'));
+            return new $concrete($name, $attrs, $product, $this->shop);
         });
 
         /*
         $this->getContainer()->add('shop.products.type.categorized', function ($items) {
             $concrete = $this->getConcrete('shop.products.type.categorized');
 
-            return new $concrete($items, $this->getContainer()->get('shop'));
+            return new $concrete($items, $this->shop);
         });
         */
 
         $this->getContainer()->add('shop.products.type.uncategorized', function ($name, $attrs) {
             $concrete = $this->getConcrete('shop.products.type.uncategorized');
 
-            return new $concrete($name, $attrs, $this->getContainer()->get('shop'));
+            return new $concrete($name, $attrs, $this->shop);
         });
     }
 
@@ -656,7 +663,7 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.session.controller');
 
-            return $concrete::make('shop.session.controller', $this->getContainer()->get('shop'));
+            return $concrete::make('shop.session.controller', $this->shop);
         });
     }
 
@@ -671,7 +678,7 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.settings.controller');
 
-            return $concrete::make('shop.settings.controller', $this->getContainer()->get('shop'));
+            return $concrete::make('shop.settings.controller', $this->shop);
         });
     }
 
@@ -686,25 +693,25 @@ class ShopServiceProvider extends ServiceProvider
             /** @var AbstractShopSingleton $concrete */
             $concrete = $this->getConcrete('shop.users.controller');
 
-            return new $concrete($this->getContainer()->get('shop'));
+            return new $concrete($this->shop);
         });
 
         $this->getContainer()->add('shop.users.customer', function (\WP_User $user) {
             $concrete = $this->getConcrete('shop.users.customer');
 
-            return new $concrete($user, $this->getContainer()->get('shop'));
+            return new $concrete($user, $this->shop);
         });
 
         $this->getContainer()->add('shop.users.logged_out', function (\WP_User $user) {
             $concrete = $this->getConcrete('shop.users.logged_out');
 
-            return new $concrete($user, $this->getContainer()->get('shop'));
+            return new $concrete($user, $this->shop);
         });
 
         $this->getContainer()->add('shop.users.shop_manager', function (\WP_User $user) {
             $concrete = $this->getConcrete('shop.users.shop_manager');
 
-            return new $concrete($user, $this->getContainer()->get('shop'));
+            return new $concrete($user, $this->shop);
         });
     }
 
@@ -724,7 +731,7 @@ class ShopServiceProvider extends ServiceProvider
                     ? $dir
                     : $default_dir
                 )
-                ->set('shop', $this->getContainer()->get('shop'));
+                ->set('shop', $this->shop);
         });
     }
 }

@@ -11,8 +11,8 @@ use tiFy\Plugins\Shop\Contracts\ShopAwareTrait as ShopAwareTraitContract;
 trait ShopAwareTrait
 {
     /**
-     * Instance du gestionnaire de boutique.
-     * @var Shop
+     * Instance de la boutique.
+     * @var Shop|null
      */
     protected $shop;
 

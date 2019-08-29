@@ -1,57 +1,67 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\Kernel\ParamsBag;
+use Psr\Log\LoggerInterface as Logger;
+use tiFy\Contracts\Support\ParamsBag;
 
-interface GatewayInterface extends ParamsBag
+interface GatewayInterface extends ParamsBag, ShopAwareTrait
 {
+    /**
+     * Initialisation de la plateforme.
+     *
+     * @return void
+     */
+    public function boot(): void;
+
     /**
      * Formulaire de paiement de la commande.
      *
      * @return void
      */
-    public function checkoutPaymentForm();
+    public function checkoutPaymentForm(): void;
 
     /**
      * Récupération de l'intitulé de qualification.
      *
      * @return string
      */
-    public function getDescription();
+    public function getDescription(): string;
 
     /**
      * Récupération de l'image d'identification de la plateforme.
      *
      * @return string
      */
-    public function getIcon();
+    public function getIcon(): string;
 
     /**
      * Récupération de l'identifiant de qualification.
      *
      * @return string
      */
-    public function getId();
+    public function getId(): string;
 
     /**
      * Récupération de la description spécifique à l'interface d'administration.
      *
      * @return string
      */
-    public function getMethodDescription();
+    public function getMethodDescription(): string;
 
     /**
      * Récupération de l'intitulé de qualification spécifique à l'interface d'administration.
      *
      * @return string
      */
-    public function getMethodTitle();
+    public function getMethodTitle(): string;
 
     /**
+     * Récupération du texte du bouton de paiement.
+     *
      * @return string
      */
-    public function getOrderButtonText();
+    public function getOrderButtonText(): string;
 
     /**
      * Url de retour (Page de remerciement).
@@ -60,60 +70,60 @@ interface GatewayInterface extends ParamsBag
      *
      * @return string
      */
-    public function getReturnUrl(?OrderInterface $order = null);
+    public function getReturnUrl(?OrderInterface $order = null): string;
 
     /**
      * Récupération de l'intitulé de qualification.
      *
      * @return string
      */
-    public function getTitle();
+    public function getTitle(): string;
 
     /**
      * Vérifie si la plateforme contient des champs de soumission au moment du paiement de la commande.
      *
-     * @return bool
+     * @return boolean
      */
-    public function hasFields();
+    public function hasFields(): bool;
 
     /**
      * Affichage de l'image d'identification de la plateforme.
      *
      * @return string
      */
-    public function icon();
+    public function icon(): string;
 
     /**
      * Vérifie si une plateforme de paiement est disponible.
      *
-     * @return bool
+     * @return boolean
      */
-    public function isAvailable();
+    public function isAvailable(): bool;
 
     /**
      * Vérifie si la plateforme a été choisie en tant que méthode de paiement de la commande.
      *
-     * @return bool
+     * @return boolean
      */
-    public function isChoosen();
+    public function isChoosen(): bool;
 
     /**
      * Vérifie si une plateforme de paiement est active.
      *
      * @return bool
      */
-    public function isEnabled();
+    public function isEnabled(): bool;
 
     /**
-     * Journalisation des actions.
+     * Journalisation des événements|Récupération de l'instance du gestionnaire de journalisation.
      *
-     * @param string $message Message
-     * @param string $type Type de notification. DEBUG|INFO (par défaut)|NOTICE|WARNING|ERROR|CRITICAL|ALERT|EMERGENCY.
-     * @param array $context Données complémentaire de contexte
+     * @param int|string|null $level Niveau de notification
+     * @param string $message Intitulé du message du journal.
+     * @param array $context Liste des éléments de contexte.
      *
-     * @return void
+     * @return Logger|null
      */
-    public function log($message, $type = 'INFO', $context = []);
+    public function logger($level = null, string $message = '', array $context = []): ?Logger;
 
     /**
      * Procède au paiement de la commande.
@@ -123,9 +133,27 @@ interface GatewayInterface extends ParamsBag
      * @return array {
      *      Liste des attributs de retour.
      *
-     * @var string $result Résultat de paiement success|error.
-     * @var string $redirect Url de retour
+     *      @var string $result Résultat de paiement success|error.
+     *      @var string $redirect Url de retour
      * }
      */
-    public function processPayment(OrderInterface $order);
+    public function processPayment(OrderInterface $order): array;
+
+    /**
+     * Définition du statu d'activation de la plateforme.
+     *
+     * @param boolean $enabled
+     *
+     * @return static
+     */
+    public function setEnabled(bool $enabled): GatewayInterface;
+
+    /**
+     * Définition de l'instance du gestionnaire de journalisation.
+     *
+     * @param Logger $logger
+     *
+     * @return static
+     */
+    public function setLogger(Logger $logger): GatewayInterface;
 }

@@ -79,6 +79,13 @@ interface ShopResolverInterface
     public function products();
 
     /**
+     * Récupération du fournisseur de services.
+     *
+     * @return \tiFy\Plugins\Shop\ShopServiceProvider
+     */
+    public function provider();
+
+    /**
      * Récupération de la dépendance des notices.
      *
      * @return NoticesInterface
@@ -95,7 +102,7 @@ interface ShopResolverInterface
     /**
      * Récupération de la dépendance des réglages de la boutique.
      *
-     * @return SessionManager
+     * @return SettingsInterface
      */
     public function settings();
 

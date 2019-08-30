@@ -1,233 +1,117 @@
-<?php
-
-/**
- * @name Gateways
- * @desc Gestion des plateformes de paiement
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Gateways
- * @version 1.1
- * @since 1.3.1
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use Illuminate\Support\Arr;
-use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Gateways\CashOnDeliveryGateway\CashOnDeliveryGateway;
-use tiFy\Plugins\Shop\Gateways\ChequeGateway\ChequeGateway;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\{
+    Concerns\ShopAwareTrait,
+    Contracts\GatewayInterface,
+    Contracts\GatewaysInterface,
+};
+use tiFy\Support\Collection;
 
-class Gateways extends AppController implements GatewaysInterface, ProvideTraitsInterface
+/**
+ * Gestion des plateformes de paiement.
+ */
+class Gateways extends Collection implements GatewaysInterface
 {
-    use ProvideTraits;
+    use ShopAwareTrait;
 
     /**
-     * Instance de la classe
-     * @var Gateways
+     * @inheritDoc
      */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Controller de gestion de la liste des plateformes de paiement déclarées.
-     * @var GatewayListInterface
-     */
-    protected $list_controller;
-
-    /**
-     * Liste des plateformes par défaut.
-     * @var array
-     */
-    protected $defaults = [
-        'cash_on_delivery' => CashOnDeliveryGateway::class,
-        'cheque'           => ChequeGateway::class
-    ];
-
-    /**
-     * Liste des plateformes déclarées.
-     * @var array
-     */
-    protected $registered = [];
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
+    public function boot(): void
     {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
-
-        // Définition de la liste des événement
-        $this->appAddAction('after_setup_tify');
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe.
-     *
-     * @param Shop $shop
-     *
-     * @return Gateways
-     */
-    final public static function make(Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        self::$instance = new self($shop);
-
-        if(! self::$instance instanceof Gateways) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
-                    Gateways::class
-                ),
-                500
-            );
-        endif;
-
-        return self::$instance;
-    }
-
-    /**
-     * A l'issue de l'initialisation de PresstiFy.
-     *
-     * @return void
-     */
-    final public function after_setup_tify()
-    {
-        // Définition de la liste des plateformes déclarées
-        $this->register();
+        $this->_register();
     }
 
     /**
      * Définition de la liste des plateformes de paiement déclarées.
      *
-     * @return GatewayListInterface
-     */
-    private function register()
-    {
-        if ($this->list_controller instanceof GatewayListInterface) :
-            return $this->list_controller;
-        endif;
-
-        foreach($this->defaults as $id => $controller) :
-            $this->add($id, $controller);
-        endforeach;
-
-        $this->appEventTrigger('tify.plugins.shop.gateways.register', $this);
-
-        $items = [];
-        if ($this->registered) :
-            $gateways = $this->config('gateways', []);
-
-            foreach($this->registered as $id => $class_name) :
-                $config = Arr::get($gateways, $id, []);
-                if ($config === false) :
-                    $attrs = ['enabled' => false];
-                elseif ($attrs = (array)Arr::get($gateways, $id, [])) :
-                    $attrs['enabled'] = isset($attrs['enabled']) ? (bool) $attrs['enabled'] : true;
-                elseif (in_array($id, $gateways)) :
-                    $attrs = ['enabled' => true];
-                else :
-                    $attrs = ['enabled' => false];
-                endif;
-
-                $items[$id] = $this->provide(
-                    "gateways.{$id}",
-                    [
-                        $id,
-                        $attrs,
-                        $this->shop
-                    ]
-                );
-            endforeach;
-        endif;
-
-        return $this->list_controller = new GatewayList($items, $this->shop);
-    }
-
-    /**
-     * Ajout d'une déclaration de plateforme de paiement.
-     *
-     * @param string $id Identifiant de qualification de la plateforme de paiement.
-     * @param string $class_name Nom de la classe de rappel de traitement de la plateforme.
-     *
      * @return void
      */
-    final public function add($id, $class_name)
+    private function _register()
     {
-        if (! isset($this->registered[$id]) && class_exists($class_name)) :
-            $this->registered[$id] = $class_name;
+        events()->trigger('tify.plugins.shop.gateways.register', [&$this]);
 
-            $this->provider()->add("gateways.{$id}", $class_name);
-        endif;
+        $this->set($this->shop->config("gateways", []));
     }
 
     /**
-     * Récupération de la liste complète des plateforme de paiement déclarées
+     * {@inheritDoc}
+     *
+     * @return GatewaysInterface[]
+     */
+    public function all(): array
+    {
+        return parent::all();
+    }
+
+    /**
+     * {@inheritDoc}
      *
      * @return GatewayInterface[]
      */
-    public function all()
+    public function available(): array
     {
-        return $this->list_controller->all();
+        $filtered = $this->collect()->filter(function(GatewayInterface $item){
+            return $item->isAvailable();
+        });
+
+        return $filtered->all();
     }
 
     /**
-     * Récupération de la liste des plateformes de paiement disponibles
+     * {@inheritDoc}
      *
-     * @return GatewayInterface[]
+     * @param string $id
+     *
+     * @return GatewayInterface
      */
-    public function available()
+    public function get($id): ?GatewayInterface
     {
-        return $this->list_controller->available();
+        return is_string($id) ? parent::get($id): null;
     }
 
     /**
-     * Récupération de la liste complète des plateforme de paiement déclarées
+     * {@inheritDoc}
      *
-     * @param string Identifiant de qualification de la plateforme de paiement
+     * @param GatewayInterface|array|string $gateway
+     * @param string|null $alias
      *
-     * @return null|GatewayInterface
+     * @return GatewayInterface
      */
-    public function get($id)
+    public function walk($gateway, $alias = null): ?GatewayInterface
     {
-        return $this->list_controller->get($id);
+        $attrs = [];
+        $enabled = true;
+
+        if (is_numeric($alias)) {
+            $alias = $gateway;
+            $attrs = [];
+            $enabled = true;
+        } elseif (is_bool($gateway)) {
+            $attrs = [];
+            $enabled = $gateway;
+            $gateway = $alias;
+        } elseif (is_array($gateway)) {
+            $attrs = $gateway;
+            $enabled = true;
+            $gateway = $alias;
+        }
+
+        if (is_string($gateway)) {
+            $gateway = $this->shop->resolve("gateway.{$gateway}");
+        }
+
+        if ($gateway instanceof GatewayInterface) {
+            $gateway->setShop($this->shop)
+                ->set($attrs)->parse()
+                ->setEnabled($enabled)
+                ->boot();
+
+            return $this->items[$alias] = $gateway;
+        } else {
+            return null;
+        }
     }
 }

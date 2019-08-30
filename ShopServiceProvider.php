@@ -8,7 +8,9 @@ use tiFy\Plugins\Shop\Contracts\{
     GatewayInterface as GatewayContract,
     GatewaysInterface as GatewaysContract,
     ProductItemInterface as ProductContract,
-    ShopInterface as ShopContract};
+    Routes as RoutesContract,
+    ShopInterface as ShopContract
+};
 use tiFy\Plugins\Shop\{
     Actions\Actions,
     Addresses\Addresses,
@@ -51,6 +53,7 @@ use tiFy\Plugins\Shop\{
     Products\ProductItem as ProductsItem,
     Products\ProductList as ProductsList,
     Products\ProductPurchasingOption,
+    Routing\Routes,
     Session\Session,
     Settings\Settings,
     Users\Users,
@@ -58,6 +61,7 @@ use tiFy\Plugins\Shop\{
     Users\LoggedOut as UsersLoggedOut,
     Users\ShopManager as UsersShopManager};
 use WP_Post;
+use WP_User;
 
 class ShopServiceProvider extends ServiceProvider
 {
@@ -108,6 +112,7 @@ class ShopServiceProvider extends ServiceProvider
         'shop.products.purchasing_option'      => ProductPurchasingOption::class,
         'shop.products.type.categorized'       => ProductsObjectTypeCategorized::class,
         'shop.products.type.uncategorized'     => ProductsObjectTypeUncategorized::class,
+        'shop.routing.routes'                  => Routes::class,
         'shop.session.controller'              => Session::class,
         'shop.settings.controller'             => Settings::class,
         'shop.users.controller'                => Users::class,
@@ -170,6 +175,7 @@ class ShopServiceProvider extends ServiceProvider
         'shop.products.purchasing_option',
         'shop.products.type.categorized',
         'shop.products.type.uncategorized',
+        'shop.routing.routes',
         'shop.session.controller',
         'shop.settings.controller',
         'shop.users.controller',
@@ -196,6 +202,7 @@ class ShopServiceProvider extends ServiceProvider
         'notices.controller',
         'orders.controller',
         'products.controller',
+        'routing.routes',
         'session.controller',
         'settings.controller',
         'users.controller'
@@ -266,6 +273,7 @@ class ShopServiceProvider extends ServiceProvider
         $this->registerNotices();
         $this->registerOrders();
         $this->registerProducts();
+        $this->registerRouting();
         $this->registerSession();
         $this->registerSettings();
         $this->registerUsers();
@@ -452,10 +460,10 @@ class ShopServiceProvider extends ServiceProvider
             return $concrete::make('shop.functions.controller', $this->getContainer()->get('shop'));
         });
 
-        $this->getContainer()->add('shop.functions.date', function ($time = 'now', $timezone = true, Shop $shop) {
+        $this->getContainer()->add('shop.functions.date', function ($time = 'now', $timezone = true) {
             $concrete = $this->getConcrete('shop.functions.date');
 
-            return new $concrete($time, $timezone, $shop);
+            return new $concrete($time, $timezone, $this->getContainer()->get('shop'));
         });
 
         $this->getContainer()->share('shop.functions.page', function () {
@@ -653,6 +661,23 @@ class ShopServiceProvider extends ServiceProvider
     }
 
     /**
+     * Déclaration des controleurs de routage.
+     *
+     * @return void
+     */
+    public function registerRouting(): void
+    {
+        $this->getContainer()->share('shop.routing.routes', function () : RoutesContract {
+            $concrete = $this->getConcrete('shop.routing.routes');
+
+            /** @var RoutesContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete();
+
+            return $instance->setShop($this->getContainer()->get('shop'));
+        });
+    }
+
+    /**
      * Déclaration du controleur de session.
      *
      * @return void
@@ -696,19 +721,19 @@ class ShopServiceProvider extends ServiceProvider
             return new $concrete($this->shop);
         });
 
-        $this->getContainer()->add('shop.users.customer', function (\WP_User $user) {
+        $this->getContainer()->add('shop.users.customer', function (WP_User $user) {
             $concrete = $this->getConcrete('shop.users.customer');
 
             return new $concrete($user, $this->shop);
         });
 
-        $this->getContainer()->add('shop.users.logged_out', function (\WP_User $user) {
+        $this->getContainer()->add('shop.users.logged_out', function (WP_User $user) {
             $concrete = $this->getConcrete('shop.users.logged_out');
 
             return new $concrete($user, $this->shop);
         });
 
-        $this->getContainer()->add('shop.users.shop_manager', function (\WP_User $user) {
+        $this->getContainer()->add('shop.users.shop_manager', function (WP_User $user) {
             $concrete = $this->getConcrete('shop.users.shop_manager');
 
             return new $concrete($user, $this->shop);

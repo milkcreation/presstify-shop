@@ -1,36 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Api;
 
-use tiFy\Contracts\Routing\RouteGroup;
-use tiFy\Support\Proxy\Router;
 use tiFy\Plugins\Shop\AbstractShopSingleton;
 use tiFy\Plugins\Shop\Contracts\Api as ApiContract;
-use Zend\Diactoros\ResponseFactory;
 
 class Api extends AbstractShopSingleton implements ApiContract
 {
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function boot()
-    {
-        Router::group('/shop/api', function (RouteGroup $router) {
-            // Racine - Documentation
-            $router->get('/', [$this, 'rootEndpoint']);
-
-            // Commandes
-            $router->get('/orders[/{id:number}]', [app('shop.api.orders'), 'endpointGet']);
-            $router->post('/orders[/{id:number}]', [app('shop.api.orders'), 'endpointPost']);
-        })
-            ->setStrategy(new RouteStrategy(new ResponseFactory()))
-            ->middleware(new RouteMiddleware());
-    }
+    public function boot(): void {}
 
     /**
-     *
+     * @inheritDoc
      */
-    public function rootEndpoint()
+    public function rootEndpoint(): array
     {
         return [
             'body'    => [

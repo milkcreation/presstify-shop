@@ -1,24 +1,26 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Api;
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\{
+    Message\ResponseInterface,
+    Message\ServerRequestInterface,
+    Server\MiddlewareInterface,
+    Server\RequestHandlerInterface
+};
 use tiFy\Contracts\Http\Request;
 use tiFy\Http\Response;
 
-class RouteMiddleware implements MiddlewareInterface
+class Middleware implements MiddlewareInterface
 {
     /**
      * Vérification de l'authentification.
      *
      * @param Request $request
      *
-     * @return bool
+     * @return boolean
      */
-    protected function isAuth(Request $request)
+    protected function isAuth(Request $request): bool
     {
         return in_array($request->get('authtoken'), config('shop.api.authtoken', []));
     }

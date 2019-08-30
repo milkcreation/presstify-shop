@@ -1,57 +1,25 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Actions;
 
-use tiFy\Contracts\Routing\Route;
-use tiFy\Plugins\Shop\Contracts\Actions as ActionsContract;
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use Zend\Diactoros\Response\RedirectResponse;
+use tiFy\Plugins\Shop\{
+    Contracts\Actions as ActionsContract,
+    AbstractShopSingleton
+};
+use tiFy\Support\Proxy\Router;
 
 class Actions extends AbstractShopSingleton implements ActionsContract
 {
     /**
-     * Liste des éléments déclarés.
-     * @return Route[]
+     * @inheritDoc
      */
-    protected $items = [];
+    public function boot(): void {}
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function boot()
+    public function url($alias, $parameters = [], $absolute = false): string
     {
-        // Paiement - Traitement de la commande
-        $this->items['checkout.process'] = router()->post('/shop/checkout/process', [$this->checkout(), 'process']);
-
-        // Commandes - Validation de paiement
-        $this->items['order.payment_complete'] = router()->post('/shop/order/payment_complete/{order_id:number}',
-            function ($order_id) {
-                if (is_user_logged_in() && ($user = $this->users()->getItem())) {
-                    if ($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) {
-                        $order->paymentComplete();
-                    }
-
-                    $location = request()->get('_wp_http_referer')
-                        ?: (request()->headers->get('referer') ?: home_url('/'));
-
-                    return new RedirectResponse($location);
-                } else {
-                    wp_die(
-                        __('Votre utilisateur n\'est pas habilité à effectuer cette action', 'tify'),
-                        __('Mise à jour de la commande impossible', 'tify'),
-                        500
-                    );
-                    return '';
-                }
-            }
-        );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function url($alias, $parameters = [], $absolute = false)
-    {
-        return isset($this->items[$alias]) ? $this->items[$alias]->getUrl($parameters, $absolute) : '';
+        return Router::url("shop.{$alias}", $parameters, $absolute) ?? '';
     }
 }

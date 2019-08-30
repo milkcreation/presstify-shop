@@ -1,15 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Api;
 
-use League\Route\Strategy\JsonStrategy;
-use League\Route\Route;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use League\Route\{
+    Strategy\JsonStrategy,
+    Route
+};
+use Psr\Http\{
+    Message\ResponseInterface,
+    Message\ServerRequestInterface
+};
 use tiFy\Contracts\Routing\Route as RouteContract;
 use tiFy\Http\Response;
 
-class RouteStrategy extends JsonStrategy
+class Strategy extends JsonStrategy
 {
     /**
      * @inheritdoc
@@ -32,7 +36,7 @@ class RouteStrategy extends JsonStrategy
             $response = $this->responseFactory->createResponse(200);
 
             foreach ($resolved['headers'] as $name => $value) {
-                $this->addDefaultResponseHeader("x-{$name}", $value);
+                $this->addDefaultResponseHeader("x-{$name}", (string)$value);
             }
 
             $response->getBody()->write($body);

@@ -47,27 +47,6 @@ class Cart extends AbstractShopSingleton implements CartInterface
         add_action('after_setup_theme', function () {
             $this->sessionItems();
             $this->initNotices();
-
-            // Ajout d'un article au panier
-            router('shop.cart.add', [
-                'method' => 'POST',
-                'path'   => '/ajouter-au-panier/{product_name}',
-                'cb'     => [$this, 'addHandler'],
-            ]);
-
-            // Mise à jour des articles du panier
-            router('shop.cart.update', [
-                'method' => 'POST',
-                'path'   => '/mise-a-jour-du-panier',
-                'cb'     => [$this, 'updateHandler'],
-            ]);
-
-            // Suppression d'un article du panier
-            router('shop.cart.remove', [
-                'method' => 'GET',
-                'path'   => '/supprimer-du-panier/{line_key}',
-                'cb'     => [$this, 'removeHandler'],
-            ]);
         }, 25);
 
         add_action('init', function () {

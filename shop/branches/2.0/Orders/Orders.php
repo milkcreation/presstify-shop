@@ -2,14 +2,19 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
+use Illuminate\{
+    Support\Arr,
+    Support\Collection
+};
 use tiFy\Contracts\Db\DbFactory;
 use tiFy\PostType\Query\PostQuery;
-use tiFy\Plugins\Shop\Contracts\OrdersInterface;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\{
+    Contracts\OrdersInterface,
+    Contracts\OrderInterface,
+    Shop,
+    ShopResolverTrait
+};
+use tiFy\Support\Proxy\Redirect;
 use WP_Post;
 
 /**
@@ -371,6 +376,30 @@ class Orders extends PostQuery implements OrdersInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function handlePaymentComplete($order_id)
+    {
+        if (is_user_logged_in() && ($user = $this->users()->getItem())) {
+            if ($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) {
+                $order->paymentComplete();
+            }
+
+            $location = request()->get('_wp_http_referer')
+                ?: (request()->headers->get('referer') ?: home_url('/'));
+
+            return Redirect::to($location);
+        } else {
+            wp_die(
+                __('Votre utilisateur n\'est pas habilité à effectuer cette action', 'tify'),
+                __('Mise à jour de la commande impossible', 'tify'),
+                500
+            );
+            return '';
+        }
+    }
+
+    /**
      * Initialisation globale de Wordpress.
      *
      * @return void
@@ -378,9 +407,9 @@ class Orders extends PostQuery implements OrdersInterface
     public function onInit()
     {
         // Déclaration de la liste des statuts de commande
-        foreach ($this->getRegisteredStatuses() as $order_status => $values) :
-            \register_post_status($order_status, $values);
-        endforeach;
+        foreach ($this->getRegisteredStatuses() as $order_status => $values) {
+            register_post_status($order_status, $values);
+        }
     }
 
     /**

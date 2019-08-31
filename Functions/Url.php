@@ -1,72 +1,31 @@
 <?php
 
-/**
- * @name Url
- * @desc Controleur de récupération des url de la boutique
- * @namespace \tiFy\Plugins\Shop\Functions
- * @package presstify-plugins/shop
- * @version 1.0.2
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Functions;
 
 use League\Uri;
-use tiFy\Apps\AppController;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
+use tiFy\Plugins\Shop\Contracts\FunctionsUrlInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class Url extends AppController implements UrlInterface, ProvideTraitsInterface
+/**
+ * Class Url
+ *
+ * @desc Controleur de récupération des urls de la boutique.
+ */
+class Url implements FunctionsUrlInterface
 {
-    use ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
     public function __construct(Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-    }
-
-    /**
-     * Url vers une page de la boutique
-     *
-     * @param string $name Nom de la page. shop|cart|checkout|terms.
-     *
-     * @return string
-     */
-    public function page($name)
-    {
-        $method = strtolower($name) . "Page";
-        if (method_exists($this, $method)) :
-            return call_user_func([$this, $method]);
-        endif;
-
-        return '';
-    }
-
-    /**
-     * Url vers la page d'accueil de la boutique.
-     *
-     * @return string
-     */
-    public function shopPage()
-    {
-        return ($page_id = $this->settings()->shopPageId()) ? \get_permalink($page_id) : \get_home_url();
     }
 
     /**
@@ -77,6 +36,28 @@ class Url extends AppController implements UrlInterface, ProvideTraitsInterface
     public function cartPage()
     {
         return ($page_id = $this->settings()->cartPageId()) ? \get_permalink($page_id) : \get_home_url();
+    }
+
+    /**
+     * Url vers la page d'ajout de moyen de paiement.
+     * @todo
+     *
+     * @return string
+     */
+    public function checkoutAddPaymentMethodPage()
+    {
+        return '';
+    }
+
+    /**
+     * Url vers la page de suppression de moyen de paiement.
+     * @todo
+     *
+     * @return string
+     */
+    public function checkoutDeletePaymentMethodPage()
+    {
+        return '';
     }
 
     /**
@@ -118,28 +99,6 @@ class Url extends AppController implements UrlInterface, ProvideTraitsInterface
     }
 
     /**
-     * Url vers la page d'ajout de moyen de paiement.
-     * @todo
-     *
-     * @return string
-     */
-    public function checkoutAddPaymentMethodPage()
-    {
-        return '';
-    }
-
-    /**
-     * Url vers la page de suppression de moyen de paiement.
-     * @todo
-     *
-     * @return string
-     */
-    public function checkoutDeletePaymentMethodPage()
-    {
-        return '';
-    }
-
-    /**
      * Url vers la page de définition du moyen de paiement par défaut.
      * @todo
      *
@@ -148,6 +107,33 @@ class Url extends AppController implements UrlInterface, ProvideTraitsInterface
     public function checkoutSetDefaultPaymentMethodPage()
     {
         return '';
+    }
+
+    /**
+     * Url vers une page de la boutique
+     *
+     * @param string $name Nom de la page. shop|cart|checkout|terms.
+     *
+     * @return string
+     */
+    public function page($name)
+    {
+        $method = strtolower($name) . "Page";
+        if (method_exists($this, $method)) :
+            return call_user_func([$this, $method]);
+        endif;
+
+        return '';
+    }
+
+    /**
+     * Url vers la page d'accueil de la boutique.
+     *
+     * @return string
+     */
+    public function shopPage()
+    {
+        return ($page_id = $this->settings()->shopPageId()) ? \get_permalink($page_id) : \get_home_url();
     }
 
     /**

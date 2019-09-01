@@ -171,7 +171,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
     public function countQuantity()
     {
         return $this->lines()->sum(function (CartLineInterface $item) {
-            return is_int($item['quantity']) ?:0;
+            return is_numeric($item['quantity']) ? $item['quantity'] :0;
         });
     }
 
@@ -378,7 +378,11 @@ class Cart extends AbstractShopSingleton implements CartInterface
 
         if ($lines = $request->request->get('cart')) :
             foreach ($lines as $key => $attributes) :
-                $this->update($key, $attributes);
+                if (!$attributes['quantity'] ?? 0) {
+                    $this->remove($key);
+                } else {
+                    $this->update($key, $attributes);
+                }
             endforeach;
 
             // Mise à jour des données de session

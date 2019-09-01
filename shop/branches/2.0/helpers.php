@@ -6,7 +6,7 @@ if (!function_exists('shop')) {
     /**
      * Récupération de l'instance de la boutique
      *
-     * @return string
+     * @return Shop|null
      */
     function shop(): ?Shop
     {

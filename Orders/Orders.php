@@ -1,48 +1,40 @@
 <?php
 
-/**
- * @name Orders
- * @desc Controller de gestion des commandes
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Orders
- * @version 1.1
- * @since 1.4.2
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
-
 namespace tiFy\Plugins\Shop\Orders;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use LogicException;
-use tiFy\Db\Db;
-use tiFy\Db\DbControllerInterface;
-use tiFy\Query\Controller\AbstractPostQuery;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
+use Illuminate\{
+    Support\Arr,
+    Support\Collection
+};
+use tiFy\Contracts\Db\DbFactory;
+use tiFy\PostType\Query\PostQuery;
+use tiFy\Plugins\Shop\{
+    Contracts\OrdersInterface,
+    Contracts\OrderInterface,
+    Shop,
+    ShopResolverTrait
+};
+use tiFy\Support\Proxy\{Redirect, Request};
+use WP_Post;
 
-class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraitsInterface
+/**
+ * Class Orders
+ *
+ * @desc Controleur de gestion des commandes.
+ */
+class Orders extends PostQuery implements OrdersInterface
 {
-    use ProvideTraits;
+    use ShopResolverTrait;
 
     /**
-     * Instance de la classe
-     * @var Orders
+     * Instance de la classe.
+     * @var static
      */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    protected static $instance;
 
     /**
      * Classe de rappel de la base de données
-     * @var DbControllerInterface
+     * @var DbFactory
      */
     protected $db;
 
@@ -65,17 +57,9 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
      *
      * @return void
      */
-    private function __construct(Shop $shop)
+    protected function __construct(Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
-
-        // Intialisation de la base de données
-        $this->initDb();
-
-        // Déclaration des événments
-        $this->appAddAction('init');
-        $this->appAddAction('get_header', 'onReceived');
     }
 
     /**
@@ -101,42 +85,29 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     /**
      * Instanciation de la classe.
      *
-     * @param Shop $shop Classe de rappel de la boutique.
+     * @param string $alias Nom de qualification
+     * @param Shop $shop
      *
-     * @return Orders
+     * @return static
      */
-    final public static function make(Shop $shop)
+    public static function make($alias, Shop $shop)
     {
         if (self::$instance) :
             return self::$instance;
         endif;
 
-        self::$instance = new static($shop);
-
-        if(! self::$instance instanceof Orders) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
-                    Orders::class
-                ),
-                500
-            );
-        endif;
-
-        return self::$instance;
+        return self::$instance = new static($shop);
     }
 
     /**
-     * Initialisation de la table de base de données.
-     *
-     * @return DbControllerInterface
+     * {@inheritdoc}
      */
-    private function initDb()
+    public function boot()
     {
-        $this->db = $this->appServiceGet(Db::class)->register(
-            '_tiFyShopOrderItems',
+        db()->register(
+            'shop.order.items',
             [
-                'install'    => false,
+                'install'    => true,
                 'name'       => 'tify_shop_order_items',
                 'primary'    => 'order_item_id',
                 'col_prefix' => 'order_item_',
@@ -169,186 +140,106 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 'keys'       => ['order_id' => ['cols' => 'order_id', 'type' => 'INDEX']],
             ]
         );
-        $this->db->install();
 
-        return $this->db;
+        add_action('init', [$this, 'onInit']);
+        add_action('get_header', [$this, 'onReceived']);
     }
 
     /**
-     * Initialisation globale de Wordpress.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    final public function init()
+    public function create()
     {
-        // Déclaration de la liste des statuts de commande
-        foreach ($this->getRegisteredStatuses() as $order_status => $values) :
-            \register_post_status($order_status, $values);
-        endforeach;
-    }
-
-    /**
-     * Evénement lancé à l'issue du paiement.
-     *
-     * @return void
-     */
-    final public function onReceived()
-    {
-        if ($order_id = $this->appRequest('get')->getInt('order-received', 0)) :
-            $order_key = $this->appRequest('get')->get('key', '');
-
-            if (($order = $this->orders()->get($order_id)) && ($order->getOrderKey() === $order_key)) :
-                $this->cart()->destroy();
-            endif;
-        endif;
-
-        if ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) :
-            if (($order = $this->orders()->get($order_awaiting_payment)) && ! $order->hasStatus($this->getNotEmptyCartStatus())) :
-                $this->cart()->destroy();
-            endif;
-        endif;
-    }
-
-    /**
-     * Récupération du controleur de données d'un élément.
-     *
-     * @return string
-     */
-    final public function getItemController()
-    {
-        return $this->provider()->getMapController('orders.order');
-    }
-
-    /**
-     * Récupération du controleur de données d'une liste d'éléments.
-     *
-     * @return string
-     */
-    final public function getListController()
-    {
-        return $this->provider()->getMapController('orders.list');
-    }
-
-    /**
-     * Récupération d'un élément.
-     *
-     * @param string|int|\WP_Post|null $id Nom de qualification du post WP (slug, post_name)|Identifiant de qualification du post WP|Object post WP|Post WP  de la page courante
-     *
-     * @return null|object|OrderInterface
-     */
-    public function get($id = null)
-    {
-        if (is_numeric($id) && $id > 0) :
-            $post = $id;
-        elseif (is_string($id)) :
-            return self::getBy('name', $id);
-        elseif (! $id) :
-            $post = $this->session()->get('order_awaiting_payment', 0);
-        else :
-            $post = $id;
-        endif;
-
-        if (!$post = \get_post($post)) :
+        if (! $id = wp_insert_post(['post_type' => $this->objectName])) {
             return null;
-        endif;
-
-        if (!$post instanceof \WP_Post) :
-            return null;
-        endif;
-
-        if (($post->post_type !== 'any') && !in_array($post->post_type, (array) $this->getObjectName())) :
-            return null;
-        endif;
-
-        $name = 'tify.query.post.' . $post->ID;
-        if (! $this->appServiceHas($name)) :
-            $controller = $this->getItemController();
-
-            $this->appServiceAdd($name, new $controller($post, $this->shop));
-        endif;
-
-        return $this->appServiceGet($name);
+        }
+        return $this->getItem($id);
     }
 
     /**
-     * Récupération d'un élément selon un attribut particulier.
-     *
-     * @param string $key Identifiant de qualification de l'attribut. défaut name.
-     * @param string $value Valeur de l'attribut
-     *
-     * @return null|object|OrderInterface
+     * {@inheritdoc}
      */
-    public function getBy($key = 'name', $value)
-    {
-        return parent::getBy($key, $value);
-    }
-
-    /**
-     * Récupération des données d'une liste d'élément selon des critères de requête.
-     *
-     * @param array $query_args Liste des arguments de requête
-     *
-     * @return array|OrderListInterface
-     */
-    public function getList($query_args = [])
+    public function getCollection($query_args = null)
     {
         if (!isset($query_args['post_status'])) :
             $query_args['post_status'] = $this->orders()->getRelPostStatuses();
         endif;
-        
-        return parent::getList($query_args);
+
+        return parent::getCollection($query_args);
     }
 
     /**
-     * Récupération du controleur de base de données.
-     *
-     * @return null|DbControllerInterface
+     * {@inheritdoc}
      */
     public function getDb()
     {
-        if ($this->db instanceof DbControllerInterface) :
+        if ($this->db instanceof DbFactory) :
             return $this->db;
+        else :
+            return $this->db = db()->get('shop.order.items');
+        endif;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultStatus()
+    {
+        return 'order-pending';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getItem($id = null)
+    {
+        if (!$id) :
+            $id = $this->session()->get('order_awaiting_payment', 0);
         endif;
 
-        return null;
+        return parent::getItem($id);
     }
 
     /**
-     * Création d'une nouvelle commande.
-     *
-     * @return null|OrderInterface
+     * {@inheritdoc}
      */
-    public function create()
+    public function getNeedPaymentStatuses()
     {
-       if (! $id = \wp_insert_post(['post_type' => $this->objectName])) :
-           return null;
-       endif;
-
-       return $this->get($id);
+        return ['order-failed', 'order-pending'];
     }
 
     /**
-     * Vérifie d'intégrité d'une commande.
-     *
-     * @param OrderInterface $order
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    public function is($order)
+    public function getNotEmptyCartStatus()
     {
-        return $order instanceof OrderInterface;
+        return ['order-cancelled', 'order-failed', 'order-pending'];
     }
 
     /**
-     * Récupération de la liste déclaration de statut de commande.
-     *
-     * @return array
+     * {@inheritdoc}
+     */
+    public function getPaymentCompleteStatuses()
+    {
+        return ['order-completed', 'order-processing'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPaymentValidStatuses()
+    {
+        return ['order-failed', 'order-cancelled', 'order-on-hold', 'order-pending'];
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getRegisteredStatuses()
     {
         return [
             'order-pending'    => [
-                'label'                     => _x('En attente de paiement', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('En attente de paiement', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -360,19 +251,19 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 ),
             ],
             'order-processing' => [
-                'label'                     => _x('En cours', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('En préparation', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
                 'show_in_admin_status_list' => true,
                 'label_count'               => _n_noop(
-                    'En cours <span class="count">(%s)</span>',
-                    'En cours <span class="count">(%s)</span>',
+                    'En préparation <span class="count">(%s)</span>',
+                    'En préparation <span class="count">(%s)</span>',
                     'tify'
                 ),
             ],
             'order-on-hold'    => [
-                'label'                     => _x('En attente', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('En attente', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -384,7 +275,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 ),
             ],
             'order-completed'  => [
-                'label'                     => _x('Terminée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Terminée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -396,7 +287,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 ),
             ],
             'order-cancelled'  => [
-                'label'                     => _x('Annulée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Annulée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -408,7 +299,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 ),
             ],
             'order-refunded'   => [
-                'label'                     => _x('Remboursée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Remboursée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -420,7 +311,7 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
                 ),
             ],
             'order-failed'     => [
-                'label'                     => _x('Echouée', 'tify_shop_order_status', 'tify'),
+                'label'                     => _x('Echouée', 'shop_order_status', 'tify'),
                 'public'                    => false,
                 'exclude_from_search'       => false,
                 'show_in_admin_all_list'    => true,
@@ -435,9 +326,15 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
-     * Récupération de la liste des statuts.
-     *
-     * @return array
+     * {@inheritdoc}
+     */
+    public function getRelPostStatuses()
+    {
+        return array_keys($this->getStatuses());
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getStatuses()
     {
@@ -451,16 +348,11 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
             function($item, $key) {
                 return [$key => $item['label']];
             })
-                ->all();
+            ->all();
     }
 
     /**
-     * Récupération de l'intitulé de désignation d'un status.
-     *
-     * @param string $name Nom de qualification du status. order-pending|order-processing|order-on-hold|order-completed|order-cancelled|order-refunded|order-failed.
-     * @param mixed $default Valeur de retour par défaut.
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getStatusLabel($name, $default = '')
     {
@@ -468,21 +360,15 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
-     * Récupération de la liste des statuts en relation avec les post.
-     *
-     * @return string[]
+     * {@inheritdoc}
      */
-    public function getRelPostStatuses()
+    public function is($order)
     {
-        return array_keys($this->getStatuses());
+        return $order instanceof OrderInterface;
     }
 
     /**
-     * Vérifie si un statut correspond aux statuts de commandes.
-     *
-     * @param string $status Identifiant de qualification du statut à contrôler.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function isStatus($status)
     {
@@ -490,52 +376,79 @@ class Orders extends AbstractPostQuery implements OrdersInterface, ProvideTraits
     }
 
     /**
-     * Récupération du statut de commande par défaut.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function getDefaultStatus()
+    public function handlePaymentComplete($order_id)
     {
-        return 'order-pending';
+        if (is_user_logged_in() && ($user = $this->users()->getItem())) {
+            if ($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) {
+                $order->paymentComplete();
+            }
+
+            $location = Request::input('_wp_http_referer')
+                ?: (Request::instance()->headers->get('referer') ?: site_url('/'));
+
+            return Redirect::to($location);
+        } else {
+            wp_die(
+                __('Votre utilisateur n\'est pas habilité à effectuer cette action', 'tify'),
+                __('Mise à jour de la commande impossible', 'tify'),
+                500
+            );
+            return '';
+        }
     }
 
     /**
-     * Récupération de la liste des statuts nécessitant un paiement.
+     * Initialisation globale de Wordpress.
      *
-     * @return array
+     * @return void
      */
-    public function getNotEmptyCartStatus()
+    public function onInit()
     {
-        return ['order-cancelled', 'order-failed', 'order-pending'];
+        // Déclaration de la liste des statuts de commande
+        foreach ($this->getRegisteredStatuses() as $order_status => $values) {
+            register_post_status($order_status, $values);
+        }
     }
 
     /**
-     * Récupération de la liste des statuts nécessitant un paiement.
+     * Evénement lancé à l'issue du paiement.
      *
-     * @return array
+     * @return void
      */
-    public function getNeedPaymentStatuses()
+    public function onReceived()
     {
-        return ['order-failed', 'order-pending'];
+        if ($order_id = request()->query->getInt('order-received', 0)) :
+            $order_key = request()->query('key', '');
+
+            if (($order = $this->orders()->getItem($order_id)) && ($order->getOrderKey() === $order_key)) :
+                $this->cart()->destroy();
+            endif;
+        endif;
+
+        if (
+            ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) &&
+            ($order = $this->orders()->getItem($order_awaiting_payment)) &&
+            ! $order->hasStatus($this->getNotEmptyCartStatus())
+        ) :
+            $this->cart()->destroy();
+        endif;
     }
 
     /**
-     * Récupération de la liste des statuts relatif à un processus de paiement abouti.
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getPaymentCompleteStatuses()
+    public function resolveCollection($items)
     {
-        return ['order-completed', 'order-processing'];
+        return app('shop.orders.list', [$items]);
     }
 
     /**
-     * Récupération de la liste des statuts relatif à un processus de paiement valide.
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function getPaymentValidStatuses()
+    public function resolveItem(WP_Post $wp_post)
     {
-        return ['order-failed', 'order-cancelled', 'order-on-hold', 'order-pending'];
+        return app('shop.orders.order', [$wp_post, $this->shop]);
     }
 }

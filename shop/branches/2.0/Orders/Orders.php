@@ -14,7 +14,7 @@ use tiFy\Plugins\Shop\{
     Shop,
     ShopResolverTrait
 };
-use tiFy\Support\Proxy\Redirect;
+use tiFy\Support\Proxy\{Redirect, Request};
 use WP_Post;
 
 /**
@@ -385,8 +385,8 @@ class Orders extends PostQuery implements OrdersInterface
                 $order->paymentComplete();
             }
 
-            $location = request()->get('_wp_http_referer')
-                ?: (request()->headers->get('referer') ?: home_url('/'));
+            $location = Request::input('_wp_http_referer')
+                ?: (Request::instance()->headers->get('referer') ?: site_url('/'));
 
             return Redirect::to($location);
         } else {

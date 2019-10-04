@@ -161,9 +161,9 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function getCollection($query_args = null)
     {
-        if (!isset($query_args['post_status'])) :
+        if (!isset($query_args['post_status'])) {
             $query_args['post_status'] = $this->orders()->getRelPostStatuses();
-        endif;
+        }
 
         return parent::getCollection($query_args);
     }

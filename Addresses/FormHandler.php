@@ -2,70 +2,80 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Form\Addons\AbstractAddonController;
-use tiFy\Form\Forms\FormHandleController;
+use tiFy\Contracts\Form\FactoryRequest;
+use tiFy\Contracts\Form\FormFactory;
+use tiFy\Form\AddonController;
+use tiFy\Plugins\Shop\Contracts\AddressInterface;
+use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
 use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\ShopResolverTrait;
 
-class FormHandler extends AbstractAddonController implements FormHandlerInterface
+/**
+ * Class FormHandler
+ * @desc Traitement des formulaires d'adresses.
+ */
+class FormHandler extends AddonController implements AddressFormHandlerInterface
 {
-    /**
-     * Identifiant de qualification de l'addon
-     * @var string
-     */
-    public $id = 'tify_shop_address_form_handler';
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    use ShopResolverTrait;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique
+     * @param string $name Nom de qualification.
+     * @param array $attrs Liste des attributs de configuration.
+     * @param FormFactory $form Formulaire associé.
+     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct($name, $attrs = [], FormFactory $form, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
         $this->shop = $shop;
 
-        // Définition des fonctions de callback
-        $this->callbacks['handle_submit_request'] = [$this, 'cb_handle_submit_request'];
+        parent::__construct($name, $attrs, $form);
     }
 
     /**
-     * Traitement de la requête de formulaire.
-     *
-     * @param FormHandleController $handle Controleur de traitement des formulaires.
-     *
-     * @return void
+     * @inheritdoc
      */
-    public function cb_handle_submit_request($handle)
+    public function boot()
     {
-        /** @var AddressInterface $ctrl */
-        if (!$ctrl = $this->getFormOption('controller', '')) :
+        $this->events()->listen('request.submit', [$this, 'onRequestSubmit']);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function onRequestSubmit(FactoryRequest $request)
+    {
+        // Récupération du contrôleur valide
+        $ctrl = $this->get('controller', '');
+        if (!$ctrl instanceof AddressInterface) :
             return;
         endif;
 
-        $user_data = []; $session_data = [];
-        foreach ($handle->allFieldVars() as $slug => $value) :
-            $key = preg_replace('#^' . $ctrl->getId() . '_#', '', $slug);
-            $session_data[$key] = $value;
-            $user_data[$slug] = $value;
+        // Récupération des données utilisateur à sauvegarder.
+        $userdata = []; $session_data = [];
+
+        foreach ($request->all() as $key => $value) :
+            $slug = preg_replace('#^' . $ctrl->getId() . '_#', '', $key);
+
+            if (($field = $request->field($slug)) && $field->supports('transport')) :
+                $session_data[$slug] = $value;
+                $userdata[$key] = $value;
+            endif;
         endforeach;
 
-        // Sauvegarde des données en session
-        $this->shop->session()->put($ctrl->getId(), $session_data);
-        $this->shop->session()->save();
+        // Sauvegarde des données en session.
+        $this->session()->put($ctrl->getId(), $session_data);
+        $this->session()->save();
 
-        // Sauvegarde des données de compte utilisateur
-        $current_user = $this->shop->users()->get();
-        if ($current_user->isLoggedIn()) :
-            foreach($user_data as $key => $v) :
-                \update_user_meta($current_user->getId(), $key, $v);
+        // Sauvegarde des données de compte utilisateur.
+        $user = $this->users()->getItem();
+
+        if ($user->isLoggedIn()) :
+            foreach($userdata as $k => $v) :
+                update_user_option($user->getId(), $k, $v, !is_multisite());
             endforeach;
         endif;
     }

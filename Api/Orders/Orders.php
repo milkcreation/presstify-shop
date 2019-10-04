@@ -18,6 +18,12 @@ class Orders extends AbstractWpPosts
     protected $status = 'processing';
 
     /**
+     * Nombre d'élément par page par défaut.
+     * @var int
+     */
+    protected $per_page = 100;
+
+    /**
      * Liste des statuts disponibles.
      * @var array
      */

@@ -36,6 +36,12 @@ class AbstractWpPosts extends ParamsBag
     protected $per_page = 20;
 
     /**
+     * Page d'affichage courant
+     * @var int
+     */
+    protected $page = 1;
+
+    /**
      * Statut par défaut.
      * @var string
      */
@@ -80,10 +86,10 @@ class AbstractWpPosts extends ParamsBag
         $headers = $this->id
             ? []
             : [
-                'total'        => $items->count(),
+                'total'        => $items->getTotal(),
                 'total-founds' => $items->getFounds(),
-                'total-pages'  => $per_page<0
-                    ? $items->getFounds() : ceil($items->getFounds() / $per_page)
+                'total-pages'  => $this->per_page<0
+                    ? $items->getTotal() : ceil($items->getTotal() / $this->per_page)
             ];
 
         if (request()->get('raw')) {
@@ -201,7 +207,7 @@ class AbstractWpPosts extends ParamsBag
         if ($per_page = request()->get('per_page', 0)) {
             $per_page = intval($per_page);
         }
-        return $per_page ?: $this->per_page;
+        return $this->per_page = $per_page ?: $this->per_page;
     }
 
     /**
@@ -214,7 +220,7 @@ class AbstractWpPosts extends ParamsBag
         if ($page = request()->get('page', 0)) {
             $page = absint($page);
         }
-        return $page ?: 1;
+        return $this->page = $page ?: 1;
     }
 
     /**

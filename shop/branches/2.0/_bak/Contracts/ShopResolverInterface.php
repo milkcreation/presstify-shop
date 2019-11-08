@@ -1,8 +1,6 @@
 <?php
 
-namespace tiFy\Plugins\Shop\Contracts;
-
-use tiFy\User\Session\SessionManager;
+namespace tiFy\Plugins\Shop__Bak\Contracts;
 
 interface ShopResolverInterface
 {

@@ -26,7 +26,7 @@ class Middleware implements MiddlewareInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function process(ServerRequestInterface $psrRequest, RequestHandlerInterface $handler) : ResponseInterface
     {

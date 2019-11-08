@@ -1,29 +1,41 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Admin;
 
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\AdminInterface;
+use tiFy\Plugins\Shop\Contracts\{AdminInterface as AdminContract, ShopInterface as Shop};
+//use tiFy\Plugins\Shop\Admin\{Edit\Edit, ListTable\ListTable};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Admin
- *
- * @desc Controleur de gestion des interfaces d'administration (produits, commandes)
- */
-class Admin extends AbstractShopSingleton implements AdminInterface
+class Admin implements AdminContract
 {
+    use ShopAwareTrait;
+
     /**
-     * @inheritdoc
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
+        $this->setShop($shop);
+
+        $this->boot();
+
         add_action('init', function() {
-            if ($object_types = $this->shop->products()->getObjectTypeList()) :
-                foreach ($object_types as $id => $object_type) :
-                    new ListTable\ListTable($object_type, $this->shop);
-                    new Edit\Edit($object_type, $this->shop);
-                endforeach;
-            endif;
+            /** @todo COMPATIBILITE tiFY 2.0
+             if ($object_types = $this->shop->products()->getObjectTypeList()) {
+                foreach ($object_types as $id => $object_type) {
+                    new ListTable($object_type, $this->shop);
+                    //new Edit($object_type, $this->shop);
+                }
+            } */
         }, 0);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void {}
 }

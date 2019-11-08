@@ -1,20 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Plugins\Shop\Contracts\AddressBillingInterface;
+use tiFy\Plugins\Shop\Contracts\AddressBillingInterface as AddressBillingContract;
 
-/**
- * Class Billing
- *
- * @desc Gestion des adresses de facturation.
- */
-class Billing extends AbstractAddress implements AddressBillingInterface
+class Billing extends AbstractAddress implements AddressBillingContract
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function fields()
+    public function fields(): array
     {
         $fields = parent::fields();
 

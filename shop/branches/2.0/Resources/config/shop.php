@@ -2,30 +2,11 @@
 
 /**
  * Exemple de configuration.
- * @todo
  */
-
 return [
     //@var $providers Fournisseurs de services
     'providers' => [
-        'addresses.billing'              => Billing::class,
-        'addresses.form_handler'         => FormHandler::class,
-        'addresses.shipping'             => Shipping::class,
-        'cart.controller'                => Cart::class,
-        'cart.line'                      => Line::class,
-        'cart.session_items'             => SessionItems::class,
-        'checkout.controller'            => Checkout::class,
-        'gateways.cheque'                => Cheque::class,
-        'gateways.payzen'                => Payzen::class,
-        'functions.page'                 => Page::class,
-        'functions.url'                  => Url::class,
-        'orders.order'                   => Order::class,
-        'orders.order_item_type_product' => OrderItemTypeProduct::class,
-        'orders.list'                    => OrderList::class,
-        'products.controller'            => ProductQuery::class,
-        'products.list'                  => ProductList::class,
-        'users.customer'                 => CustomerItem::class,
-        'users.shop_manager'             => ShopManagerItem::class,
+
     ],
 
     // @var array $addresses Déclaration des attributs de configuration des adresse

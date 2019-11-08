@@ -2,11 +2,27 @@
 
 namespace tiFy\Plugins\Shop\Api;
 
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\Api as ApiContract;
+use tiFy\Plugins\Shop\Contracts\{Api as ApiContract, ShopInterface as Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-class Api extends AbstractShopSingleton implements ApiContract
+class Api implements ApiContract
 {
+    use ShopAwareTrait;
+
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
+     */
+    public function __construct(Shop $shop)
+    {
+        $this->setShop($shop);
+
+        $this->boot();
+    }
+
     /**
      * @inheritDoc
      */

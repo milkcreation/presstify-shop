@@ -1,6 +1,6 @@
 <?php
 
-namespace tiFy\Plugins\Shop;
+namespace tiFy\Plugins\Shop__Bak;
 
 use tiFy\Plugins\Shop\{
     Contracts\ShopInterface as ShopContract,

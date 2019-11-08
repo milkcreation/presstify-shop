@@ -1,59 +1,49 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Addresses;
 
 use Illuminate\Support\Str;
 use tiFy\Contracts\Form\FormFactory;
-use tiFy\Plugins\Shop\Contracts\AddressesInterface;
-use tiFy\Plugins\Shop\Contracts\AddressInterface;
-use tiFy\Plugins\Shop\Contracts\UserItemInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{AddressesInterface as AddressesContract,
+    AddressInterface as AddressContract,
+    ShopInterface as Shop,
+    UserItemInterface as UserItemContract};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-abstract class AbstractAddress implements AddressInterface
+abstract class AbstractAddress implements AddressContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Identifiant de qualification.
-     *
      * @var string
      */
     protected $id = '';
 
     /**
-     * Instance de la classe de gestion des adresses.
-     *
-     * @var AddressesInterface
-     */
-    protected $addresses;
-
-    /**
      * Instance de la classe de gestion du formulaire.
-     *
-     * @var FormFactory
+     * @var FormFactory|false|null
      */
-    protected $form = null;
+    protected $form;
 
     /**
      * Instance de la classe de l'utilisateur courant.
-     *
-     * @var UserItemInterface
+     * @var UserItemContract
      */
     protected $user;
 
     /**
-     * CONSTRUCTEUR.
+     * CONSTRUCTEUR
      *
-     * @param AddressesInterface $addresses Instance de la classe de gestion des adresses.
-     * @param Shop $shop Instance de la boutique.
+     * @param Shop $shop
      *
      * @return void
      */
-    public function __construct(AddressesInterface $addresses, Shop $shop)
+    public function __construct(Shop $shop)
     {
-        $this->shop      = $shop;
-        $this->addresses = $addresses;
+        $this->setShop($shop);
+
+        $this->boot();
 
         add_action('init', function () {
             $this->user = $this->shop->users()->getItem();
@@ -63,119 +53,130 @@ abstract class AbstractAddress implements AddressInterface
              * {@internal Ajout du préfixe aux identifiants de champ et récupération de la valeur.}
              */
             $attrs = $this->formAttrs();
-            foreach ($attrs['fields'] as $slug => &$fattrs) :
-                if (!isset($fattrs['name'])) :
+            foreach ($attrs['fields'] as $slug => &$fattrs) {
+                if (!isset($fattrs['name'])) {
                     $fattrs['name'] = $this->getId() . '_' . $slug;
-                endif;
+                }
 
-                if (!isset($fattrs['value'])) :
-                    $method          = 'get' . $this->getId() . Str::studly($slug);
+                if (!isset($fattrs['value'])) {
+                    $method = 'get' . $this->getId() . Str::studly($slug);
                     $fattrs['value'] = $this->shop->session()->get($this->getId() . '.' . $slug)
                         ?: (method_exists($this->user, $method)
                             ? call_user_func([$this->user, $method])
                             : ''
                         );
-                endif;
-            endforeach;
+                }
+            }
 
-            $attrs['addons']['shop.addresses.form_handler'] = ['controller' => $this];
+            $attrs['addons']['shop.addresses.form-handler'] = ['controller' => $this];
 
             form()->register('ShopFormAddress-' . $this->getId(), $attrs);
         });
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function addons()
+    public function addons(): array
     {
         return [];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function buttons()
+    public function addresses(): AddressesContract
+    {
+        return $this->shop()->resolve('addresse');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void {}
+
+    /**
+     * @inheritDoc
+     */
+    public function buttons(): array
     {
         return [];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function callbacks()
+    public function callbacks(): array
     {
         return [];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function fields()
+    public function fields(): array
     {
-        $fields   = [];
-        $defaults = $this->addresses->defaultFields();
+        $fields = [];
+        $defaults = $this->addresses()->defaultFields();
 
-        foreach ($defaults as $slug => $attrs) :
+        foreach ($defaults as $slug => $attrs) {
             $fields[$slug] = $attrs;
-        endforeach;
+        }
 
         return $fields;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function form()
+    public function form(): ?FormFactory
     {
-        if (is_null($this->form)) :
-            return $this->form = form()->get('ShopFormAddress-' . $this->getId());
-        elseif ($this->form instanceof FormFactory) :
-            return $this->form;
-        else :
-            return '';
-        endif;
+        if (is_null($this->form)) {
+            $this->form = form()->get('ShopFormAddress-' . $this->getId());
+        }
+
+        return $this->form ?: null;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function formAttrs()
+    public function formAttrs(): array
     {
         return [
             'attrs'     => [
                 'id'    => 'FormShopAddress--' . $this->getId(),
-                'class' => 'FormShopAddress FormShopAddress--' . $this->getId()
+                'class' => 'FormShopAddress FormShopAddress--' . $this->getId(),
             ],
             'addons'    => $this->addons(),
             'buttons'   => $this->buttons(),
             'fields'    => $this->fields(),
             'notices'   => $this->notices(),
             'options'   => $this->options(),
-            'callbacks' => $this->callbacks()
+            'callbacks' => $this->callbacks(),
         ];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getId()
+    public function getId(): string
     {
         return $this->id ?: Str::lower(class_info($this)->getShortName());
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function notices()
+    public function notices(): array
     {
         return [];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function options()
+    public function options(): array
     {
         return [];
     }

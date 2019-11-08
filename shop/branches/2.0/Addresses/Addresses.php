@@ -1,34 +1,35 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Contracts\Form\FormFactory;
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\AddressesInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Contracts\{
+    AddressesInterface as AddressesContract,
+    AddressBillingInterface as AddressBillingContract,
+    AddressShippingInterface as AddressShippingContract,
+    ShopInterface as Shop
+};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Addresses
- *
- * @desc Gestion des adresses : livraison|facturation|pays
- */
-class Addresses extends AbstractShopSingleton implements AddressesInterface
+class Addresses implements AddressesContract
 {
+    use ShopAwareTrait;
+
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
     public function __construct(Shop $shop)
     {
-        parent::__construct($shop);
-    }
+        $this->setShop($shop);
 
-    /**
-     * {@inheritdoc}
-     */
-    public function boot()
-    {
-        form()->addonRegister('shop.addresses.form_handler', function ($name, $attrs = [], FormFactory $form) {
-            return app('shop.addresses.form_handler', [$name, $attrs, $form, $this->shop]);
+        $this->boot();
+
+        form()->addonRegister('shop.addresses.form-handler', function ($name, $attrs, FormFactory $form) {
+            return $this->shop()->resolve('addresses.form-handler');
         });
 
         $this->billing();
@@ -36,17 +37,22 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function billing()
+    public function billing(): AddressBillingContract
     {
-        return app('shop.addresses.billing', [$this, $this->shop]);
+        return $this->shop()->getContainer()->get('shop.addresses.billing');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function defaultFields()
+    public function boot(): void {}
+
+    /**
+     * @inheritDoc
+     */
+    public function defaultFields(): array
     {
         return [
             'first_name' => [
@@ -134,10 +140,10 @@ class Addresses extends AbstractShopSingleton implements AddressesInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function shipping()
+    public function shipping(): AddressShippingContract
     {
-        return app('shop.addresses.shipping', [$this, $this->shop]);
+        return $this->shop()->getContainer()->get('shop.addresses.shipping');
     }
 }

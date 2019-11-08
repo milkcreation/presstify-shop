@@ -1,13 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Api\Orders;
 
 use League\Fractal\Resource\Collection;
 use tiFy\Contracts\Http\Request;
-use tiFy\Support\DateTime;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
+use tiFy\Plugins\Shop\Contracts\{OrderInterface, OrderItemTypeProductInterface};
 use tiFy\Plugins\Shop\Api\AbstractWpPosts;
+use tiFy\Support\DateTime;
 
 class Orders extends AbstractWpPosts
 {

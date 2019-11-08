@@ -7,25 +7,32 @@ use tiFy\Contracts\Support\ParamsBag;
 interface CartSessionItemsInterface extends ParamsBag
 {
     /**
+     * Récupération de l'instance du panier.
+     *
+     * @return CartInterface
+     */
+    public function cart(): CartInterface;
+
+    /**
      * Détruit les données de session associées au panier.
      *
      * @param bool $persistent Active la suppression des données de panier relatives aux options utilisateur
      *
      * @return void
      */
-    public function destroy($persistent = true);
+    public function destroy($persistent = true): void;
 
     /**
-     * Récupération des articles du panier portés par la session.
+     * Retrouve les articles du panier portés par la session.
      *
      * @return void
      */
-    public function getCart();
+    public function fetchCart(): void;
 
     /**
      * Mise à jour des données de session.
      *
      * @return void
      */
-    public function update();
+    public function update(): void;
 }

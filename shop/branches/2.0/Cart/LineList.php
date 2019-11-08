@@ -1,31 +1,35 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Collection;
-use tiFy\Plugins\Shop\Contracts\CartLineInterface;
-use tiFy\Plugins\Shop\Contracts\CartLineListInterface;
+use tiFy\Plugins\Shop\Contracts\{CartLineInterface as CartLineContract, CartLineListInterface as CartLineListContract};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class LineList
- *
- * @desc Controleur de récupération des données de la liste des lignes du panier d'achat.
- */
-class LineList extends Collection implements CartLineListInterface
+class LineList extends Collection implements CartLineListContract
 {
+    use ShopAwareTrait;
+
     /**
      * Liste des élements.
-     *
-     * @var CartLineInterface[]
+     * @var CartLineContract[]
      */
     protected $items = [];
 
     /**
-     * Get an item at a given offset.
+     * @inheritDoc
+     */
+    public function flush(): CartLineListContract
+    {
+        $this->items = [];
+
+        return $this;
+    }
+
+    /**
+     * {@inheritDoc}
      *
-     * @param  mixed  $key
-     *
-     * @return CartLineInterface
+     * @return CartLineContract
      */
     public function offsetGet($key)
     {

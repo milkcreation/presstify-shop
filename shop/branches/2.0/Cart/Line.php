@@ -1,101 +1,90 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Cart;
 
+use tiFy\Plugins\Shop\Contracts\{CartInterface as CartContract,
+    CartLineInterface as CartLineContract,
+    ProductItemInterface as ProductItemContract,
+    ShopInterface as Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
-use tiFy\Plugins\Shop\Contracts\CartInterface;
-use tiFy\Plugins\Shop\Contracts\CartLineInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
 
-/**
- * Class Line
- *
- * @desc Controleur de récupération des données d'une ligne d'article dans le panier d'achat.
- */
-class Line extends ParamsBag implements CartLineInterface
+class Line extends ParamsBag implements CartLineContract
 {
-    use ShopResolverTrait;
-
-    /**
-     * Instance du controleur de panier.
-     * @var CartInterface
-     */
-    protected $cart;
+    use ShopAwareTrait;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param array $attrs Liste des attributs de l'article dans le panier.
-     * @param CartInterface $cart Instance du controleur de panier.
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct($attrs, CartInterface $cart, Shop $shop)
+    public function __construct(Shop $shop)
     {
-        $this->cart = $cart;
-        $this->shop = $shop;
-
-        $this->set($attrs)->parse();
-
-        if ($this->getProduct()) {
-            $this['product_id'] = $this->getProductId();
-        }
+        $this->setShop($shop);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function cartFieldName($attribute_name)
+    public function cart(): CartContract
+    {
+        return $this->shop()->resolve('cart');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cartFieldName(string $attribute_name): string
     {
         return "cart[{$this->getKey()}][{$attribute_name}]";
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getKey()
+    public function getKey(): string
     {
         return (string)$this->get('key', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getPrice()
+    public function getPrice(): float
     {
         return (float)$this->getProduct()->getRegularPrice() * $this->getQuantity();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getPriceHtml()
+    public function getPriceHtml(): string
     {
-        return $this->functions()->price()->html($this->getPrice());
+        return $this->shop()->functions()->price()->html($this->getPrice());
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getPriceIncludesTax()
+    public function getPriceIncludesTax(): ?string
     {
-        return $this->get('price_includes_tax', false);
+        return $this->get('price_includes_tax', null);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getProduct()
+    public function getProduct(): ProductItemContract
     {
         return $this->get('product', null);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getProductId()
+    public function getProductId(): int
     {
         return (int)$this->getProduct()->getId();
     }
@@ -103,109 +92,124 @@ class Line extends ParamsBag implements CartLineInterface
     /**
      * {@inheritdoc}
      */
-    public function getPurchasingOptions()
+    public function getPurchasingOptions(): array
     {
         $purchasing_options = [];
 
-        foreach($this->get('purchasing_options', []) as $product_id => $opts) :
-            if ($product = $this->products()->getItem($product_id)) :
-                foreach($opts as $name => $selected) :
-                    if ($po = $product->getPurchasingOption($name)) :
+        foreach ($this->get('purchasing_options', []) as $product_id => $opts) {
+            if ($product = $this->shop()->products()->getItem($product_id)) {
+                foreach ($opts as $name => $selected) {
+                    if ($po = $product->getPurchasingOption($name)) {
                         $po->setSelected($selected);
                         $purchasing_options[$product_id][] = $po;
-                    endif;
-                endforeach;
-            endif;
-        endforeach;
+                    }
+                }
+            }
+        }
 
         return $purchasing_options;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getQuantity()
+    public function getQuantity(): int
     {
         return (int)$this->get('quantity', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getSubtotal()
+    public function getSubtotal(): float
     {
         return (float)$this->get('line_subtotal', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getSubtotalTax()
+    public function getSubtotalTax(): float
     {
         return (float)$this->get('line_subtotal_tax', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getTax()
+    public function getTax(): float
     {
         return (float)$this->get('line_tax', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getTaxable()
+    public function getTaxable(): ?string
     {
-        return $this->get('taxable', false);
+        return $this->get('taxable', null);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getTaxClass()
+    public function getTaxClass(): string
     {
         return (string)$this->get('tax_class', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getTaxes()
+    public function getTaxes(): array
     {
         return (array)$this->get('line_tax_data', ['subtotal' => 0, 'total' => 0]);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getTaxRates()
+    public function getTaxRates(): array
     {
         return [];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getTotal()
+    public function getTotal(): float
     {
         return (float)$this->get('line_total', 0);
     }
 
+
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function needShipping()
+    public function parse(): CartLineContract
+    {
+        parent::parse();
+
+        if ($this->getProduct()) {
+            $this['product_id'] = $this->getProductId();
+        }
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function needShipping(): bool
     {
         return false;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function removeUrl()
+    public function removeUrl(): string
     {
-        return $this->cart->removeUrl($this->getKey());
+        return $this->cart()->removeUrl($this->getKey());
     }
 }

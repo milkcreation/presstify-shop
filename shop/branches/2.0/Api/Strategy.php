@@ -30,6 +30,7 @@ class Strategy extends JsonStrategy
         $resolved = $controller(...$args);
 
         $response = Response::convertToPsr();
+
         if ($this->isJsonEncodable($resolved)) {
             $body = json_encode($resolved['body']);
 
@@ -41,6 +42,7 @@ class Strategy extends JsonStrategy
 
             $response->getBody()->write($body);
         }
+
         return $this->applyDefaultResponseHeaders($response);
     }
 }

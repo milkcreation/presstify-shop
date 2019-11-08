@@ -1,17 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
 use tiFy\Contracts\Column\Column;
-use tiFy\Plugins\Shop\Contracts\ProductObjectType;
-use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
-use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{ProductObjectType, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Products\ObjectType\{Categorized, Uncategorized};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use WP_Screen;
 
 class ListTable
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Nom de qualification du type de post associé.
@@ -35,7 +34,8 @@ class ListTable
      */
     public function __construct(ProductObjectType $object_type, Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
+
         $this->objectType = $object_type;
         $this->objectName = $this->objectType->getName();
 
@@ -88,25 +88,21 @@ class ListTable
                 ]
             );
 
-        add_action(
-            'current_screen',
-            function (\WP_Screen $wp_screen) {
-                if ($wp_screen->id === "edit-{$this->objectName}") :
-                    add_action(
-                        'admin_enqueue_scripts',
-                        function () {
-                            partial('holder')->enqueue();
+        add_action('current_screen', function (WP_Screen $wp_screen) {
+            if ($wp_screen->id === "edit-{$this->objectName}") {
+                add_action('admin_enqueue_scripts', function () {
+                    partial('holder')->enqueue();
 
-                            wp_enqueue_style(
-                                'ShopAdminProductList',
-                                $this->resourcesUrl() . '/assets/css/admin-list.css',
-                                [],
-                                181103
-                            );
-                        }
+                    wp_enqueue_style(
+                        'ShopAdminProductList',
+                        $this->shop()->resourcesUrl() . '/assets/css/admin-list.css',
+                        [],
+                        181103
                     );
-                endif;
+                }
+                );
             }
+        }
         );
     }
 
@@ -137,13 +133,13 @@ class ListTable
      */
     public function columnPrice($column_name, $post_id)
     {
-        $product = $this->products()->getItem($post_id);
+        $product = $this->shop()->products()->getItem($post_id);
 
         if ($product->isProductType('composing')) :
             return '<em>' . __('Non vendu séparément', 'tify') . '</em>';
         else :
             return ($price = $product->getRegularPrice())
-                ? $this->functions()->price()->html($price)
+                ? $this->shop()->functions()->price()->html($price)
                 : '--';
         endif;
     }
@@ -158,19 +154,16 @@ class ListTable
      */
     public function columnProductType($column_name, $post_id)
     {
-        $product = $this->products()->getItem($post_id);
+        $product = $this->shop()->products()->getItem($post_id);
 
-        return (string) partial(
-            'tag',
-            [
-                'tag' => 'a',
-                'attrs' => [
-                    'href' => '#',
-                    'title' => $this->products()->getProductTypeDisplayName($product->getProductType())
-                ],
-                'content' => $this->products()->getProductTypeIcon($product->getProductType())
-            ]
-        );
+        return (string)partial('tag', [
+            'tag'     => 'a',
+            'attrs'   => [
+                'href'  => '#',
+                'title' => $this->shop()->products()->getProductTypeDisplayName($product->getProductType()),
+            ],
+            'content' => $this->shop()->products()->getProductTypeIcon($product->getProductType()),
+        ]);
     }
 
     /**
@@ -183,7 +176,7 @@ class ListTable
      */
     public function columnSku($column_name, $post_id)
     {
-        return get_post_meta($post_id, '_sku', true) ? : '';
+        return get_post_meta($post_id, '_sku', true) ?: '';
     }
 
     /**
@@ -196,18 +189,15 @@ class ListTable
      */
     public function columnThumbnail($column_name, $post_id)
     {
-        $product = $this->products()->getItem($post_id);
+        $product = $this->shop()->products()->getItem($post_id);
 
-        if ($thumb = $product->getThumbnail([80, 80])):
-        else :
-            $thumb = partial(
-                'holder',
-                [
-                    'width'  => 80,
-                    'height' => 80,
-                ]
-            );
-        endif;
+        if ($thumb = $product->getThumbnail([80, 80])) {
+        } else {
+            $thumb = partial('holder', [
+                'width'  => 80,
+                'height' => 80,
+            ]);
+        }
 
         return $thumb;
     }

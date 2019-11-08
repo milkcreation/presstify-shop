@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Api;
 
@@ -6,16 +6,16 @@ use Illuminate\Support\Arr;
 use Psr\Http\Message\ServerRequestInterface;
 use League\Fractal\Manager as DataManager;
 use League\Fractal\Resource\Collection;
-use tiFy\Contracts\Kernel\QueryCollection;
 use tiFy\Contracts\Http\Request;
+use tiFy\Plugins\Shop\Contracts\ShopInterface as Shop;
 use tiFy\Support\DateTime;
 use tiFy\Support\ParamsBag;
 use tiFy\Plugins\Shop\Api\FractalArraySerializer as DataSerializer;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
 class AbstractWpPosts extends ParamsBag
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Instance du gestionnaire de données.
@@ -63,12 +63,16 @@ class AbstractWpPosts extends ParamsBag
     ];
 
     /**
-     * CONSTRUCTEUR
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Shop $shop)
     {
+        $this->setShop($shop);
+
         $this->manager = (new DataManager())->setSerializer(new DataSerializer());
     }
 
@@ -83,14 +87,12 @@ class AbstractWpPosts extends ParamsBag
 
         $per_page = $this->get('query_args.posts_per_page');
 
-        $headers = $this->id
-            ? []
-            : [
-                'total'        => $items->getTotal(),
-                'total-founds' => $items->getFounds(),
-                'total-pages'  => $this->per_page<0
-                    ? $items->getTotal() : ceil($items->getTotal() / $this->per_page)
-            ];
+        $headers = $this->id ? [] : [
+            'total'        => $items->getTotal(),
+            'total-founds' => $items->getFounds(),
+            'total-pages'  => $this->per_page<0
+                ? $items->getTotal() : ceil($items->getTotal() / $this->per_page)
+        ];
 
         if (request()->get('raw')) {
             $body = $items->all();

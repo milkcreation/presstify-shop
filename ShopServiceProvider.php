@@ -3,8 +3,19 @@
 namespace tiFy\Plugins\Shop;
 
 use tiFy\Container\ServiceProvider;
-use tiFy\Contracts\Form\FormFactory;
 use tiFy\Plugins\Shop\Contracts\{
+    Actions as ActionsContract,
+    AddressBillingInterface as AddressBillingContract,
+    AddressFormHandlerInterface as AddressFormHandlerContract,
+    AddressShippingInterface as AddressShippingContract,
+    AddressesInterface as AddressesContract,
+    AdminInterface as AdminContract,
+    Api as ApiContract,
+    CartInterface as CartContract,
+    CartLineInterface as CartLineContact,
+    CartLineListInterface as CartLineListContact,
+    CartSessionItemsInterface as CartSessionItemsContact,
+    CartTotalInterface as CartTotalContract,
     GatewayInterface as GatewayContract,
     GatewaysInterface as GatewaysContract,
     ProductItemInterface as ProductContract,
@@ -72,17 +83,17 @@ class ShopServiceProvider extends ServiceProvider
     protected $aliases = [
         'shop'                                 => Shop::class,
         'shop.actions'                         => Actions::class,
-        'shop.addresses.controller'            => Addresses::class,
+        'shop.addresses'                       => Addresses::class,
         'shop.addresses.billing'               => AddressesBilling::class,
-        'shop.addresses.form_handler'          => AddressesFormHandler::class,
+        'shop.addresses.form-handler'          => AddressesFormHandler::class,
         'shop.addresses.shipping'              => AddressesShipping::class,
-        'shop.admin.controller'                => Admin::class,
+        'shop.admin'                           => Admin::class,
         'shop.api'                             => Api::class,
         'shop.api.orders'                      => ApiOrders::class,
-        'shop.cart.controller'                 => Cart::class,
+        'shop.cart'                            => Cart::class,
         'shop.cart.line'                       => CartLine::class,
-        'shop.cart.line_list'                  => CartLineList::class,
-        'shop.cart.session_items'              => CartSessionItems::class,
+        'shop.cart.line-list'                  => CartLineList::class,
+        'shop.cart.session-items'              => CartSessionItems::class,
         'shop.cart.total'                      => CartTotal::class,
         'shop.checkout.controller'             => Checkout::class,
         'shop.functions.controller'            => Functions::class,
@@ -135,17 +146,17 @@ class ShopServiceProvider extends ServiceProvider
     protected $provides = [
         'shop',
         'shop.actions',
-        'shop.addresses.controller',
+        'shop.addresses',
         'shop.addresses.billing',
-        'shop.addresses.form_handler',
+        'shop.addresses.form-handler',
         'shop.addresses.shipping',
-        'shop.admin.controller',
+        'shop.admin',
         'shop.api',
         'shop.api.orders',
-        'shop.cart.controller',
+        'shop.cart',
         'shop.cart.line',
-        'shop.cart.line_list',
-        'shop.cart.session_items',
+        'shop.cart.line-list',
+        'shop.cart.session-items',
         'shop.cart.total',
         'shop.checkout.controller',
         'shop.functions.controller',
@@ -191,10 +202,10 @@ class ShopServiceProvider extends ServiceProvider
      */
     protected $resolve = [
         'actions',
-        'addresses.controller',
-        'admin.controller',
+        'addresses',
+        'admin',
         'api',
-        'cart.controller',
+        'cart',
         'checkout.controller',
         'custom_types.controller',
         'functions.controller',
@@ -220,6 +231,7 @@ class ShopServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $providers = config('shop.providers', []);
+
         array_walk($providers, function ($value, $key) {
             if ($key === 'shop') {
                 $this->customs['shop'] = $value;
@@ -285,11 +297,13 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerActions(): void
     {
-        $this->getContainer()->share('shop.actions', function () {
-            /** @var AbstractShopSingleton $concrete */
+        $this->getContainer()->share('shop.actions', function () : ActionsContract {
             $concrete = $this->getConcrete('shop.actions');
 
-            return $concrete::make('shop.actions', $this->getContainer()->get('shop'));
+            /** @var ActionsContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
     }
 
@@ -300,34 +314,40 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerAddresses(): void
     {
-        $this->getContainer()->share('shop.addresses.controller', function () {
-            $concrete = $this->getConcrete('shop.addresses.controller');
+        $this->getContainer()->share('shop.addresses', function (): AddressesContract {
+            $concrete = $this->getConcrete('shop.addresses');
 
-            return new $concrete($this->getContainer()->get('shop'));
+            /** @var AddressesContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
 
-        $this->getContainer()->share('shop.addresses.billing', function () {
+        $this->getContainer()->share('shop.addresses.billing', function () : AddressBillingContract{
             $concrete = $this->getConcrete('shop.addresses.billing');
 
-            return new $concrete(
-                $this->getContainer()->get('shop.addresses.controller'),
-                $this->getContainer()->get('shop')
-            );
+            /** @var AddressBillingContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
 
-        $this->getContainer()->add('shop.addresses.form_handler', function ($name, $attrs, FormFactory $form) {
-            $concrete = $this->getConcrete('shop.addresses.form_handler');
+        $this->getContainer()->add('shop.addresses.form-handler', function (): AddressFormHandlerContract {
+            $concrete = $this->getConcrete('shop.addresses.form-handler');
 
-            return new $concrete($name, $attrs, $form, $this->getContainer()->get('shop'));
+            /** @var AddressFormHandlerContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
 
-        $this->getContainer()->share('shop.addresses.shipping', function () {
+        $this->getContainer()->share('shop.addresses.shipping', function (): AddressShippingContract {
             $concrete = $this->getConcrete('shop.addresses.shipping');
 
-            return new $concrete(
-                $this->getContainer()->get('shop.addresses.controller'),
-                $this->getContainer()->get('shop')
-            );
+            /** @var AddressShippingContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
     }
 
@@ -338,11 +358,13 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerAdmin(): void
     {
-        $this->getContainer()->share('shop.admin.controller', function () {
-            /** @var AbstractShopSingleton $concrete */
-            $concrete = $this->getConcrete('shop.admin.controller');
+        $this->getContainer()->share('shop.admin', function (): AdminContract {
+            $concrete = $this->getConcrete('shop.admin');
 
-            return $concrete::make('shop.admin.controller', $this->getContainer()->get('shop'));
+            /** @var AdminContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
     }
 
@@ -353,17 +375,21 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerApi(): void
     {
-        $this->getContainer()->share('shop.api', function () {
-            /** @var AbstractShopSingleton $concrete */
+        $this->getContainer()->share('shop.api', function (): ApiContract {
             $concrete = $this->getConcrete('shop.api');
 
-            return $concrete::make('shop.api', $this->getContainer()->get('shop'));
+            /** @var ApiContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
 
         $this->getContainer()->add('shop.api.orders', function () {
             $concrete = $this->getConcrete('shop.api.orders');
 
-            return new $concrete();
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
     }
 
@@ -374,45 +400,49 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerCart(): void
     {
-        $this->getContainer()->share('shop.cart.controller', function () {
-            /** @var AbstractShopSingleton $concrete */
-            $concrete = $this->getConcrete('shop.cart.controller');
+        $this->getContainer()->share('shop.cart', function (): CartContract {
+            $concrete = $this->getConcrete('shop.cart');
 
-            return $concrete::make('shop.cart.controller', $this->getContainer()->get('shop'));
+            /** @var CartContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
 
-        $this->getContainer()->add('shop.cart.line', function ($attrs) {
+        $this->getContainer()->add('shop.cart.line', function (): CartLineContact {
             $concrete = $this->getConcrete('shop.cart.line');
 
-            return new $concrete(
-                $attrs,
-                $this->getContainer()->get('shop.cart.controller'),
-                $this->getContainer()->get('shop')
-            );
+            /** @var CartLineContact $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
 
-        $this->getContainer()->add('shop.cart.line_list' , function () {
-            $concrete = $this->getConcrete('shop.cart.line_list');
+        $this->getContainer()->add('shop.cart.line-list' , function (): CartLineListContact {
+            $concrete = $this->getConcrete('shop.cart.line-list');
 
-            return new $concrete();
+            /** @var CartLineListContact $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete();
+
+            return $instance->setShop($this->getContainer()->get('shop'));
         });
 
-        $this->getContainer()->share('shop.cart.session_items', function () {
-            $concrete = $this->getConcrete('shop.cart.session_items');
+        $this->getContainer()->share('shop.cart.session-items', function (): CartSessionItemsContact {
+            $concrete = $this->getConcrete('shop.cart.session-items');
 
-            return new $concrete(
-                $this->getContainer()->get('shop.cart.controller'),
-                $this->getContainer()->get('shop')
-            );
+            /** @var CartSessionItemsContact $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance->parse();
         });
 
-        $this->getContainer()->add('shop.cart.total', function () {
+        $this->getContainer()->add('shop.cart.total', function (): CartTotalContract {
             $concrete = $this->getConcrete('shop.cart.total');
 
-            return new $concrete(
-                $this->getContainer()->get('shop.cart.controller'),
-                $this->getContainer()->get('shop')
-            );
+            /** @var CartTotalContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+
+            return $instance;
         });
     }
 

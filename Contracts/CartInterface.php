@@ -1,8 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface CartInterface extends BootableControllerInterface, ShopResolverInterface
+interface CartInterface extends BootableControllerInterface, ShopAwareTrait
 {
     /**
      * Ajout d'une ligne au panier

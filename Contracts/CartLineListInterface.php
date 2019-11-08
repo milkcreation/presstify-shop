@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Contracts;
 
@@ -9,13 +9,14 @@ use IteratorAggregate;
 use JsonSerializable;
 
 /**
- * Interface CartLineListInterface
- *
- * @package tiFy\Plugins\Shop\Contracts
- *
  * @mixin Collection
  */
-interface CartLineListInterface extends ArrayAccess, Countable, IteratorAggregate, JsonSerializable
+interface CartLineListInterface extends ArrayAccess, Countable, IteratorAggregate, JsonSerializable, ShopAwareTrait
 {
-
+    /**
+     * Réinitialisation de la liste des éléments.
+     *
+     * @return static
+     */
+    public function flush(): CartLineListInterface;
 }

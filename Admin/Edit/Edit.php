@@ -1,19 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
-use tiFy\Contracts\Metabox\MetaboxManager;
-use tiFy\Plugins\Shop\Contracts\ProductObjectType;
-use tiFy\Plugins\Shop\Products\ObjectType\Categorized;
-use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{
+    ProductObjectType,
+    ShopInterface as Shop
+};
+use tiFy\Plugins\Shop\Products\ObjectType\{Categorized, Uncategorized};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_Post;
 use WP_Screen;
 
 class Edit
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Nom de qualification du type de post associé.
@@ -37,14 +37,15 @@ class Edit
      */
     public function __construct(ProductObjectType $object_type, Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
+
         $this->objectType = $object_type;
         $this->objectName = $this->objectType->getName();
 
         add_action('current_screen', function (WP_Screen $wp_screen) {
-            if ($wp_screen->id !== (string)$this->objectName) :
+            if ($wp_screen->id !== (string)$this->objectName) {
                 return;
-            endif;
+            }
 
             add_action('admin_enqueue_scripts', function() {
                 field('select-js')->enqueue();
@@ -52,7 +53,7 @@ class Edit
 
                 wp_enqueue_script(
                     'ShopAdminProductEdit',
-                    $this->resourcesUrl() . '/assets/js/admin-edit.js',
+                    $this->shop()->resourcesUrl() . '/assets/js/admin-edit.js',
                     ['jquery'],
                     171219,
                     true
@@ -60,14 +61,15 @@ class Edit
 
                 wp_enqueue_style(
                     'ShopAdminProductEdit',
-                    $this->resourcesUrl() . '/assets/css/admin-edit.css',
+                    $this->shop()->resourcesUrl() . '/assets/css/admin-edit.css',
                     [],
                     171219
                 );
             });
         });
 
-        /** @var MetaboxManager $metabox */
+        /** @todo COMPATIBILITE tiFY 2.0
+        // @var MetaboxManager $metabox
         $metabox = app('metabox');
 
         $metabox->tab([
@@ -75,6 +77,7 @@ class Edit
                 return $this->panelHeader($post);
             },
         ], "{$this->objectType}@post_type");
+        */
 
         // Définition des onglets de saisie par défaut
         $default_tabs = [
@@ -118,7 +121,7 @@ class Edit
         // Récupération des onglets personalisés
         $custom_tabs = $this->objectType->get('tabs', []);
 
-        foreach ($default_tabs as $id => $default_tab) :
+        foreach ($default_tabs as $id => $default_tab) {
             if (!isset($custom_tabs[$id])) :
                 $custom_tabs[$id] = $default_tab;
             elseif ($custom_tabs[$id] !== false) :
@@ -126,15 +129,17 @@ class Edit
             else :
                 unset($custom_tabs[$id]);
             endif;
-        endforeach;
+        }
 
-        foreach ($custom_tabs as $id => $attrs) :
+        /** @todo COMPATIBILITE tiFY 2.0
+        foreach ($custom_tabs as $id => $attrs) {
+
             $metabox->add(
                 "ShopProduct-{$id}--{$this->objectType}",
                 "{$this->objectType}@post_type",
                 $attrs
             );
-        endforeach;
+        }*/
     }
 
     /**
@@ -146,7 +151,7 @@ class Edit
      */
     public function panelHeader($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
         $product_type_selector = '';
         if ($product_types = $product->getProductTypes()) :
@@ -188,9 +193,9 @@ class Edit
      */
     public function generalPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/general', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/general', compact('post', 'product'));
     }
 
     /**
@@ -202,9 +207,9 @@ class Edit
      */
     public function inventoryPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/inventory', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/inventory', compact('post', 'product'));
     }
 
     /**
@@ -216,9 +221,9 @@ class Edit
      */
     public function shippingPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/shipping', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/shipping', compact('post', 'product'));
     }
 
     /**
@@ -230,9 +235,9 @@ class Edit
      */
     public function linkedPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/linked', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/linked', compact('post', 'product'));
     }
 
     /**
@@ -244,9 +249,9 @@ class Edit
      */
     public function attributesPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/attributes', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/attributes', compact('post', 'product'));
     }
 
     /**
@@ -258,9 +263,9 @@ class Edit
      */
     public function variationsPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/variations', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/variations', compact('post', 'product'));
     }
 
     /**
@@ -272,8 +277,8 @@ class Edit
      */
     public function advancedPanel($post)
     {
-        $product = $this->products()->getItem($post);
+        $product = $this->shop()->products()->getItem($post);
 
-        return $this->viewer('admin/edit/advanced', compact('post', 'product'));
+        return $this->shop()->viewer('admin/edit/advanced', compact('post', 'product'));
     }
 }

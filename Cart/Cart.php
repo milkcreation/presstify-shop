@@ -3,21 +3,24 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use tiFy\Plugins\Shop\{
-    AbstractShopSingleton,
-    Contracts\CartInterface,
-    Contracts\CartLineInterface,
-    Contracts\CartLineListInterface,
-    Contracts\CartSessionItemsInterface,
-    Contracts\ProductItemInterface
+use tiFy\Plugins\Shop\Contracts\{
+    CartInterface as CartContract,
+    CartLineInterface as CartLineContract,
+    CartLineListInterface as CartLineListContract,
+    CartSessionItemsInterface as CartSessionItemsContract,
+    ProductItemInterface as ProductItemContract,
+    ShopInterface as Shop
 };
-use tiFy\Support\{MessagesBag, Proxy\Redirect, Proxy\Request};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\{MessagesBag, Proxy\Redirect, Proxy\Request, Proxy\Router};
 
-class Cart extends AbstractShopSingleton implements CartInterface
+class Cart implements CartContract
 {
+    use ShopAwareTrait;
+
     /**
      * Instance de la liste des lignes du panier.
-     * @var CartLineInterface[]|CartLineListInterface
+     * @var CartLineContract[]|CartLineListContract
      */
     protected $lines;
 
@@ -29,7 +32,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
 
     /**
      * Instance de gestion des données du panier enregistré en session.
-     * @var CartSessionItemsInterface
+     * @var CartSessionItemsContract
      */
     protected $sessionItems;
 
@@ -40,26 +43,34 @@ class Cart extends AbstractShopSingleton implements CartInterface
     protected $totals;
 
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
+        $this->setShop($shop);
+
+        $this->boot();
+
         add_action('after_setup_theme', function () {
             $this->sessionItems();
             $this->initNotices();
         }, 25);
 
         add_action('init', function () {
-            $this->sessionItems()->getCart();
+            $this->sessionItems()->fetchCart();
         }, 999999);
 
         add_action('get_header', function () {
             if (
-                $this->functions()->page()->isCart() &&
+                $this->shop()->functions()->page()->isCart() &&
                 !$this->getList() &&
                 ($message = $this->getNotice('is_empty'))
             ) {
-                $this->notices()->add($message, 'info');
+                $this->shop()->notices()->add($message, 'info');
             }
         });
     }
@@ -67,9 +78,14 @@ class Cart extends AbstractShopSingleton implements CartInterface
     /**
      * @inheritDoc
      */
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
     public function add($key, $attributes)
     {
-        $this->lines()->put($key, app('shop.cart.line', [$attributes, $this, $this->shop]));
+        $this->lines()->put($key, $this->shop()->resolve('cart.line')->set($attributes)->parse());
     }
 
     /**
@@ -80,7 +96,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
         $notices = new MessagesBag();
         $redirect = Request::header('referer', get_home_url());
 
-        if (!$product = $this->products()->getItem($product_name)) {
+        if (!$product = $this->shop()->products()->getItem($product_name)) {
             // > Produit inexistant.
             $notices->error(__('Le produit n\'existe pas.', 'tify'));
         } elseif (!$quantity = Request::instance()->request->getInt('quantity', 1)) {
@@ -124,7 +140,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
 
         if ($notices->exists()) {
             foreach ($notices->fetch() as $notice) {
-                $this->shop->session()->notices()->add($notice['message'], $notices::getLevelName($notice['level']));
+                $this->shop()->session()->notices()->add($notice['message'], $notices::getLevelName($notice['level']));
             }
         }
 
@@ -136,17 +152,15 @@ class Cart extends AbstractShopSingleton implements CartInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function addUrl($product)
     {
-        if (!$product instanceof ProductItemInterface) :
-            $product = $this->products()->getItem($product);
-        endif;
+        if (!$product instanceof ProductItemContract) {
+            $product = $this->shop()->products()->getItem($product);
+        }
 
-        return ($product instanceof ProductItemInterface)
-            ? route('shop.cart.add', [$product->getSlug()])
-            : '';
+        return ($product instanceof ProductItemContract) ? Router::url('shop.cart.add', [$product->getSlug()]) : '';
     }
 
     /**
@@ -154,7 +168,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function calculate()
     {
-        return $this->totals = app('shop.cart.total', [$this, $this->shop]);
+        return $this->totals = $this->shop()->resolve('cart.total');
     }
 
     /**
@@ -170,7 +184,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function countQuantity()
     {
-        return $this->lines()->sum(function (CartLineInterface $item) {
+        return $this->lines()->sum(function (CartLineContract $item) {
             return is_numeric($item['quantity']) ? $item['quantity'] :0;
         });
     }
@@ -190,7 +204,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function flush()
     {
-        $this->lines = app('shop.cart.line_list', [[]]);
+        $this->lines = $this->shop()->resolve('cart.line-list')->flush();
     }
 
     /**
@@ -206,11 +220,9 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function getProductsWeight()
     {
-        return $this->lines()->sum(
-            function (CartLineInterface $item) {
-                return (float)$item->getProduct()->getWeight() * $item->getQuantity();
-            }
-        );
+        return $this->lines()->sum(function (CartLineContract $item) {
+            return (float)$item->getProduct()->getWeight() * $item->getQuantity();
+        });
     }
 
     /**
@@ -242,15 +254,12 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function initNotices()
     {
-        $this->notices = array_merge(
-            [
-                'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
-                'successfully_updated' => __('Votre panier a été mis à jour avec succès.', 'tify'),
-                'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
-                'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify'),
-            ],
-            $this->config('cart.notices', [])
-        );
+        $this->notices = array_merge([
+            'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
+            'successfully_updated' => __('Votre panier a été mis à jour avec succès.', 'tify'),
+            'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
+            'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify'),
+        ], $this->shop()->config('cart.notices', []));
     }
 
     /**
@@ -267,8 +276,9 @@ class Cart extends AbstractShopSingleton implements CartInterface
     public function lines()
     {
         if (is_null($this->lines)) {
-            $this->lines = app('shop.cart.line_list', [[]]);
+            $this->lines = $this->shop()->resolve('cart.line-list')->flush();
         }
+
         return $this->lines;
     }
 
@@ -301,29 +311,19 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function removeHandler($key)
     {
-        /**
-         * Conversion de la requête PSR-7
-         * @see https://symfony.com/doc/current/components/psr7.html
-         * @var \Symfony\Component\HttpFoundation\Request $request
-         */
-        $request = request();
-
-        if ($this->remove($key)) :
-            // Mise à jour des données de session
+        if ($this->remove($key)) {
             $this->sessionItems()->update();
 
-            // Message de notification
-            if ($message = $this->getNotice('successfully_removed')) :
-                $this->notices()->add($message);
-            endif;
-        endif;
+            if ($message = $this->getNotice('successfully_removed')) {
+                $this->shop()->notices()->add($message);
+            }
+        }
 
-        // Définition de l'url de redirection
-        if ($redirect = $request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->functions()->url()->cartPage()) :
-        else :
+        if ($redirect = Request::input('_wp_http_referer', '')) {
+        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
+        } else {
             $redirect = wp_get_referer();
-        endif;
+        }
 
         wp_redirect(($redirect ?: get_home_url()));
         exit;
@@ -334,7 +334,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function removeUrl($key)
     {
-        return route('shop.cart.remove', [$key]);
+        return Router::url('shop.cart.remove', [$key]);
     }
 
     /**
@@ -342,7 +342,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function sessionItems()
     {
-        return app('shop.cart.session_items', [$this, $this->shop]);
+        return $this->shop()->resolve('cart.session-items', [$this, $this->shop]);
     }
 
     /**
@@ -350,13 +350,13 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function update($key, $attributes)
     {
-        if ($line = $this->get($key)) :
-            foreach ($attributes as $key => $value) :
+        if ($line = $this->get($key)) {
+            foreach ($attributes as $key => $value) {
                 $line[$key] = $value;
-            endforeach;
+            }
 
             $this->lines()->merge([$key => $line]);
-        endif;
+        }
 
         return $this->lines();
     }
@@ -366,7 +366,7 @@ class Cart extends AbstractShopSingleton implements CartInterface
      */
     public function updateUrl()
     {
-        return route('shop.cart.update');
+        return Router::url('shop.cart.update');
     }
 
     /**
@@ -376,30 +376,28 @@ class Cart extends AbstractShopSingleton implements CartInterface
     {
         $request = request();
 
-        if ($lines = $request->request->get('cart')) :
-            foreach ($lines as $key => $attributes) :
+        if ($lines = $request->request->get('cart')) {
+            foreach ($lines as $key => $attributes) {
                 if (!$attributes['quantity'] ?? 0) {
                     $this->remove($key);
                 } else {
                     $this->update($key, $attributes);
                 }
-            endforeach;
+            }
 
-            // Mise à jour des données de session
             $this->sessionItems()->update();
 
-            // Message de notification
-            if ($message = $this->getNotice('successfully_updated')) :
-                $this->notices()->add($message);
-            endif;
-        endif;
+            if ($message = $this->getNotice('successfully_updated')) {
+                $this->shop()->notices()->add($message);
+            }
+        }
 
         // Définition de l'url de redirection
-        if ($redirect = $request->request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->functions()->url()->cartPage()) :
-        else :
+        if ($redirect = $request->request->get('_wp_http_referer', '')) {
+        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
+        } else {
             $redirect = wp_get_referer();
-        endif;
+        }
 
         wp_redirect(($redirect ?: get_home_url()));
         exit;

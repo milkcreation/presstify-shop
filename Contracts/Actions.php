@@ -1,8 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface Actions extends BootableControllerInterface, ShopResolverInterface
+interface Actions extends BootableControllerInterface, ShopAwareTrait
 {
     /**
      * Récupération de l'url d'une action de traitement.
@@ -13,5 +13,5 @@ interface Actions extends BootableControllerInterface, ShopResolverInterface
      *
      * @return string
      */
-    public function url($alias, $parameters = [], $absolute = false);
+    public function url($alias, $parameters = [], $absolute = false): string;
 }

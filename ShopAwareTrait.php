@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace tiFy\Plugins\Shop\Concerns;
+namespace tiFy\Plugins\Shop;
 
-use tiFy\Plugins\Shop\Contracts\ShopInterface as Shop;
-use tiFy\Plugins\Shop\Contracts\ShopAwareTrait as ShopAwareTraitContract;
+use tiFy\Plugins\Shop\Contracts\{ShopAwareTrait as ShopAwareTraitContract, ShopInterface as Shop};
 
 /**
  * @mixin ShopAwareTraitContract
@@ -15,6 +14,14 @@ trait ShopAwareTrait
      * @var Shop|null
      */
     protected $shop;
+
+    /**
+     * @inheritDoc
+     */
+    public function shop(): ?Shop
+    {
+        return $this->shop;
+    }
 
     /**
      * @inheritDoc

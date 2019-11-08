@@ -1,46 +1,38 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Contracts\Form\FactoryRequest;
-use tiFy\Contracts\Form\FormFactory;
-use tiFy\Form\AddonController;
-use tiFy\Plugins\Shop\Contracts\AddressInterface;
-use tiFy\Plugins\Shop\Contracts\AddressFormHandlerInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Form\AddonFactory;
+use tiFy\Plugins\Shop\Contracts\{
+    AddressInterface as AddressContract,
+    AddressFormHandlerInterface as AddressFormHandlerContract,
+    ShopInterface as Shop
+};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class FormHandler
- * @desc Traitement des formulaires d'adresses.
- */
-class FormHandler extends AddonController implements AddressFormHandlerInterface
+class FormHandler extends AddonFactory implements AddressFormHandlerContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param string $name Nom de qualification.
-     * @param array $attrs Liste des attributs de configuration.
-     * @param FormFactory $form Formulaire associé.
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct($name, $attrs = [], FormFactory $form, Shop $shop)
+    public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
-
-        parent::__construct($name, $attrs, $form);
+        $this->setShop($shop);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function boot()
+    public function boot(): void
     {
-        $this->events()->listen('request.submit', [$this, 'onRequestSubmit']);
+        $this->form()->events()->listen('request.submit', [$this, 'onRequestSubmit']);
     }
 
     /**
@@ -49,34 +41,34 @@ class FormHandler extends AddonController implements AddressFormHandlerInterface
     public function onRequestSubmit(FactoryRequest $request)
     {
         // Récupération du contrôleur valide
-        $ctrl = $this->get('controller', '');
-        if (!$ctrl instanceof AddressInterface) :
+        $ctrl = $this->params('controller', '');
+        if (!$ctrl instanceof AddressContract) {
             return;
-        endif;
+        }
 
         // Récupération des données utilisateur à sauvegarder.
         $userdata = []; $session_data = [];
 
-        foreach ($request->all() as $key => $value) :
+        foreach ($request->all() as $key => $value) {
             $slug = preg_replace('#^' . $ctrl->getId() . '_#', '', $key);
 
-            if (($field = $request->field($slug)) && $field->supports('transport')) :
+            if (($field = $request->field($slug)) && $field->supports('transport')) {
                 $session_data[$slug] = $value;
                 $userdata[$key] = $value;
-            endif;
-        endforeach;
+            }
+        }
 
         // Sauvegarde des données en session.
-        $this->session()->put($ctrl->getId(), $session_data);
-        $this->session()->save();
+        $this->shop()->session()->put($ctrl->getId(), $session_data);
+        $this->shop()->session()->save();
 
         // Sauvegarde des données de compte utilisateur.
-        $user = $this->users()->getItem();
+        $user = $this->shop()->users()->getItem();
 
-        if ($user->isLoggedIn()) :
-            foreach($userdata as $k => $v) :
+        if ($user->isLoggedIn()) {
+            foreach ($userdata as $k => $v) {
                 update_user_option($user->getId(), $k, $v, !is_multisite());
-            endforeach;
-        endif;
+            }
+        }
     }
 }

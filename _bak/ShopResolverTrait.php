@@ -1,6 +1,6 @@
 <?php
 
-namespace tiFy\Plugins\Shop;
+namespace tiFy\Plugins\Shop__Bak;
 
 use tiFy\Contracts\View\ViewController;
 use tiFy\Contracts\View\ViewEngine;
@@ -51,7 +51,7 @@ trait ShopResolverTrait
      */
     public function addresses()
     {
-        return app('shop.addresses.controller');
+        return app('shop.addresses');
     }
 
     /**
@@ -61,7 +61,7 @@ trait ShopResolverTrait
      */
     public function cart()
     {
-        return app('shop.cart.controller');
+        return app('shop.cart');
     }
 
     /**

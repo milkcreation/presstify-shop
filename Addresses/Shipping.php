@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Plugins\Shop\Contracts\AddressShippingInterface as AddressShippingContract;
+use tiFy\Plugins\Shop\Contracts\AddressShipping as AddressShippingContract;
 
 class Shipping extends AbstractAddress implements AddressShippingContract
 {

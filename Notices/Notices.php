@@ -1,18 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Notices;
 
 use LogicException;
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\NoticesInterface;
+use tiFy\Plugins\Shop\Contracts\{Notices as NoticesContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Notices
- *
- * @desc Gestion des messages de notification.
- */
-class Notices extends AbstractShopSingleton implements NoticesInterface
+class Notices implements NoticesContract
 {
+    use ShopAwareTrait;
+
     /**
      * Liste des messages de notification à afficher
      * @var array
@@ -20,29 +17,42 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
     protected $notices = [];
 
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
-        add_action('wp_loaded', function() {
-            $this->notices = $this->session()->get('notices', []);
+        $this->setShop($shop);
+
+        $this->boot();
+
+        add_action('wp_loaded', function () {
+            $this->notices = $this->shop()->session()->get('notices', []);
         });
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void { }
 
     /**
      * Affichage des message de notification
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->display();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function add($message, $type = 'success')
+    public function add($message, $type = 'success'): void
     {
         if (!did_action('wp_loaded')) {
             throw new LogicException(
@@ -62,25 +72,25 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
         }
         $this->notices[$type][] = $message;
 
-        $this->session()->put('notices', $this->notices);
+        $this->shop()->session()->put('notices', $this->notices);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function clear()
+    public function clear(): void
     {
         $this->notices = [];
-        $this->session()->put('notices', []);
+        $this->shop()->session()->put('notices', []);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function display()
+    public function display(): string
     {
-        if (!did_action('template_redirect')) :
-            throw new \LogicException(
+        if (!did_action('template_redirect')) {
+            throw new LogicException(
                 __(
                     'L\'affichage des messages de notifications ne devrait pas être fait ' . '
                     à ce moment de l\'execution de votre code',
@@ -88,18 +98,18 @@ class Notices extends AbstractShopSingleton implements NoticesInterface
                 ),
                 500
             );
-        endif;
+        }
 
-        if (!$this->notices) :
+        if (!$this->notices) {
             return '';
-        endif;
+        }
 
         $output = "";
-        foreach ($this->notices as $type => $messages) :
-            foreach($messages as $content) :
+        foreach ($this->notices as $type => $messages) {
+            foreach ($messages as $content) {
                 $output .= (string)partial('notice', compact('type', 'content'));
-            endforeach;
-        endforeach;
+            }
+        }
 
         $this->clear();
 

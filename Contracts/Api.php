@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface Api extends BootableControllerInterface, ShopAwareTrait
+interface Api extends ShopAwareTrait
 {
 
 }

@@ -1,36 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\PostType\Query\PostQuery;
-use tiFy\Plugins\Shop\{
-    Contracts\ProductsInterface,
-    Products\ObjectType\Categorized,
-    Products\ObjectType\Uncategorized,
-    Shop,
-    ShopResolverTrait
-};
+use tiFy\Plugins\Shop\Contracts\{Product,
+    Products as ProductsContract,
+    ProductObjectType,
+    ProductObjectTypeUncategorized,
+    Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_Post;
-use WP_Query;
 
-/**
- * Class Products
- *
- * @desc Gestion des gammes de produits.
- */
-class Products extends PostQuery implements ProductsInterface
+class Products implements ProductsContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
-     * Instance de la classe.
-     * @var static
-     */
-    protected static $instance;
-
-    /**
-     * Liste des classes de rappel des gammes de produits déclarées.
-     * @var Categorized[]|Uncategorized[]
+     * Liste des instances de gammes de produits déclarées.
+     * @var ProductObjectTypeUncategorized[]|ProductObjectType[]
      */
     private static $objectTypes = [];
 
@@ -39,159 +25,88 @@ class Products extends PostQuery implements ProductsInterface
      * @var string[]
      */
     private static $productTypes = [
-        'simple', 'grouped', 'composed', 'composing', 'external', 'variable'
+        'simple',
+        'grouped',
+        'composed',
+        'composing',
+        'external',
+        'variable',
     ];
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique.
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
-    {
-        $this->shop = $shop;
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone() {}
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup() {}
-
-    /**
-     * Instanciation de la classe.
-     *
-     * @param string $alias
      * @param Shop $shop
      *
-     * @return static
+     * @return void
      */
-    public static function make($alias, Shop $shop)
+    public function __construct(Shop $shop)
     {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
+        $this->setShop($shop);
 
-        return self::$instance = new static($shop);
+        foreach ($this->shop()->config('products', []) as $post_type => $attrs) {
+            if (empty($attrs['category'])) {
+                return self::$objectTypes[$post_type] = $this->shop()->resolve(
+                    'products.object-type.uncategorized',
+                    [$post_type, $attrs]
+                );
+            } else {
+                return self::$objectTypes[$post_type] = $this->shop()->resolve(
+                    'products.object-type.categorized',
+                    [$post_type, $attrs]
+                );
+            }
+        }
+
+        add_action('save_post', [$this, 'saveWpPost'], 10, 2);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function boot()
-    {
-        $this->_registerObjectTypes();
+    public function boot(): void { }
 
-        add_action('save_post', [$this, 'save_post'], 10, 2);
+    /**
+     * @inheritDoc
+     */
+    public function get($id = null): ?Product
+    {
+        return $this->shop()->resolve('product', [$id]);
     }
 
     /**
-     * Déclaration des gammes de produit
-     *
-     * @return null|Categorized|Uncategorized
+     * @inheritDoc
      */
-    private function _registerObjectTypes()
-    {
-        foreach ($this->config('products', []) as $post_type => $attrs) :
-            if (empty($attrs['category'])) :
-                return self::$objectTypes[$post_type] = app(
-                        'shop.products.type.uncategorized',
-                        [$post_type, $attrs, $this->shop]
-                    );
-            else :
-                return self::$objectTypes[$post_type] = app(
-                        'shop.products.type.categorized',
-                        [$post_type, $attrs, $this->shop]
-                    );
-            endif;
-        endforeach;
-
-        return null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getItemBy($key = 'name', $value)
-    {
-        $args = [
-            'post_type'      => $this->getObjectName(),
-            'posts_per_page' => 1
-        ];
-
-        switch ($key) :
-            default :
-            case 'post_name' :
-            case 'name' :
-                $args['name'] = $value;
-                break;
-            case 'sku' :
-                $args['meta_query'] = [
-                    [
-                        'key'   => '_sku',
-                        'value' => $value
-                    ]
-                ];
-                break;
-        endswitch;
-
-        $wp_query = new WP_Query;
-        $posts = $wp_query->query($args);
-        if ($wp_query->found_posts) :
-            return $this->getItem(reset($posts));
-        endif;
-
-        return null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getObjectName()
-    {
-        return $this->getObjectTypes();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getObjectType($object_type)
+    public function getObjectType(string $object_type): ?ProductObjectType
     {
         return self::$objectTypes[$object_type] ?? null;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getObjectTypeList()
+    public function getObjectTypeList(): array
     {
         return self::$objectTypes;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getObjectTypes()
+    public function getObjectTypes(): array
     {
         return array_keys(self::$objectTypes);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getProductTypeDisplayName($product_type)
+    public function getProductTypeDisplayName(string $product_type): string
     {
-        switch($product_type) :
+        switch ($product_type) {
+            default :
+                return '';
+                break;
             case 'simple' :
                 return __('Produit simple', 'tify');
                 break;
@@ -210,18 +125,18 @@ class Products extends PostQuery implements ProductsInterface
             case 'variable' :
                 return __('Produit variable', 'tify');
                 break;
-            default :
-                return '';
-                break;
-        endswitch;
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getProductTypeIcon($product_type)
+    public function getProductTypeIcon(string $product_type): string
     {
-        switch($product_type) :
+        switch ($product_type) {
+            default :
+                return '';
+                break;
             case 'simple' :
                 return "<span class=\"dashicons dashicons-products\"></span>";
                 break;
@@ -240,24 +155,29 @@ class Products extends PostQuery implements ProductsInterface
             case 'variable' :
                 return "<span class=\"dashicons dashicons-chart-area\"></span>";
                 break;
-            default :
-                return '';
-                break;
-        endswitch;
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getProductTypes()
+    public function getProductTypes(): array
     {
         return self::$productTypes;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function save_post($post_id, $post)
+    public function query($query_args = null): ProductsCollection
+    {
+        return $this->shop()->resolve('products.collection')->query($query_args);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function saveWpPost(int $post_id, WP_Post $post)
     {
         // Bypass - S'il s'agit d'une routine de sauvegarde automatique.
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) :
@@ -297,26 +217,25 @@ class Products extends PostQuery implements ProductsInterface
             return null;
         endif;
 
-        $this->getItem($post)->save();
+        $product = $this->get($post);
+
+        // -----------------------------------------------------------
+        // TYPE DE PRODUIT
+        $product_type = request()->post('product-type', $product->getProductObjectType()->getDefaultProductType());
+        wp_set_post_terms($product->getId(), $product_type, 'product_type');
+
+        // -----------------------------------------------------------
+        // VISIBILITE PRODUIT
+        $visibility = [];
+
+        // Mise en avant
+        $featured = request()->post('_featured', 'off');
+        if ($featured === 'on') {
+            array_push($visibility, 'featured');
+        }
+
+        wp_set_post_terms($product->getId(), $visibility, 'product_visibility');
 
         return $post;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function resolveCollection($items)
-    {
-        return app('shop.products.list', [$items]);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function resolveItem(WP_Post $wp_post)
-    {
-        $concrete = $this->getObjectType($wp_post->post_type)->getItemController();
-
-        return new $concrete($wp_post, $this->shop);
     }
 }

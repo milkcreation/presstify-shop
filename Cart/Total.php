@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{CartInterface as CartContract, CartTotalInterface as CartTotalContract, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{Cart, CartTotal as CartTotalContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
 
@@ -55,13 +55,13 @@ class Total extends ParamsBag implements CartTotalContract
      */
     public function __toString(): string
     {
-        return (string) $this->getGlobal();
+        return (string)$this->getGlobal();
     }
 
     /**
      * @inheritDoc
      */
-    public function cart(): CartContract
+    public function cart(): Cart
     {
         return $this->shop()->resolve('cart');
     }
@@ -84,7 +84,7 @@ class Total extends ParamsBag implements CartTotalContract
             'discount_total'     => 0,
             'fee_total'          => 0,
             'fee_total_tax'      => 0,
-            'fee_taxes'          => []
+            'fee_taxes'          => [],
         ];
     }
 

@@ -1,15 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Products\ObjectType;
 
-use tiFy\Plugins\Shop\Contracts\ProductObjectType;
+use tiFy\Plugins\Shop\Contracts\ProductObjectTypeUncategorized;
 
-/**
- * Class Uncategorized
- *
- * @desc Gestion des produits de la gamme, sans catégorie.
- */
-class Uncategorized extends AbstractObjectType implements ProductObjectType
+class Uncategorized extends ObjectType implements ProductObjectTypeUncategorized
 {
 
 }

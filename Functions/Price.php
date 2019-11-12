@@ -1,19 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use tiFy\Plugins\Shop\Contracts\FunctionsPriceInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{FunctionsPrice as FunctionsPriceContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Price
- *
- * @desc Controleur de gestion des tarifs de la boutique.
- */
-class Price implements FunctionsPriceInterface
+class Price implements FunctionsPriceContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * CONSTRUCTEUR.
@@ -24,13 +18,13 @@ class Price implements FunctionsPriceInterface
      */
     public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function currencySymbol($currency = '')
+    public function currencySymbol(?string $currency = null)
     {
         $symbols = [
             'AED' => '&#x62f;.&#x625;',
@@ -198,24 +192,24 @@ class Price implements FunctionsPriceInterface
             'ZMW' => 'ZK',
         ];
 
-        return isset($symbols[$currency]) ? $symbols[$currency] : $currency;
+        return $symbols[$currency] ?? $currency;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function html($price, $format = '')
+    public function html(float $price, ?string $format = null): string
     {
-        $currency          = $this->settings()->get('currency', '');
-        $currency_position = $this->settings()->get('currency_position');
-        $decimals          = $this->settings()->decimalNumber();
-        $dec_point         = $this->settings()->decimalSeparator();
-        $thousands_sep     = $this->settings()->thousandSeparator();
+        $currency = $this->shop()->settings()->get('currency', '');
+        $currency_position = $this->shop()->settings()->get('currency_position');
+        $decimals = $this->shop()->settings()->decimalNumber();
+        $dec_point = $this->shop()->settings()->decimalSeparator();
+        $thousands_sep = $this->shop()->settings()->thousandSeparator();
 
-        if ( ! $format) :
+        if (!$format) {
             $format = '%1$s';
-            if ($currency) :
-                switch ($currency_position) :
+            if ($currency) {
+                switch ($currency_position) {
                     default :
                     case 'right' :
                         $format .= '%2$s';
@@ -229,9 +223,9 @@ class Price implements FunctionsPriceInterface
                     case 'left_space' :
                         $format .= ' %2$s ' . $format;
                         break;
-                endswitch;
-            endif;
-        endif;
+                }
+            }
+        };
 
         return sprintf(
             $format,

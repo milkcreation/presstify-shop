@@ -2,9 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{CartInterface as CartContract,
-    CartSessionItemsInterface as CartSessionItemsContract,
-    ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{Cart, CartSessionItems as CartSessionItemsContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{Arr, ParamsBag};
 
@@ -27,7 +25,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
     /**
      * @inheritDoc
      */
-    public function cart(): CartContract
+    public function cart(): Cart
     {
         return $this->shop()->resolve('cart');
     }
@@ -59,7 +57,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
         $this->shop()->session()->save();
 
         if ($persistent) {
-            delete_user_option($this->shop()->users()->getItem()->getId(), '_tify_shop_cart');
+            delete_user_option($this->shop()->users()->get()->getId(), '_tify_shop_cart');
         }
     }
 
@@ -86,7 +84,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
 
         if (!empty($cart)) {
             foreach ($cart as $key => $line) {
-                $product = $this->shop()->products()->getItem($line['product_id']);
+                $product = $this->shop()->products()->get($line['product_id']);
                 $quantity = $line['quantity'];
 
                 if (!$product || ($quantity < 0)) {

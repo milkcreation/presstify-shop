@@ -1,26 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Users;
 
-use tiFy\User\Query\UserQuery;
-use tiFy\Plugins\Shop\Contracts\UsersInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{Users as UsersContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_User;
 
-class Users extends UserQuery implements UsersInterface
+class Users implements UsersContract
 {
-    use ShopResolverTrait;
-
-    /**
-     * Instance de la classe.
-     * @var static
-     */
-    protected static $instance;
+    use ShopAwareTrait;
 
     /**
      * Utilisateur courant.
-     * @var \WP_User
+     * @var WP_User
      */
     private static $current;
 
@@ -33,20 +25,19 @@ class Users extends UserQuery implements UsersInterface
      */
     public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
+
+        foreach ($this->shop()->config('roles', []) as $name => $attrs) {
+            user()->role()->register($name, $attrs);
+        }
+
+        user()->signin()->register('shop', $this->shop()->config('signin', []));
     }
 
     /**
      * @inheritDoc
      */
-    public function boot()
-    {
-        foreach ($this->config('roles', []) as $name => $attrs) {
-            user()->role()->register($name, $attrs);
-        }
-
-        user()->signin()->register('shop', $this->config('signin', []));
-    }
+    public function boot(): void { }
 
     /**
      * @inheritDoc
@@ -69,20 +60,17 @@ class Users extends UserQuery implements UsersInterface
     /**
      * @inheritDoc
      */
-    public function getItem($user = null)
+    public function get($user = null)
     {
-        if (!$item = parent::getItem($user)) {
-            return app('shop.users.logged_out', [new WP_User(0), $this->shop]);
-        }
+        /** @var User $user */
+        $user = $this->shop()->resolve('user', [new WP_User($user ?? 0)]);
 
-        $roles = $item->getRoles();
-
-        if (in_array('shop_manager', $roles)) {
-            return app('shop.users.shop_manager', [$item->getUser(), $this->shop]);
-        } elseif (in_array('customer', $roles)) {
-            return app('shop.users.customer', [$item->getUser(), $this->shop]);
+        if ($user->hasRole('shop_manager')) {
+            return $this->shop()->resolve('user.manager', [$user->getWpUser()]);
+        } elseif ($user->hasRole('customer')) {
+            return $this->shop()->resolve('user.customer', [$user->getWpUser()]);
         } else {
-            return $item;
+            return $user;
         }
     }
 

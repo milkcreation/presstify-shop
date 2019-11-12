@@ -1,42 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use Illuminate\{
-    Support\Arr,
-    Support\Collection
-};
-use tiFy\Contracts\Db\DbFactory;
-use tiFy\PostType\Query\PostQuery;
-use tiFy\Plugins\Shop\{
-    Contracts\OrdersInterface,
-    Contracts\OrderInterface,
-    Shop,
-    ShopResolverTrait
-};
-use tiFy\Support\Proxy\{Redirect, Request};
-use WP_Post;
+use Illuminate\Support\Collection;
+use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, OrdersCollection, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\{Arr, Proxy\Redirect, Proxy\Request};
 
-/**
- * Class Orders
- *
- * @desc Controleur de gestion des commandes.
- */
-class Orders extends PostQuery implements OrdersInterface
+class Orders implements OrdersContract
 {
-    use ShopResolverTrait;
-
-    /**
-     * Instance de la classe.
-     * @var static
-     */
-    protected static $instance;
-
-    /**
-     * Classe de rappel de la base de données
-     * @var DbFactory
-     */
-    protected $db;
+    use ShopAwareTrait;
 
     /**
      * Liste des statuts de commande.
@@ -45,66 +18,23 @@ class Orders extends PostQuery implements OrdersInterface
     protected $statuses = [];
 
     /**
-     * Type de post Wordpress du controleur
-     * @var string|array
+     * Nombre d'élément total trouvés
+     * @var int
      */
-    protected $objectName = 'shop_order';
+    protected $total = 0;
 
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Classe de rappel de la boutique.
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
-    {
-        $this->shop = $shop;
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe.
-     *
-     * @param string $alias Nom de qualification
      * @param Shop $shop
      *
-     * @return static
+     * @return void
      */
-    public static function make($alias, Shop $shop)
+    public function __construct(Shop $shop)
     {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
+        $this->setShop($shop);
 
-        return self::$instance = new static($shop);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function boot()
-    {
-        db()->register(
+        /* db()->register(
             'shop.order.items',
             [
                 'install'    => true,
@@ -139,103 +69,84 @@ class Orders extends PostQuery implements OrdersInterface
                 ],
                 'keys'       => ['order_id' => ['cols' => 'order_id', 'type' => 'INDEX']],
             ]
-        );
+        ); */
 
         add_action('init', [$this, 'onInit']);
         add_action('get_header', [$this, 'onReceived']);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function create()
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function create(): ?Order
     {
-        if (! $id = wp_insert_post(['post_type' => $this->objectName])) {
+        if (! $id = wp_insert_post(['post_type' => 'order'])) {
             return null;
         }
-        return $this->getItem($id);
+        return $this->get($id);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getCollection($query_args = null)
+    public function get($id = null): ?Order
     {
-        if (!isset($query_args['post_status'])) {
-            $query_args['post_status'] = $this->orders()->getRelPostStatuses();
+        if (!$id) {
+            $id = $this->shop()->session()->get('order_awaiting_payment', 0);
         }
 
-        return parent::getCollection($query_args);
+        return $this->shop()->resolve('order', [$id]);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getDb()
-    {
-        if ($this->db instanceof DbFactory) :
-            return $this->db;
-        else :
-            return $this->db = db()->get('shop.order.items');
-        endif;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultStatus()
+    public function getDefaultStatus(): string
     {
         return 'order-pending';
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getItem($id = null)
-    {
-        if (!$id) :
-            $id = $this->session()->get('order_awaiting_payment', 0);
-        endif;
-
-        return parent::getItem($id);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getNeedPaymentStatuses()
+    public function getNeedPaymentStatuses(): array
     {
         return ['order-failed', 'order-pending'];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getNotEmptyCartStatus()
+    public function getNotEmptyCartStatus(): array
     {
         return ['order-cancelled', 'order-failed', 'order-pending'];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getPaymentCompleteStatuses()
+    public function getPaymentCompleteStatuses(): array
     {
         return ['order-completed', 'order-processing'];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getPaymentValidStatuses()
+    public function getPaymentValidStatuses(): array
     {
         return ['order-failed', 'order-cancelled', 'order-on-hold', 'order-pending'];
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getRegisteredStatuses()
+    public function getRegisteredStatuses(): array
     {
         return [
             'order-pending'    => [
@@ -326,53 +237,57 @@ class Orders extends PostQuery implements OrdersInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getRelPostStatuses()
+    public function getRelPostStatuses(): array
     {
         return array_keys($this->getStatuses());
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getStatuses()
+    public function getStatuses(): array
     {
-        if ($this->statuses) :
+        if ($this->statuses) {
             return $this->statuses;
-        endif;
+        }
 
-        $collect = new Collection($this->getRegisteredStatuses());
-
-        return $this->statuses = $collect->mapWithKeys(
-            function($item, $key) {
-                return [$key => $item['label']];
-            })
-            ->all();
+        return $this->statuses = (new Collection($this->getRegisteredStatuses()))->mapWithKeys(function($item, $key) {
+            return [$key => $item['label']];
+        })->all();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getStatusLabel($name, $default = '')
+    public function getStatusLabel($name, $default = ''): string
     {
         return Arr::get($this->getStatuses(), $name, $default);
     }
 
     /**
-     * {@inheritdoc}
+     * Récupération du nombre d'enregistrement total.
+     *
+     * @return int
      */
-    public function is($order)
+    public function getTotal(): int
     {
-        return $order instanceof OrderInterface;
+        return $this->total;
     }
 
     /**
-     * {@inheritdoc}
+     * Définition du nombre d'enregistrement total.
+     *
+     * @param int $total
+     *
+     * @return $this
      */
-    public function isStatus($status)
+    public function setTotal($total): self
     {
-        return in_array($status, array_keys($this->getStatuses()));
+        $this->total = $total;
+
+        return $this;
     }
 
     /**
@@ -380,8 +295,8 @@ class Orders extends PostQuery implements OrdersInterface
      */
     public function handlePaymentComplete($order_id)
     {
-        if (is_user_logged_in() && ($user = $this->users()->getItem())) {
-            if ($user->isShopManager() && ($order = $this->orders()->getItem($order_id))) {
+        if (is_user_logged_in() && ($user = $this->shop()->users()->get())) {
+            if ($user->isShopManager() && ($order = $this->get($order_id))) {
                 $order->paymentComplete();
             }
 
@@ -400,13 +315,28 @@ class Orders extends PostQuery implements OrdersInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is($order): bool
+    {
+        return $order instanceof Order;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isStatus(string $status): bool
+    {
+        return in_array($status, array_keys($this->getStatuses()));
+    }
+
+    /**
      * Initialisation globale de Wordpress.
      *
      * @return void
      */
-    public function onInit()
+    public function onInit(): void
     {
-        // Déclaration de la liste des statuts de commande
         foreach ($this->getRegisteredStatuses() as $order_status => $values) {
             register_post_status($order_status, $values);
         }
@@ -417,38 +347,34 @@ class Orders extends PostQuery implements OrdersInterface
      *
      * @return void
      */
-    public function onReceived()
+    public function onReceived(): void
     {
-        if ($order_id = request()->query->getInt('order-received', 0)) :
-            $order_key = request()->query('key', '');
+        if ($order_id = Request::instance()->query->getInt('order-received', 0)) {
+            $order_key = Request::input('key', '');
 
-            if (($order = $this->orders()->getItem($order_id)) && ($order->getOrderKey() === $order_key)) :
-                $this->cart()->destroy();
-            endif;
-        endif;
+            if (($order = $this->get($order_id)) && ($order->getOrderKey() === $order_key)) {
+                $this->shop()->cart()->destroy();
+            }
+        }
 
         if (
-            ($order_awaiting_payment = (int)$this->session()->get('order_awaiting_payment')) &&
-            ($order = $this->orders()->getItem($order_awaiting_payment)) &&
+            ($order_awaiting_payment = (int)$this->shop()->session()->get('order_awaiting_payment')) &&
+            ($order = $this->get($order_awaiting_payment)) &&
             ! $order->hasStatus($this->getNotEmptyCartStatus())
-        ) :
-            $this->cart()->destroy();
-        endif;
+        ) {
+            $this->shop()->cart()->destroy();
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function resolveCollection($items)
+    public function query($query_args = null): OrdersCollection
     {
-        return app('shop.orders.list', [$items]);
-    }
+        if (!isset($query_args['post_status'])) {
+            $query_args['post_status'] = $this->getRelPostStatuses();
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function resolveItem(WP_Post $wp_post)
-    {
-        return app('shop.orders.order', [$wp_post, $this->shop]);
+        return $this->shop()->resolve('orders.collection')->query($query_args);
     }
 }

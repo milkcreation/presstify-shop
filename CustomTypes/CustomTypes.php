@@ -1,147 +1,130 @@
-<?php
-
-/**
- * @name \tiFy\Plugins\Shop\CustomTypes\CustomTypes
- * @desc Gestion des types de posts et taxonomies relatifs à la boutique (hors gamme de produits).
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\CustomTypes;
 
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\CustomTypesInterface;
+use tiFy\Plugins\Shop\Contracts\{CustomTypes as CustomTypesContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-class CustomTypes extends AbstractShopSingleton implements CustomTypesInterface
+class CustomTypes implements CustomTypesContract
 {
+    use ShopAwareTrait;
+
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
-        add_action(
-            'init',
-            function () {
-                // Récupération de la liste des identifiant de qualification des gamme de produits déclarés.
-                $product_object_types = $this->products()->getObjectTypes();
+        $this->setShop($shop);
 
-                // Type de produit
-                taxonomy()->register(
-                    'product_type',
-                    [
-                        'hierarchical'      => false,
-                        'show_ui'           => false,
-                        'show_in_nav_menus' => false,
-                        'show_admin_column' => false,
-                        'query_var'         => is_admin(),
-                        'rewrite'           => false,
-                        'public'            => false,
-                        'object_type'       => $product_object_types,
-                    ]
-                );
+        $this->boot();
 
-                // Visibilité d'un produit
-                taxonomy()->register(
-                    'product_visibility',
-                    [
-                        'hierarchical'      => false,
-                        'show_ui'           => false,
-                        'show_in_nav_menus' => false,
-                        'show_admin_column' => false,
-                        'query_var'         => is_admin(),
-                        'rewrite'           => false,
-                        'public'            => false,
-                        'object_type'       => array_merge($product_object_types, ['product_variation']),
-                    ]
-                );
+        add_action('init', function () {
+            // Récupération de la liste des identifiant de qualification des gamme de produits déclarés.
+            $product_object_types = $this->shop()->products()->getObjectTypes();
 
-                // Catégorie de produit
-                taxonomy()->register(
-                    'product_cat',
-                    [
-                        'hierarchical' => true,
-                        'singular'     => __('categorie', 'tify'),
-                        'plural'       => __('categories', 'tify'),
-                        'show_ui'      => true,
-                    ]
-                );
+            // Type de produit
+            taxonomy()->register('product_type', [
+                'hierarchical'      => false,
+                'show_ui'           => false,
+                'show_in_nav_menus' => false,
+                'show_admin_column' => false,
+                'query_var'         => is_admin(),
+                'rewrite'           => false,
+                'public'            => false,
+                'object_type'       => $product_object_types,
+            ]);
 
-                // Etiquette de produit
-                taxonomy()->register(
-                    'product_tag',
-                    [
-                        'hierarchical' => false,
-                        'singular'     => __('étiquette', 'tify'),
-                        'plural'       => __('étiquettes', 'tify'),
-                        'show_ui'      => true,
-                    ]
-                );
+            // Visibilité d'un produit
+            taxonomy()->register('product_visibility', [
+                'hierarchical'      => false,
+                'show_ui'           => false,
+                'show_in_nav_menus' => false,
+                'show_admin_column' => false,
+                'query_var'         => is_admin(),
+                'rewrite'           => false,
+                'public'            => false,
+                'object_type'       => array_merge($product_object_types, ['product_variation']),
+            ]);
 
-                // Classes de livraison
-                // @todo
+            // Catégorie de produit
+            taxonomy()->register('product_cat', [
+                'hierarchical' => true,
+                'singular'     => __('categorie', 'tify'),
+                'plural'       => __('categories', 'tify'),
+                'show_ui'      => true,
+            ]);
 
-                // Produits
-                // @todo
+            // Etiquette de produit
+            taxonomy()->register('product_tag', [
+                'hierarchical' => false,
+                'singular'     => __('étiquette', 'tify'),
+                'plural'       => __('étiquettes', 'tify'),
+                'show_ui'      => true,
+            ]);
 
-                // Variation de produits
-                post_type()->register(
-                    'product_variation',
-                    [
-                        'plural'          => __('variations', 'tify'),
-                        'singular'        => __('variation', 'tify'),
-                        'gender'          => true,
-                        'public'          => false,
-                        'hierarchical'    => false,
-                        'supports'        => false,
-                        'capability_type' => 'product',
-                        'rewrite'         => false,
-                    ]
-                );
+            // Classes de livraison
+            // @todo
 
-                // Commandes
-                post_type()->register(
-                    'shop_order',
-                    [
-                        'plural'              => __('commandes', 'tify'),
-                        'singular'            => __('commande', 'tify'),
-                        'gender'              => true,
-                        'public'              => false,
-                        'show_ui'             => true,
-                        'capability_type'     => 'shop_order',
-                        'map_meta_cap'        => true,
-                        'publicly_queryable'  => false,
-                        'exclude_from_search' => true,
-                        //'show_in_menu'        => current_user_can('manage_tify_shop') ? 'tify_shop' : true,
-                        'hierarchical'        => false,
-                        'show_in_nav_menus'   => false,
-                        'rewrite'             => false,
-                        'query_var'           => false,
-                        'supports'            => ['title'],
-                        'has_archive'         => false,
-                    ]
-                );
+            // Produits
+            // @todo
 
-                // Remboursements
-                post_type()->register(
-                    'shop_order_refund',
-                    [
-                        'plural'          => __('remboursements', 'tify'),
-                        'singular'        => __('remboursement', 'tify'),
-                        'capability_type' => 'shop_order',
-                        'public'          => false,
-                        'hierarchical'    => false,
-                        'supports'        => false,
-                        'rewrite'         => false,
-                    ]
-                );
+            // Variation de produits
+            post_type()->register('product_variation', [
+                'plural'          => __('variations', 'tify'),
+                'singular'        => __('variation', 'tify'),
+                'gender'          => true,
+                'public'          => false,
+                'hierarchical'    => false,
+                'supports'        => false,
+                'capability_type' => 'product',
+                'rewrite'         => false,
+            ]);
 
-                // Coupons
-                // @todo
+            // Commandes
+            post_type()->register('shop_order', [
+                'plural'              => __('commandes', 'tify'),
+                'singular'            => __('commande', 'tify'),
+                'gender'              => true,
+                'public'              => false,
+                'show_ui'             => true,
+                'capability_type'     => 'shop_order',
+                'map_meta_cap'        => true,
+                'publicly_queryable'  => false,
+                'exclude_from_search' => true,
+                //'show_in_menu'        => current_user_can('manage_tify_shop') ? 'tify_shop' : true,
+                'hierarchical'        => false,
+                'show_in_nav_menus'   => false,
+                'rewrite'             => false,
+                'query_var'           => false,
+                'supports'            => ['title'],
+                'has_archive'         => false,
+            ]);
 
-                // Webhook
-                // @todo
-            }
-        );
+            // Remboursements
+            post_type()->register('shop_order_refund', [
+                'plural'          => __('remboursements', 'tify'),
+                'singular'        => __('remboursement', 'tify'),
+                'capability_type' => 'shop_order',
+                'public'          => false,
+                'hierarchical'    => false,
+                'supports'        => false,
+                'rewrite'         => false,
+            ]);
+
+            // Coupons
+            // @todo
+
+            // Webhook
+            // @todo
+        });
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void { }
 }

@@ -1,20 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Functions;
 
 use League\Uri;
-use tiFy\Plugins\Shop\Contracts\FunctionsUrlInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{FunctionsUrl as FunctionsUrlContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Url
- *
- * @desc Controleur de récupération des urls de la boutique.
- */
-class Url implements FunctionsUrlInterface
+class Url implements FunctionsUrlContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * CONSTRUCTEUR.
@@ -25,59 +19,45 @@ class Url implements FunctionsUrlInterface
      */
     public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
     }
 
     /**
-     * Url vers la page d'affichage du panier.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function cartPage()
+    public function cartPage(): string
     {
-        return ($page_id = $this->settings()->cartPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->shop()->settings()->cartPageId()) ? get_permalink($page_id) : get_home_url();
     }
 
     /**
-     * Url vers la page d'ajout de moyen de paiement.
-     * @todo
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function checkoutAddPaymentMethodPage()
+    public function checkoutAddPaymentMethodPage(): string
     {
         return '';
     }
 
     /**
-     * Url vers la page de suppression de moyen de paiement.
-     * @todo
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function checkoutDeletePaymentMethodPage()
+    public function checkoutDeletePaymentMethodPage(): string
     {
         return '';
     }
 
     /**
-     * Url vers la page de commande.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function checkoutPage()
+    public function checkoutPage(): string
     {
-        return ($page_id = $this->settings()->checkoutPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->shop()->settings()->checkoutPageId()) ? get_permalink($page_id) : get_home_url();
     }
 
     /**
-     * Url vers la page de demande de paiement de la commande.
-     *
-     * @param array $args Liste des arguments de requête.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function checkoutOrderPayPage($args = [])
+    public function checkoutOrderPayPage(array $args = []): string
     {
         $base_uri = Uri\create($this->checkoutPage());
 
@@ -85,13 +65,9 @@ class Url implements FunctionsUrlInterface
     }
 
     /**
-     * Url vers la page de commande reçue.
-     *
-     * @param array $args Liste des arguments de requête.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function checkoutOrderReceivedPage($args = [])
+    public function checkoutOrderReceivedPage(array $args = []): string
     {
         $base_uri = Uri\create($this->checkoutPage());
 
@@ -99,50 +75,39 @@ class Url implements FunctionsUrlInterface
     }
 
     /**
-     * Url vers la page de définition du moyen de paiement par défaut.
-     * @todo
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function checkoutSetDefaultPaymentMethodPage()
+    public function checkoutSetDefaultPaymentMethodPage(): string
     {
         return '';
     }
 
     /**
-     * Url vers une page de la boutique
-     *
-     * @param string $name Nom de la page. shop|cart|checkout|terms.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function page($name)
+    public function page(string $name): string
     {
         $method = strtolower($name) . "Page";
-        if (method_exists($this, $method)) :
+        if (method_exists($this, $method)) {
             return call_user_func([$this, $method]);
-        endif;
+        }
 
         return '';
     }
 
     /**
-     * Url vers la page d'accueil de la boutique.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function shopPage()
+    public function shopPage(): string
     {
-        return ($page_id = $this->settings()->shopPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->shop()->settings()->shopPageId()) ? get_permalink($page_id) : get_home_url();
     }
 
     /**
-     * Url vers la page des conditions générales de vente.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function termsPage()
+    public function termsPage(): string
     {
-        return ($page_id = $this->settings()->termsPageId()) ? \get_permalink($page_id) : \get_home_url();
+        return ($page_id = $this->shop()->settings()->termsPageId()) ? get_permalink($page_id) : get_home_url();
     }
 }

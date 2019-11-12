@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Api;
 
-use tiFy\Plugins\Shop\Contracts\{Api as ApiContract, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{Api as ApiContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 
 class Api implements ApiContract
@@ -26,7 +26,7 @@ class Api implements ApiContract
     /**
      * @inheritDoc
      */
-    public function boot(): void {}
+    public function boot(): void { }
 
     /**
      * @inheritDoc
@@ -37,15 +37,15 @@ class Api implements ApiContract
             'body'    => [
                 'namespace' => 'shop/api',
                 'routes'    => [
-                    '/shop/api'   => [
-                        'methods'   => ['GET'],
-                        '_links'    => [
+                    '/shop/api'        => [
+                        'methods' => ['GET'],
+                        '_links'  => [
                             'self' => add_query_arg(
                                 'authtoken',
                                 request()->get('authtoken', '1234'),
                                 home_url('/shop/api')
-                            )
-                        ]
+                            ),
+                        ],
                     ],
                     '/shop/api/orders' => [
                         'namespace' => 'shop/api',
@@ -54,13 +54,13 @@ class Api implements ApiContract
                             [
                                 'methods' => ['GET'],
                                 'args'    => [
-                                    'authtoken'     => [
+                                    'authtoken'      => [
                                         'required'    => true,
                                         'description' => __(
                                             'Jeton d\'accès aux resultats.',
                                             'tify'
                                         ),
-                                        'type'        => 'string'
+                                        'type'        => 'string',
                                     ],
                                     'page'           => [
                                         'required'    => false,
@@ -69,7 +69,7 @@ class Api implements ApiContract
                                             'Page courante dans la collection.',
                                             'tify'
                                         ),
-                                        'type'        => 'integer'
+                                        'type'        => 'integer',
                                     ],
                                     'per_page'       => [
                                         'required'    => false,
@@ -78,7 +78,7 @@ class Api implements ApiContract
                                             'Nombre maximal d’éléments à renvoyer dans le groupe de résultats.',
                                             'tify'
                                         ),
-                                        'type'        => 'integer'
+                                        'type'        => 'integer',
                                     ],
                                     'after'          => [
                                         'required'    => false,
@@ -87,7 +87,7 @@ class Api implements ApiContract
                                             'définie à la norme ISO8601.',
                                             'tify'
                                         ),
-                                        'type'        => 'string'
+                                        'type'        => 'string',
                                     ],
                                     'before'         => [
                                         'required'    => false,
@@ -96,7 +96,7 @@ class Api implements ApiContract
                                             'définie à la norme ISO8601.',
                                             'tify'
                                         ),
-                                        'type'        => 'string'
+                                        'type'        => 'string',
                                     ],
                                     'order'          => [
                                         'required'    => false,
@@ -105,19 +105,19 @@ class Api implements ApiContract
                                             'Ordre de tri des éléments.',
                                             'tify'
                                         ),
-                                        'type'        => 'string'
+                                        'type'        => 'string',
                                     ],
                                     'orderby'        => [
                                         'required'    => false,
                                         'default'     => 'id',
                                         'enum'        => [
-                                            'id'
+                                            'id',
                                         ],
                                         'description' => __(
                                             'Attributs d\'ordonnancement des éléments.',
                                             'tify'
                                         ),
-                                        'type'        => 'string'
+                                        'type'        => 'string',
                                     ],
                                     'status'         => [
                                         'required'    => false,
@@ -130,15 +130,15 @@ class Api implements ApiContract
                                                 'on-hold',
                                                 'pending',
                                                 'processing',
-                                                'any'
+                                                'any',
                                             ],
-                                            'type' => 'string'
+                                            'type' => 'string',
                                         ],
                                         'description' => __(
                                             'Limitation du jeu de résultat au statut des éléments.',
                                             'tify'
                                         ),
-                                        'type'        => 'array'
+                                        'type'        => 'array',
                                     ],
                                     'shop'           => [
                                         'required'    => false,
@@ -148,8 +148,8 @@ class Api implements ApiContract
                                         ),
                                         'type'        => 'array',
                                         'items'       => [
-                                            'type' => 'string'
-                                        ]
+                                            'type' => 'string',
+                                        ],
                                     ],
                                     'transaction_id' => [
                                         'required'    => false,
@@ -160,23 +160,23 @@ class Api implements ApiContract
                                         ),
                                         'type'        => 'array',
                                         'items'       => [
-                                            'type' => 'integer'
-                                        ]
-                                    ]
-                                ]
-                            ]
+                                            'type' => 'integer',
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ],
                         '_links'    => [
                             'self' => add_query_arg(
                                 'authtoken',
                                 request()->get('authtoken', '1234'),
                                 home_url('/shop/api/orders')
-                            )
-                        ]
-                    ]
-                ]
+                            ),
+                        ],
+                    ],
+                ],
             ],
-            'headers' => []
+            'headers' => [],
         ];
     }
 }

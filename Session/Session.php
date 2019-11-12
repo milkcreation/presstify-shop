@@ -1,35 +1,44 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Session;
 
 use BadMethodCallException;
 use Exception;
-use tiFy\Contracts\User\SessionStore;
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\SessionInterface;
+use tiFy\Contracts\Session\Store;
+use tiFy\Plugins\Shop\Contracts\{Session as SessionContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\Session as ProxySession;
 
-/**
- * Class Session
- *
- * @desc Gestion des données portées par la session.
- *
- * @mixin SessionStore
- */
-class Session extends AbstractShopSingleton implements SessionInterface
+class Session implements SessionContract
 {
+    use ShopAwareTrait;
+
     /**
      * Instance du traitement de la session.
-     * @var SessionStore
+     * @var Store
      */
     public $store;
 
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
-        $this->store = user()->session()->register('tify_shop')->get('tify_shop');
+        $this->setShop($shop);
+
+        $this->store = ProxySession::registerStore('tify_shop');
+
+        $this->boot();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void { }
 
     /**
      * Délégation d'appel des méthodes du controleur de données de session associé.
@@ -53,9 +62,9 @@ class Session extends AbstractShopSingleton implements SessionInterface
     /**
      * Appel de la classe responsable du traitement à l'invocation de la classe.
      *
-     * @return SessionStore
+     * @return Store
      */
-    public function __invoke()
+    public function __invoke(): Store
     {
         return $this->store;
     }

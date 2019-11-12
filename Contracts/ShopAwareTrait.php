@@ -2,8 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Plugins\Shop\Contracts\ShopInterface as Shop;
-
 interface ShopAwareTrait
 {
     /**
@@ -15,6 +13,8 @@ interface ShopAwareTrait
 
     /**
      * Définition du gestionnaire de boutique.
+     *
+     * @param Shop $shop
      *
      * @return static
      */

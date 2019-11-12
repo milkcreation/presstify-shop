@@ -1,24 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Users;
 
-use tiFy\Plugins\Shop\Contracts\OrderListInterface;
-use tiFy\Plugins\Shop\Contracts\UserCustomerInterface;
+use tiFy\Plugins\Shop\Contracts\{OrdersCollection, UserCustomer as CustomerContract};
 
-class Customer extends UserItem implements UserCustomerInterface
+class Customer extends User implements CustomerContract
 {
     /**
      * Récupération de la liste des commandes du client
      *
      * @param array $query_args Liste des arguments de requête personnalisée.
      *
-     * @return OrderListInterface
+     * @return OrdersCollection
      */
-    public function getOrderList($query_args = [])
+    public function queryOrders($query_args = [])
     {
-        $query_args = array_merge([
-            'order' => 'ASC'
-        ], $query_args);
+        $query_args = array_merge(['order' => 'ASC'], $query_args);
 
         $query_args['meta_query'] = [
             [
@@ -27,13 +24,13 @@ class Customer extends UserItem implements UserCustomerInterface
             ]
         ];
 
-        return $this->orders()->getCollection($query_args);
+        return $this->shop()->orders()->query($query_args);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isCustomer()
+    public function isCustomer(): bool
     {
         return true;
     }

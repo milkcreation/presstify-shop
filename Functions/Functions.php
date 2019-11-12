@@ -1,60 +1,72 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\FunctionsInterface;
+use tiFy\Plugins\Shop\Contracts\{
+    Functions as FunctionsContract,
+    FunctionsDate,
+    FunctionsPage,
+    FunctionsPrice,
+    FunctionsUrl,
+    Shop
+};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Functions
- *
- * @desc Controleur de gestion des fonctions utiles.
- */
-class Functions extends AbstractShopSingleton implements FunctionsInterface
+class Functions implements FunctionsContract
 {
-    /**
-     * Liste des fonctions disponibles.
-     * @var string[]
-     */
-    protected $available = [];
+    use ShopAwareTrait;
 
     /**
-     * {@inheritdoc}
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function boot()
+    public function __construct(Shop $shop)
     {
+        $this->setShop($shop);
 
+        $this->boot();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function date($time = 'now', $timezone = true)
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function date($time = 'now', $timezone = true): FunctionsDate
     {
-        return app('shop.functions.date', [$time, $timezone, $this->shop]);
+        /** @var Date $date */
+        $date = $this->shop()->resolve('functions.date');
+
+        return $date;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function page()
+    public function page(): FunctionsPage
     {
-        return app('shop.functions.page');
+        return $this->shop()->resolve('functions.page');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function price()
+    public function price(): FunctionsPrice
     {
-        return app('shop.functions.price');
+        return $this->shop()->resolve('functions.price');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function url()
+    public function url(): FunctionsUrl
     {
-        return app('shop.functions.url');
+        return $this->shop()->resolve('functions.url');
     }
 }

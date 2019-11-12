@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Admin\ListTable;
 
 use tiFy\Contracts\Column\Column;
-use tiFy\Plugins\Shop\Contracts\{ProductObjectType, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{ProductObjectType, Shop};
 use tiFy\Plugins\Shop\Products\ObjectType\{Categorized, Uncategorized};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_Screen;
@@ -116,7 +116,7 @@ class ListTable
      */
     public function columnFeatured($column_name, $post_id)
     {
-        $product = $this->shop->products()->getItem($post_id);
+        $product = $this->shop->products()->get($post_id);
 
         return $product->isFeatured()
             ? "<span class=\"dashicons dashicons-star-filled\"></span>"
@@ -133,7 +133,7 @@ class ListTable
      */
     public function columnPrice($column_name, $post_id)
     {
-        $product = $this->shop()->products()->getItem($post_id);
+        $product = $this->shop()->products()->get($post_id);
 
         if ($product->isProductType('composing')) :
             return '<em>' . __('Non vendu séparément', 'tify') . '</em>';
@@ -154,7 +154,7 @@ class ListTable
      */
     public function columnProductType($column_name, $post_id)
     {
-        $product = $this->shop()->products()->getItem($post_id);
+        $product = $this->shop()->products()->get($post_id);
 
         return (string)partial('tag', [
             'tag'     => 'a',
@@ -189,7 +189,7 @@ class ListTable
      */
     public function columnThumbnail($column_name, $post_id)
     {
-        $product = $this->shop()->products()->getItem($post_id);
+        $product = $this->shop()->products()->get($post_id);
 
         if ($thumb = $product->getThumbnail([80, 80])) {
         } else {

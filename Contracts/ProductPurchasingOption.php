@@ -1,31 +1,31 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\Kernel\ParamsBag;
+use tiFy\Contracts\Support\ParamsBag;
 
-interface ProductPurchasingOption extends ParamsBag
+interface ProductPurchasingOption extends ParamsBag, ShopAwareTrait
 {
     /**
      * Intitulé de qualification.
      *
      * @return string
      */
-    public function getLabel();
+    public function getLabel(): string;
 
     /**
      * Identifiant de qualification.
      *
      * @return string
      */
-    public function getName();
+    public function getName(): string;
 
     /**
      * Classe de rappel du produit associé.
      *
-     * @return null|ProductItemInterface
+     * @return Product
      */
-    public function getProduct();
+    public function getProduct(): Product;
 
     /**
      * Récupération de la valeur de selection.
@@ -41,35 +41,35 @@ interface ProductPurchasingOption extends ParamsBag
      *
      * @return array
      */
-    public function getValueList();
+    public function getValueList(): array;
 
     /**
      * Vérification d'activation de l'option d'achat.
      *
      * @return boolean
      */
-    public function isActive();
+    public function isActive(): bool;
 
     /**
      * Affichage d'une ligne de panier.
      *
      * @return string
      */
-    public function renderCartLine();
+    public function renderCartLine(): string;
 
     /**
      * Affichage du champ de saisie.
      *
      * @return string
      */
-    public function renderProduct();
+    public function renderProduct(): string;
 
     /**
      * Définition de la valeur de selection.
      *
-     * @param $selected
+     * @param string $selected
      *
-     * @return void
+     * @return static
      */
-    public function setSelected($selected);
+    public function setSelected(string $selected): ProductPurchasingOption;
 }

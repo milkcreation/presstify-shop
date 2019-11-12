@@ -1,19 +1,13 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use tiFy\Plugins\Shop\Contracts\FunctionsPageInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{FunctionsPage as FunctionsPageContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-/**
- * Class Page
- *
- * @desc Controleur de récupération des contextes d'affichage des pages de la boutique.
- */
-class Page implements FunctionsPageInterface
+class Page implements FunctionsPageContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * CONSTRUCTEUR.
@@ -24,51 +18,51 @@ class Page implements FunctionsPageInterface
      */
     public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function is($name)
+    public function is(string $name): bool
     {
-        $method = "is" .ucfirst($name);
-        if (method_exists($this, $method)) :
+        $method = "is" . ucfirst($name);
+        if (method_exists($this, $method)) {
             return call_user_func([$this, $method]);
-        endif;
+        }
 
-        return '';
+        return false;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isCart()
+    public function isCart(): bool
     {
-        return \is_single($this->settings()->cartPageId());
+        return is_single($this->shop()->settings()->cartPageId());
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isCheckout()
+    public function isCheckout(): bool
     {
-        return \is_single($this->settings()->checkoutPageId());
+        return is_single($this->shop()->settings()->checkoutPageId());
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isShop()
+    public function isShop(): bool
     {
-        return \is_single($this->settings()->shopPageId());
+        return is_single($this->shop()->settings()->shopPageId());
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isTerms()
+    public function isTerms(): bool
     {
-        return \is_single($this->settings()->termsPageId());
+        return is_single($this->shop()->settings()->termsPageId());
     }
 }

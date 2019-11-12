@@ -1,15 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Users;
 
-use tiFy\Plugins\Shop\Contracts\UserShopManagerInterface;
+use tiFy\Plugins\Shop\Contracts\UserShopManager;
 
-class ShopManager extends UserItem implements UserShopManagerInterface
+class ShopManager extends User implements UserShopManager
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isShopManager()
+    public function isShopManager(): bool
     {
         return true;
     }

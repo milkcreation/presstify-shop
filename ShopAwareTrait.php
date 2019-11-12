@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Plugins\Shop\Contracts\{ShopAwareTrait as ShopAwareTraitContract, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{ShopAwareTrait as ShopAwareTraitContract, Shop};
 
 /**
  * @mixin ShopAwareTraitContract

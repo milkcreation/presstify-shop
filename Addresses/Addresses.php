@@ -2,13 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-use tiFy\Contracts\Form\FormFactory;
-use tiFy\Plugins\Shop\Contracts\{
-    AddressesInterface as AddressesContract,
-    AddressBillingInterface as AddressBillingContract,
-    AddressShippingInterface as AddressShippingContract,
-    ShopInterface as Shop
-};
+use tiFy\Plugins\Shop\Contracts\{Addresses as AddressesContract, AddressBilling, AddressShipping, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 
 class Addresses implements AddressesContract
@@ -28,7 +22,7 @@ class Addresses implements AddressesContract
 
         $this->boot();
 
-        form()->addonRegister('shop.addresses.form-handler', function ($name, $attrs, FormFactory $form) {
+        form()->addonRegister('shop.addresses.form-handler', function () {
             return $this->shop()->resolve('addresses.form-handler');
         });
 
@@ -39,7 +33,7 @@ class Addresses implements AddressesContract
     /**
      * @inheritDoc
      */
-    public function billing(): AddressBillingContract
+    public function billing(): AddressBilling
     {
         return $this->shop()->getContainer()->get('shop.addresses.billing');
     }
@@ -47,7 +41,7 @@ class Addresses implements AddressesContract
     /**
      * @inheritDoc
      */
-    public function boot(): void {}
+    public function boot(): void { }
 
     /**
      * @inheritDoc
@@ -56,93 +50,93 @@ class Addresses implements AddressesContract
     {
         return [
             'first_name' => [
-                'title'        => __('Prénom', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Prénom', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'given-name',
                 ],
-                'order'        => 10,
+                'order'    => 10,
             ],
             'last_name'  => [
-                'title'        => __('Nom de famille', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Nom de famille', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'family-name',
                 ],
-                'order'        => 20,
+                'order'    => 20,
             ],
             'company'    => [
-                'title'        => __('Société', 'tify'),
-                'type'         => 'text',
-                'attrs'        => [
+                'title' => __('Société', 'tify'),
+                'type'  => 'text',
+                'attrs' => [
                     'autocomplete' => 'organization',
                 ],
-                'order'        => 30,
+                'order' => 30,
             ],
             'country'    => [
-                'title'        => __('Pays', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Pays', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'country',
                 ],
-                'order'        => 40,
+                'order'    => 40,
             ],
             'address_1'  => [
-                'title'        => __('Numéro et nom de rue', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Numéro et nom de rue', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'address-line1',
                     'placeholder'  => esc_attr__('N° et rue', 'tify'),
                 ],
-                'order'        => 50,
+                'order'    => 50,
             ],
             'address_2'  => [
-                'title'        => __('Complément d\'adresse', 'tify'),
-                'type'         => 'text',
-                'attrs'        => [
+                'title' => __('Complément d\'adresse', 'tify'),
+                'type'  => 'text',
+                'attrs' => [
                     'autocomplete' => 'address-line2',
                     'placeholder'  => esc_attr__('Appartement, porte, bureau, etc. (optionnel)', 'tify'),
                 ],
-                'order'        => 60,
+                'order' => 60,
             ],
             'city'       => [
-                'title'        => __('Ville', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Ville', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'address-level2',
                 ],
-                'order'        => 70,
+                'order'    => 70,
             ],
             'state'      => [
-                'title'        => __('Département / Région', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Département / Région', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'address-level1',
                 ],
-                'order'        => 80,
+                'order'    => 80,
             ],
             'postcode'   => [
-                'title'        => __('Code postal', 'tify'),
-                'type'         => 'text',
-                'required'     => true,
-                'attrs'        => [
+                'title'    => __('Code postal', 'tify'),
+                'type'     => 'text',
+                'required' => true,
+                'attrs'    => [
                     'autocomplete' => 'postal-code',
                 ],
-                'order'        => 90,
-            ]
+                'order'    => 90,
+            ],
         ];
     }
 
     /**
      * @inheritDoc
      */
-    public function shipping(): AddressShippingContract
+    public function shipping(): AddressShipping
     {
         return $this->shop()->getContainer()->get('shop.addresses.shipping');
     }

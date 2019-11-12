@@ -2,11 +2,8 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\Order;
 
-/**
- * Plateforme de paiement par chèque.
- */
 class ChequeGateway extends AbstractGateway
 {
     /**
@@ -42,7 +39,7 @@ class ChequeGateway extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function processPayment(OrderInterface $order): array
+    public function processPayment(Order $order): array
     {
         // @todo Mise à jour du status vers en attente.
         if ($order->getTotal() > 0) {

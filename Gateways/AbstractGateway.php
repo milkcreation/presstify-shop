@@ -2,24 +2,15 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use \Psr\Log\LoggerInterface;
-use tiFy\Plugins\Shop\{
-    Concerns\ShopAwareTrait,
-    Contracts\GatewayInterface as GatewayContract,
-    Contracts\OrderInterface as OrderContract
-};
+use Psr\Log\LoggerInterface;
+use tiFy\Plugins\Shop\Contracts\{Gateway as GatewayContract, Order};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Log\Logger;
 use tiFy\Support\ParamsBag;
 
 abstract class AbstractGateway extends ParamsBag implements GatewayContract
 {
     use ShopAwareTrait;
-
-    /**
-     * Identifiant de qualification de la plateforme.
-     * @var string
-     */
-    protected $id = '';
 
     /**
      * Activation du mode de déboguage.
@@ -33,6 +24,12 @@ abstract class AbstractGateway extends ParamsBag implements GatewayContract
      * @var bool
      */
     protected $enabled = true;
+
+    /**
+     * Identifiant de qualification de la plateforme.
+     * @var string
+     */
+    protected $id = '';
 
     /**
      * Instance du gestionnaire de journalisation.
@@ -126,7 +123,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayContract
     /**
      * @inheritDoc
      */
-    public function getReturnUrl(?OrderContract $order = null): string
+    public function getReturnUrl(?Order $order = null): string
     {
         if ($order) {
             return $order->getCheckoutOrderReceivedUrl();
@@ -214,7 +211,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayContract
     /**
      * @inheritDoc
      */
-    public function processPayment(OrderContract $order): array
+    public function processPayment(Order $order): array
     {
         return [];
     }

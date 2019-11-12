@@ -4,11 +4,7 @@ namespace tiFy\Plugins\Shop\Addresses;
 
 use tiFy\Contracts\Form\FactoryRequest;
 use tiFy\Form\AddonFactory;
-use tiFy\Plugins\Shop\Contracts\{
-    AddressInterface as AddressContract,
-    AddressFormHandlerInterface as AddressFormHandlerContract,
-    ShopInterface as Shop
-};
+use tiFy\Plugins\Shop\Contracts\{Address, AddressFormHandler as AddressFormHandlerContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 
 class FormHandler extends AddonFactory implements AddressFormHandlerContract
@@ -42,12 +38,13 @@ class FormHandler extends AddonFactory implements AddressFormHandlerContract
     {
         // Récupération du contrôleur valide
         $ctrl = $this->params('controller', '');
-        if (!$ctrl instanceof AddressContract) {
+        if (!$ctrl instanceof Address) {
             return;
         }
 
         // Récupération des données utilisateur à sauvegarder.
-        $userdata = []; $session_data = [];
+        $userdata = [];
+        $session_data = [];
 
         foreach ($request->all() as $key => $value) {
             $slug = preg_replace('#^' . $ctrl->getId() . '_#', '', $key);
@@ -63,7 +60,7 @@ class FormHandler extends AddonFactory implements AddressFormHandlerContract
         $this->shop()->session()->save();
 
         // Sauvegarde des données de compte utilisateur.
-        $user = $this->shop()->users()->getItem();
+        $user = $this->shop()->users()->get();
 
         if ($user->isLoggedIn()) {
             foreach ($userdata as $k => $v) {

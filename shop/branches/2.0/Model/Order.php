@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Model;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use tiFy\Wordpress\Database\Model\{Comment, Commentmeta, Post, Postmeta, Term, Termmeta, User, Usermeta};
 
 class Order extends Post
@@ -29,7 +30,7 @@ class Order extends Post
     protected $with = ['meta', 'item'];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function item()
     {

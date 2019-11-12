@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop;
 
@@ -13,7 +13,7 @@ class ShopViewController extends ViewController
     protected $mixins = [];
 
     /**
-     * Translation d'appel des méthodes de l'application associée.
+     * Délégation d'appel des méthodes de de l'instance de la boutique.
      *
      * @param string $name Nom de la méthode à appeler.
      * @param array $arguments Liste des variables passées en argument.
@@ -22,12 +22,9 @@ class ShopViewController extends ViewController
      */
     public function __call($name, $arguments)
     {
-        if (in_array($name, $this->mixins)) :
-            return call_user_func_array(
-                [$this->engine->get('shop'), $name],
-                $arguments
-            );
-        endif;
+        if (in_array($name, $this->mixins)) {
+            return call_user_func_array([$this->engine->params('shop'), $name], $arguments);
+        }
 
         return null;
     }

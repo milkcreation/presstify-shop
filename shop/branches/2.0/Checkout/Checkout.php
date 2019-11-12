@@ -2,33 +2,49 @@
 
 namespace tiFy\Plugins\Shop\Checkout;
 
-use tiFy\Plugins\Shop\AbstractShopSingleton;
-use tiFy\Plugins\Shop\Contracts\CheckoutInterface;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\{Checkout as CheckoutContract, Order, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\Request;
 
-class Checkout extends AbstractShopSingleton implements CheckoutInterface
+class Checkout implements CheckoutContract
 {
-    /**
-     * @inheritDoc
-     */
-    public function boot() {}
+    use ShopAwareTrait;
 
     /**
-     * @inheritDoc
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
+     *
+     * @return void
      */
-    public function createOrderItemsCoupon(OrderInterface $order) {}
-
-    /**
-     * @inheritDoc
-     */
-    public function createOrderItemsFee(OrderInterface $order) {}
-
-    /**
-     * @inheritDoc
-     */
-    public function createOrderItemsProduct(OrderInterface $order)
+    public function __construct(Shop $shop)
     {
-        if ($lines = $this->cart()->lines()) {
+        $this->setShop($shop);
+
+        $this->boot();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function createOrderItemsCoupon(Order $order): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function createOrderItemsFee(Order $order): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function createOrderItemsProduct(Order $order): void
+    {
+        if ($lines = $this->shop()->cart()->lines()) {
             foreach ($lines as $line) {
                 $product = $line->getProduct();
                 $item = $order->createItemProduct();
@@ -49,7 +65,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
 
                 $purchasing_options = [];
                 foreach ($line->get('purchasing_options', []) as $product_id => $opts) {
-                    if ($prod = $this->products()->getItem($product_id)) {
+                    if ($prod = $this->shop()->products()->get($product_id)) {
                         $purchasing_options[$product_id] = [];
                         foreach ($opts as $name => $opt) {
                             if ($po = $prod->getPurchasingOption($name)) {
@@ -57,7 +73,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                                 $purchasing_options[$product_id][$po->getName()] = [
                                     'selected' => $opt,
                                     'render'   => trim((string)$po->renderCartLine()),
-                                    'sku'      => $prod->getSku()
+                                    'sku'      => $prod->getSku(),
                                 ];
                             }
                         }
@@ -73,58 +89,60 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     /**
      * @inheritDoc
      */
-    public function createOrderItemsShipping(OrderInterface $order) {}
+    public function createOrderItemsShipping(Order $order): void { }
 
     /**
      * @inheritDoc
      */
-    public function createOrderItemsTax(OrderInterface $order) {}
+    public function createOrderItemsTax(Order $order): void { }
 
     /**
      * @inheritDoc
      */
     public function process()
     {
-        $request = request();
-
         // Définition de l'url de redirection
-        if ($redirect = $request->request->get('_wp_http_referer', '')) {
-        } elseif ($redirect = $this->functions()->url()->checkoutPage()) {
+        if ($redirect = Request::input('_wp_http_referer', '')) {
+        } elseif ($redirect = $this->shop()->functions()->url()->checkoutPage()) {
         } elseif (!$redirect = wp_get_referer()) {
             $redirect = get_home_url();
         }
 
-        if (!wp_verify_nonce($request->request->get('_wpnonce', ''), 'tify_shop-process_checkout')) {
+        if (!wp_verify_nonce(Request::input('_wpnonce', ''), 'tify_shop-process_checkout')) {
             // Vérification de la validité de la requête.
-            $this->notices()->add(__('Impossible de procéder à votre commande, merci de réessayer.', 'tify'), 'error');
+            $this->shop()->notices()->add(
+                __('Impossible de procéder à votre commande, merci de réessayer.', 'tify'), 'error'
+            );
+
             return redirect($redirect);
-        } elseif ($this->cart()->isEmpty()) {
+        } elseif ($this->shop()->cart()->isEmpty()) {
             // Vérification du contenu du panier.
-            $this->notices()->add(__('Désolé, il semblerait que votre session ait expirée.', 'tify'), 'error');
+            $this->shop()->notices()->add(__('Désolé, il semblerait que votre session ait expirée.', 'tify'), 'error');
+
             return redirect($redirect);
         }
 
         // Récupération des données de formulaire
         $data = [
-            'terms'                              => $request->request->getInt('terms', 1),
+            'terms'                              => Request::input('terms', 1),
             'createaccount'                      => (int)!empty($_POST['createaccount']),
-            'payment_method'                     => $request->request->get('payment_method', ''),
-            'shipping_method'                    => $request->request->get('shipping_method', ''),
-            'ship_to_different_address'          => $request->request->getBoolean('ship_to_different_address', false),
-            'woocommerce_checkout_update_totals' => $request->request->getBoolean('checkout_update_totals', false)
+            'payment_method'                     => Request::input('payment_method', ''),
+            'shipping_method'                    => Request::input('shipping_method', ''),
+            'ship_to_different_address'          => Request::input('ship_to_different_address', false),
+            'woocommerce_checkout_update_totals' => Request::input('checkout_update_totals', false),
         ];
 
         // Données de champ
         $fieldsets = [
-            'billing'  => $this->addresses()->billing()->fields(),
-            'shipping' => $this->addresses()->shipping()->fields(),
+            'billing'  => $this->shop()->addresses()->billing()->fields(),
+            'shipping' => $this->shop()->addresses()->shipping()->fields(),
             'order'    => [
                 'comments' => [
                     'type'        => 'textarea',
                     'label'       => 'note de commande',
-                    'placeholder' => __('Commentaires concernant votre commande, ex.: consignes de livraison', 'tify')
-                ]
-            ]
+                    'placeholder' => __('Commentaires concernant votre commande, ex.: consignes de livraison', 'tify'),
+                ],
+            ],
         ];
 
         // Données de champs ignorés
@@ -139,9 +157,9 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
                 continue;
             }
             foreach ($fields as $slug => $attrs) {
-                $data["{$key}_{$slug}"] = $request->request->get(
+                $data["{$key}_{$slug}"] = Request::input(
                     "{$key}_{$slug}",
-                    $this->session()->get("{$key}.{$slug}", '')
+                    $this->shop()->session()->get("{$key}.{$slug}", '')
                 );
             }
         }
@@ -157,16 +175,16 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         // @todo enregistrer les données de session + utilisateur billing & shipping
 
         // Livraison
-        $chosen_shipping_methods = $this->session()->get('chosen_shipping_methods', []);
+        $chosen_shipping_methods = $this->shop()->session()->get('chosen_shipping_methods', []);
         if (is_array($data['shipping_method'])) {
             foreach ($data['shipping_method'] as $i => $value) {
                 $chosen_shipping_methods[$i] = $value;
             }
         }
-        $this->session()->put('chosen_shipping_methods', $chosen_shipping_methods);
+        $this->shop()->session()->put('chosen_shipping_methods', $chosen_shipping_methods);
 
         // Méthode de paiement
-        $this->session()->put('chosen_payment_method', $data['payment_method']);
+        $this->shop()->session()->put('chosen_payment_method', $data['payment_method']);
 
         // DEBUG - données de session
         // var_dump($this->session()->all());
@@ -203,7 +221,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
 
         if ($fieldset_errors) {
             foreach ($fieldset_errors as $error) {
-                $this->notices()->add($error, 'error');
+                $this->shop()->notices()->add($error, 'error');
             }
             return redirect($redirect);
         }
@@ -212,41 +230,43 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
 
         // Conditions générales validées
         if (empty($data['terms'])) {
-            $this->notices()->add(
+            $this->shop()->notices()->add(
                 __('Veuillez prendre connaissance et accepter les conditions générales de vente.', 'tify'), 'error'
             );
             return redirect($redirect);
         }
 
         // Adresse de livraison
-        if ($this->cart()->needShipping()) {
-            $this->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
+        if ($this->shop()->cart()->needShipping()) {
+            $this->shop()->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
+
             return redirect($redirect);
         }
 
-        if ($this->cart()->needPayment()) {
+        if ($this->shop()->cart()->needPayment()) {
             if (empty($data['payment_method'])) {
-                $this->notices()->add(
+                $this->shop()->notices()->add(
                     __('Merci de bien vouloir sélectionner votre mode de paiement.', 'tify'), 'error'
                 );
+
                 return redirect($redirect);
-            } elseif (!$gateway = $this->gateways()->get($data['payment_method'])) {
-                $this->notices()->add(
+            } elseif (!$gateway = $this->shop()->gateways()->get($data['payment_method'])) {
+                $this->shop()->notices()->add(
                     __('Désolé, le mode de paiement choisi n\'est pas valide dans cette boutique.', 'tify'), 'error'
                 );
+
                 return redirect($redirect);
             }
         } else {
             $gateway = null;
         }
 
-        /** @var OrderInterface $order */
-        $order = ($order_id = $this->session()->get('order_awaiting_payment', 0))
-            ? $this->orders()->getItem($order_id)
-            : $this->orders()->create();
+        $order = ($order_id = $this->shop()->session()->get('order_awaiting_payment', 0))
+            ? $this->shop()->orders()->get($order_id)
+            : $this->shop()->orders()->create();
 
-        if (!$this->orders()->is($order)) {
-            $this->notices()->add(
+        if (!$this->shop()->orders()->is($order)) {
+            $this->shop()->notices()->add(
                 __('Désolé, impossible de procéder à votre commande, veuillez réessayer.', 'tify'), 'error'
             );
             return redirect($redirect);
@@ -257,20 +277,20 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         }
 
         $created_via = 'checkout';
-        $cart_hash = md5(json_encode($this->cart()->getList()) . $this->cart()->getTotals());
-        $customer_id = $this->users()->getItem()->getId();
-        $currency = $this->settings()->currency();
-        $prices_include_tax = $this->settings()->isPricesIncludeTax();
-        $customer_ip_address = $request->getClientIp();
-        $customer_user_agent = $request->headers->get('User-Agent');
+        $cart_hash = md5(json_encode($this->shop()->cart()->lines()->all()) . $this->shop()->cart()->total());
+        $customer_id = $this->shop()->users()->get()->getId();
+        $currency = $this->shop()->settings()->currency();
+        $prices_include_tax = $this->shop()->settings()->isPricesIncludeTax();
+        $customer_ip_address = Request::ip();
+        $customer_user_agent = Request::header('User-Agent');
         $customer_note = isset($data['order_comments']) ? $data['order_comments'] : '';
         $payment_method_title = $gateway ? $gateway->getTitle() : '';
-        $shipping_total = $this->cart()->getTotals()->getShippingTotal();
-        $shipping_tax = $this->cart()->getTotals()->getShippingTax();
-        $discount_total = $this->cart()->getTotals()->getDiscountTotal();
-        $discount_tax = $this->cart()->getTotals()->getDiscountTax();
-        $cart_tax = $this->cart()->getTotals()->getGlobalTax() + $this->cart()->getTotals()->getFeeTax();
-        $total = $this->cart()->getTotals()->getGlobal();
+        $shipping_total = $this->shop()->cart()->total()->getShippingTotal();
+        $shipping_tax = $this->shop()->cart()->total()->getShippingTax();
+        $discount_total = $this->shop()->cart()->total()->getDiscountTotal();
+        $discount_tax = $this->shop()->cart()->total()->getDiscountTax();
+        $cart_tax = $this->shop()->cart()->total()->getGlobalTax() + $this->shop()->cart()->total()->getFeeTax();
+        $total = $this->shop()->cart()->total()->getGlobal();
 
         // Liste des articles du panier associés à la commande
         $this->createOrderItemsProduct($order);
@@ -311,10 +331,10 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
 
         $order->create();
 
-        $order->save();
+        $order->update();
 
-        if ($this->cart()->needPayment()) {
-            $this->session()
+        if ($this->shop()->cart()->needPayment()) {
+            $this->shop()->session()
                 ->put('order_awaiting_payment', $order->getId())
                 ->save();
 
@@ -330,8 +350,8 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
     /**
      * @inheritDoc
      */
-    public function processUrl()
+    public function processUrl(): string
     {
-        return $this->action('checkout.process');
+        return $this->shop()->action('checkout.process');
     }
 }

@@ -2,44 +2,41 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use tiFy\Plugins\Shop\{
-    Concerns\ShopAwareTrait,
-    Contracts\GatewayInterface,
-    Contracts\GatewaysInterface,
-};
+use tiFy\Plugins\Shop\Contracts\{Gateway as GatewayContract, Gateways as GatewaysContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Collection;
 
-/**
- * Gestion des plateformes de paiement.
- */
-class Gateways extends Collection implements GatewaysInterface
+class Gateways extends Collection implements GatewaysContract
 {
     use ShopAwareTrait;
 
     /**
-     * @inheritDoc
-     */
-    public function boot(): void
-    {
-        $this->_register();
-    }
-
-    /**
-     * Définition de la liste des plateformes de paiement déclarées.
+     * CONSTRUCTEUR.
+     *
+     * @param Shop $shop
      *
      * @return void
      */
-    private function _register()
+    public function __construct(Shop $shop)
     {
+        $this->setShop($shop);
+
         events()->trigger('tify.plugins.shop.gateways.register', [&$this]);
 
-        $this->set($this->shop->config("gateways", []));
+        $this->set($this->shop()->config("gateways", []));
+
+        $this->boot();
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): void { }
 
     /**
      * {@inheritDoc}
      *
-     * @return GatewaysInterface[]
+     * @return GatewayContract[]
      */
     public function all(): array
     {
@@ -49,11 +46,11 @@ class Gateways extends Collection implements GatewaysInterface
     /**
      * {@inheritDoc}
      *
-     * @return GatewayInterface[]
+     * @return GatewayContract[]
      */
     public function available(): array
     {
-        $filtered = $this->collect()->filter(function(GatewayInterface $item){
+        $filtered = $this->collect()->filter(function (GatewayContract $item) {
             return $item->isAvailable();
         });
 
@@ -65,22 +62,22 @@ class Gateways extends Collection implements GatewaysInterface
      *
      * @param string $id
      *
-     * @return GatewayInterface
+     * @return GatewayContract
      */
-    public function get($id): ?GatewayInterface
+    public function get($id): ?GatewayContract
     {
-        return is_string($id) ? parent::get($id): null;
+        return is_string($id) ? parent::get($id) : null;
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param GatewayInterface|array|string $gateway
+     * @param GatewayContract|array|string $gateway
      * @param string|null $alias
      *
-     * @return GatewayInterface
+     * @return GatewayContract
      */
-    public function walk($gateway, $alias = null): ?GatewayInterface
+    public function walk($gateway, $alias = null): ?GatewayContract
     {
         $attrs = [];
         $enabled = true;
@@ -100,11 +97,11 @@ class Gateways extends Collection implements GatewaysInterface
         }
 
         if (is_string($gateway)) {
-            $gateway = $this->shop->resolve("gateway.{$gateway}");
+            $gateway = $this->shop()->resolve("gateway.{$gateway}");
         }
 
-        if ($gateway instanceof GatewayInterface) {
-            $gateway->setShop($this->shop)
+        if ($gateway instanceof GatewayContract) {
+            $gateway->setShop($this->shop())
                 ->set($attrs)->parse()
                 ->setEnabled($enabled)
                 ->boot();

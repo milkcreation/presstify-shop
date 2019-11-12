@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Admin\Edit;
 
 use tiFy\Plugins\Shop\Contracts\{
     ProductObjectType,
-    ShopInterface as Shop
+    Shop
 };
 use tiFy\Plugins\Shop\Products\ObjectType\{Categorized, Uncategorized};
 use tiFy\Plugins\Shop\ShopAwareTrait;
@@ -47,7 +47,7 @@ class Edit
                 return;
             }
 
-            add_action('admin_enqueue_scripts', function() {
+            add_action('admin_enqueue_scripts', function () {
                 field('select-js')->enqueue();
                 field('toggle-switch')->enqueue();
 
@@ -69,15 +69,14 @@ class Edit
         });
 
         /** @todo COMPATIBILITE tiFY 2.0
-        // @var MetaboxManager $metabox
-        $metabox = app('metabox');
-
-        $metabox->tab([
-            'title' => function (WP_Post $post) {
-                return $this->panelHeader($post);
-            },
-        ], "{$this->objectType}@post_type");
-        */
+         * $metabox = app('metabox');
+         *
+         * $metabox->tab([
+         * 'title' => function (WP_Post $post) {
+         * return $this->panelHeader($post);
+         * },
+         * ], "{$this->objectType}@post_type");
+         */
 
         // Définition des onglets de saisie par défaut
         $default_tabs = [
@@ -132,14 +131,14 @@ class Edit
         }
 
         /** @todo COMPATIBILITE tiFY 2.0
-        foreach ($custom_tabs as $id => $attrs) {
-
-            $metabox->add(
-                "ShopProduct-{$id}--{$this->objectType}",
-                "{$this->objectType}@post_type",
-                $attrs
-            );
-        }*/
+         * foreach ($custom_tabs as $id => $attrs) {
+         *
+         * $metabox->add(
+         * "ShopProduct-{$id}--{$this->objectType}",
+         * "{$this->objectType}@post_type",
+         * $attrs
+         * );
+         * }*/
     }
 
     /**
@@ -151,7 +150,7 @@ class Edit
      */
     public function panelHeader($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->products()->get($post);
 
         $product_type_selector = '';
         if ($product_types = $product->getProductTypes()) :
@@ -166,9 +165,9 @@ class Edit
             $product_type_selector .= field(
                 'select',
                 [
-                    'name'     => 'product-type',
-                    'value'    => $product->getProductType(),
-                    'choices'  => $product_type_options
+                    'name'    => 'product-type',
+                    'value'   => $product->getProductType(),
+                    'choices' => $product_type_options,
                 ]
             );
         else :
@@ -176,7 +175,7 @@ class Edit
                 'hidden',
                 [
                     'name'    => 'product-type',
-                    'choices' => 'simple'
+                    'choices' => 'simple',
                 ]
             );
         endif;

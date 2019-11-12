@@ -3,13 +3,13 @@
 namespace tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Arr;
-use tiFy\Plugins\Shop\Contracts\{
-    CartInterface as CartContract,
-    CartLineInterface as CartLineContract,
-    CartLineListInterface as CartLineListContract,
-    CartSessionItemsInterface as CartSessionItemsContract,
-    ProductItemInterface as ProductItemContract,
-    ShopInterface as Shop
+use tiFy\Plugins\Shop\Contracts\{Cart as CartContract,
+    CartLine,
+    CartLinesCollection,
+    CartSessionItems,
+    CartTotal,
+    Product,
+    Shop
 };
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{MessagesBag, Proxy\Redirect, Proxy\Request, Proxy\Router};
@@ -20,7 +20,7 @@ class Cart implements CartContract
 
     /**
      * Instance de la liste des lignes du panier.
-     * @var CartLineContract[]|CartLineListContract
+     * @var CartLinesCollection|CartLine[]
      */
     protected $lines;
 
@@ -32,7 +32,7 @@ class Cart implements CartContract
 
     /**
      * Instance de gestion des données du panier enregistré en session.
-     * @var CartSessionItemsContract
+     * @var CartSessionItems
      */
     protected $sessionItems;
 
@@ -40,7 +40,7 @@ class Cart implements CartContract
      * Instance de calcul des totaux.
      * @var Total
      */
-    protected $totals;
+    protected $total;
 
     /**
      * CONSTRUCTEUR.
@@ -67,7 +67,7 @@ class Cart implements CartContract
         add_action('get_header', function () {
             if (
                 $this->shop()->functions()->page()->isCart() &&
-                !$this->getList() &&
+                !$this->lines()->count() &&
                 ($message = $this->getNotice('is_empty'))
             ) {
                 $this->shop()->notices()->add($message, 'info');
@@ -83,9 +83,11 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function add($key, $attributes)
+    public function add(string $key, array $attributes): CartContract
     {
         $this->lines()->put($key, $this->shop()->resolve('cart.line')->set($attributes)->parse());
+
+        return $this;
     }
 
     /**
@@ -96,7 +98,7 @@ class Cart implements CartContract
         $notices = new MessagesBag();
         $redirect = Request::header('referer', get_home_url());
 
-        if (!$product = $this->shop()->products()->getItem($product_name)) {
+        if (!$product = $this->shop()->products()->get($product_name)) {
             // > Produit inexistant.
             $notices->error(__('Le produit n\'existe pas.', 'tify'));
         } elseif (!$quantity = Request::instance()->request->getInt('quantity', 1)) {
@@ -111,7 +113,7 @@ class Cart implements CartContract
 
             // Identification de la ligne du panier (doit contenir toutes les options d'unicité).
             $key = md5(implode('_', [$product->getid(), maybe_serialize($purchasing_options)]));
-            if ($exists = $this->get($key)) {
+            if ($exists = $this->line($key)) {
                 $quantity += $exists->getQuantity();
             }
 
@@ -140,7 +142,7 @@ class Cart implements CartContract
 
         if ($notices->exists()) {
             foreach ($notices->fetch() as $notice) {
-                $this->shop()->session()->notices()->add($notice['message'], $notices::getLevelName($notice['level']));
+                $this->shop()->notices()->add($notice['message'], $notices::getLevelName($notice['level']));
             }
         }
 
@@ -154,27 +156,27 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function addUrl($product)
+    public function addUrl($product): string
     {
-        if (!$product instanceof ProductItemContract) {
+        if (!$product instanceof Product) {
             $product = $this->shop()->products()->getItem($product);
         }
 
-        return ($product instanceof ProductItemContract) ? Router::url('shop.cart.add', [$product->getSlug()]) : '';
+        return ($product instanceof Product) ? Router::url('shop.cart.add', [$product->getSlug()]) : '';
     }
 
     /**
      * @inheritDoc
      */
-    public function calculate()
+    public function calculate(): CartTotal
     {
-        return $this->totals = $this->shop()->resolve('cart.total');
+        return $this->total = $this->shop()->resolve('cart.total');
     }
 
     /**
      * @inheritDoc
      */
-    public function count()
+    public function count(): int
     {
         return $this->lines()->count();
     }
@@ -182,17 +184,17 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function countQuantity()
+    public function countQuantity(): int
     {
-        return $this->lines()->sum(function (CartLineContract $item) {
-            return is_numeric($item['quantity']) ? $item['quantity'] :0;
+        return $this->lines()->sum(function (CartLine $item) {
+            return is_numeric($item['quantity']) ? $item['quantity'] : 0;
         });
     }
 
     /**
      * @inheritDoc
      */
-    public function destroy()
+    public function destroy(): void
     {
         $this->flush();
         $this->calculate();
@@ -202,25 +204,17 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush(): void
     {
-        $this->lines = $this->shop()->resolve('cart.line-list')->flush();
+        $this->lines = $this->shop()->resolve('cart.lines.collection')->flush();
     }
 
     /**
      * @inheritDoc
      */
-    public function get($key)
+    public function getProductsWeight(): float
     {
-        return $this->lines()->get($key);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getProductsWeight()
-    {
-        return $this->lines()->sum(function (CartLineContract $item) {
+        return $this->lines()->sum(function (CartLine $item) {
             return (float)$item->getProduct()->getWeight() * $item->getQuantity();
         });
     }
@@ -228,15 +222,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function getList()
-    {
-        return $this->lines()->all();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getNotice($name, $default = '')
+    public function getNotice(string $name, string $default = ''): string
     {
         return Arr::get($this->notices, $name, $default);
     }
@@ -244,15 +230,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function getTotals()
-    {
-        return $this->totals;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function initNotices()
+    public function initNotices(): void
     {
         $this->notices = array_merge([
             'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
@@ -265,7 +243,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return $this->lines()->isEmpty();
     }
@@ -273,10 +251,18 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function lines()
+    public function line($key): ?CartLine
+    {
+        return $this->lines()->get($key);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function lines(): CartLinesCollection
     {
         if (is_null($this->lines)) {
-            $this->lines = $this->shop()->resolve('cart.line-list')->flush();
+            $this->lines = $this->shop()->resolve('cart.lines.collection')->flush();
         }
 
         return $this->lines;
@@ -285,15 +271,15 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function needPayment()
+    public function needPayment(): bool
     {
-        return $this->totals->getGlobal() > 0;
+        return $this->total()->getGlobal() > 0;
     }
 
     /**
      * @inheritDoc
      */
-    public function needShipping()
+    public function needShipping(): bool
     {
         return false;
     }
@@ -301,7 +287,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function remove($key)
+    public function remove(string $key)
     {
         return $this->lines()->pull($key);
     }
@@ -309,7 +295,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function removeHandler($key)
+    public function removeHandler(string $key)
     {
         if ($this->remove($key)) {
             $this->sessionItems()->update();
@@ -332,7 +318,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function removeUrl($key)
+    public function removeUrl(string $key): string
     {
         return Router::url('shop.cart.remove', [$key]);
     }
@@ -340,7 +326,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function sessionItems()
+    public function sessionItems(): CartSessionItems
     {
         return $this->shop()->resolve('cart.session-items', [$this, $this->shop]);
     }
@@ -348,9 +334,17 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function update($key, $attributes)
+    public function total(): ?CartTotal
     {
-        if ($line = $this->get($key)) {
+        return $this->total;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function update(string $key, array $attributes): CartLinesCollection
+    {
+        if ($line = $this->line($key)) {
             foreach ($attributes as $key => $value) {
                 $line[$key] = $value;
             }
@@ -364,7 +358,7 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function updateUrl()
+    public function updateUrl(): string
     {
         return Router::url('shop.cart.update');
     }

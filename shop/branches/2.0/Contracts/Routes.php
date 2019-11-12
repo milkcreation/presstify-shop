@@ -5,7 +5,9 @@ namespace tiFy\Plugins\Shop\Contracts;
 interface Routes extends ShopAwareTrait
 {
     /**
-     * @inheritDoc
+     * Instanciation de la classe.
+     *
+     * @return void
      */
     public function boot(): void;
 }

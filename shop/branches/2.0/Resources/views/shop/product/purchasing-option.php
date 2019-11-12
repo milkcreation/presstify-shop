@@ -9,5 +9,4 @@
  * @var array $field
  */
 ?><h3><?php echo $this->get('label'); ?></h3>
-
 <?php echo field($this->get('field.type'), $this->get('field.args', []));

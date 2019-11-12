@@ -2,8 +2,15 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface Actions extends BootableControllerInterface, ShopAwareTrait
+interface Actions extends ShopAwareTrait
 {
+    /**
+     * Initialisation de la classe.
+     *
+     * @return void
+     */
+    public function boot(): void;
+
     /**
      * Récupération de l'url d'une action de traitement.
      *
@@ -13,5 +20,5 @@ interface Actions extends BootableControllerInterface, ShopAwareTrait
      *
      * @return string
      */
-    public function url($alias, $parameters = [], $absolute = false): string;
+    public function url(string $alias, array $parameters = [], bool $absolute = false): string;
 }

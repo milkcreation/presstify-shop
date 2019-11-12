@@ -1,22 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Products;
 
-use Illuminate\Support\Arr;
-use tiFy\Kernel\Params\ParamsBag;
-use tiFy\Plugins\Shop\Contracts\ProductItemInterface;
-use tiFy\Plugins\Shop\Contracts\ProductPurchasingOption as ProductPurchasingOptionContract;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{Product, ProductPurchasingOption as ProductPurchasingOptionContract};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\{Arr, ParamsBag};
 
-/**
- * Class ProductPurchasingOption
- *
- * @desc Controleur de gestion d'une option d'achat.
- */
 class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOptionContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Nom de qualification.
@@ -26,13 +18,13 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
 
     /**
      * Instance du controleur du produit associé.
-     * @var ProductItemInterface
+     * @var Product|null
      */
     protected $product;
 
     /**
      * Clé d'indice de l'option d'achat selectionnée.
-     * @var string
+     * @var string|null
      */
     protected $selected = null;
 
@@ -41,35 +33,32 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      *
      * @param string $name Nom de qualification.
      * @param array $attrs Liste des attributs de configuration.
-     * @param int|ProductItemInterface $product Identifiant de qualification ou instance du produit associé.
-     * @param Shop $shop Instance de la boutique.
+     * @param Product $product Instance du produit associé.
      *
      * @return void
      */
-    public function __construct($name, $attrs = [], $product, Shop $shop)
+    public function __construct(string $name, array $attrs, Product $product)
     {
         $this->name = $name;
-        $this->shop = $shop;
+        $this->product = $product;
 
-        $this->product = $product instanceof ProductItemInterface
-            ? $product
-            : $this->products()->getItem($product);
+        $this->setShop($this->product->shop());
 
-        parent::__construct($attrs);
+        $this->set($attrs)->parse();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getLabel()
+    public function getLabel(): string
     {
         return (string)$this->get('label', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getName()
+    public function getName(): string
     {
         return (string)$this->name;
     }
@@ -77,76 +66,81 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
     /**
      * {@inheritdoc}
      */
-    public function getProduct()
+    public function getProduct(): Product
     {
         return $this->product;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getValue($default = null)
     {
         if (is_null($this->selected)) {
             return $default;
         }
+
         return Arr::get($this->getValueList(), $this->selected, $default);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getValueList()
+    public function getValueList(): array
     {
         return Arr::wrap($this->get('value', []));
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isActive()
+    public function isActive(): bool
     {
         return true;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function parse($attrs = [])
+    public function parse(): ProductPurchasingOptionContract
     {
-        parent::parse($attrs);
+        parent::parse();
 
-        $this->set('field.label', $this->getLabel());
-        $this->set('field.args.name', "purchasing_options[{$this->product->getId()}][{$this->getName()}]");
-        $this->set('field.args.value', $this->getValue());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function renderCartLine()
-    {
-        return $this->viewer('shop/cart/line/purchasing-option', [
-            'option' => $this
+        $this->set([
+            'field.label'      => $this->getLabel(),
+            'field.args.name'  => "purchasing_options[{$this->product->getId()}][{$this->getName()}]",
+            'field.args.value' => $this->getValue(),
         ]);
+
+        return $this;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function renderProduct()
+    public function renderCartLine(): string
     {
-        return $this->viewer('shop/product/purchasing-option', [
+        return (string)$this->shop()->viewer('shop/cart/line/purchasing-option', ['option' => $this]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function renderProduct(): string
+    {
+        return (string)$this->shop()->viewer('shop/product/purchasing-option', [
             'option' => $this,
-            'field' => $this->get('field')
+            'field'  => $this->get('field'),
         ]);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function setSelected($selected)
+    public function setSelected(string $selected): ProductPurchasingOptionContract
     {
         $this->selected = $selected;
+
+        return $this;
     }
 }

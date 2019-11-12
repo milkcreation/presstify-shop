@@ -71,7 +71,7 @@ trait ShopResolverTrait
      */
     public function checkout()
     {
-        return app('shop.checkout.controller');
+        return app('shop.checkout');
     }
 
     /**
@@ -89,7 +89,7 @@ trait ShopResolverTrait
      */
     public function functions()
     {
-        return app('shop.functions.controller');
+        return app('shop.functions');
     }
 
     /**
@@ -109,7 +109,7 @@ trait ShopResolverTrait
      */
     public function orders()
     {
-        return app('shop.orders.controller');
+        return app('shop.orders');
     }
 
     /**
@@ -129,7 +129,7 @@ trait ShopResolverTrait
      */
     public function products()
     {
-        return app('shop.products.controller');
+        return app('shop.products');
     }
 
     /**
@@ -149,7 +149,7 @@ trait ShopResolverTrait
      */
     public function session()
     {
-        return app('shop.session.controller');
+        return app('shop.session');
     }
 
     /**
@@ -159,7 +159,7 @@ trait ShopResolverTrait
      */
     public function settings()
     {
-        return app('shop.settings.controller');
+        return app('shop.settings');
     }
 
     /**

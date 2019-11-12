@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Admin;
 
-use tiFy\Plugins\Shop\Contracts\{AdminInterface as AdminContract, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{Admin as AdminContract, Shop};
 //use tiFy\Plugins\Shop\Admin\{Edit\Edit, ListTable\ListTable};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 

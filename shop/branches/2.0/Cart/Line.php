@@ -2,10 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{CartInterface as CartContract,
-    CartLineInterface as CartLineContract,
-    ProductItemInterface as ProductItemContract,
-    ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{Cart, CartLine as CartLineContract, Product, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
 
@@ -28,7 +25,7 @@ class Line extends ParamsBag implements CartLineContract
     /**
      * @inheritDoc
      */
-    public function cart(): CartContract
+    public function cart(): Cart
     {
         return $this->shop()->resolve('cart');
     }
@@ -76,7 +73,7 @@ class Line extends ParamsBag implements CartLineContract
     /**
      * @inheritDoc
      */
-    public function getProduct(): ProductItemContract
+    public function getProduct(): Product
     {
         return $this->get('product', null);
     }
@@ -97,7 +94,7 @@ class Line extends ParamsBag implements CartLineContract
         $purchasing_options = [];
 
         foreach ($this->get('purchasing_options', []) as $product_id => $opts) {
-            if ($product = $this->shop()->products()->getItem($product_id)) {
+            if ($product = $this->shop()->products()->get($product_id)) {
                 foreach ($opts as $name => $selected) {
                     if ($po = $product->getPurchasingOption($name)) {
                         $po->setSelected($selected);

@@ -3,27 +3,25 @@
 namespace tiFy\Plugins\Shop\Orders;
 
 use Exception;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use tiFy\PostType\Query\PostQueryItem;
-use tiFy\Plugins\Shop\Contracts\GatewayInterface;
-use tiFy\Plugins\Shop\Contracts\OrderInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeInterface;
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeProductInterface;
-use tiFy\Plugins\Shop\Orders\OrderItems\OrderItems;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
-use tiFy\Support\DateTime;
+use tiFy\Wordpress\Query\QueryPost;
+use tiFy\Plugins\Shop\Contracts\{Gateway,
+    Order as OrderContract,
+    OrderItemType,
+    OrderItemTypeCoupon,
+    OrderItemTypeFee,
+    OrderItemTypeProduct,
+    OrderItems,
+    OrderItemTypeShipping,
+    OrderItemTypeTax,
+    UserCustomer};
+use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
+use tiFy\Support\{Arr, DateTime};
 use WP_Post;
 
-/**
- * Class Order
- *
- * @desc Controleur de commande.
- */
-class Order extends PostQueryItem implements OrderInterface
+class Order extends QueryPost implements OrderContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Liste des données de commande par défaut.
@@ -95,7 +93,7 @@ class Order extends PostQueryItem implements OrderInterface
      * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
      * @var array
      */
-    protected $metas_map = [
+    protected $metasMap = [
         'order_key'            => '_order_key',
         'customer_id'          => '_customer_user',
         'payment_method'       => '_payment_method',
@@ -119,47 +117,43 @@ class Order extends PostQueryItem implements OrderInterface
     ];
 
     /**
-     * Classe de rappel de traitement de la liste des éléments associés à la commande.
+     * Instance du gestionnaires d'éléments associés à la commande.
      * @var OrderItems
      */
-    protected $order_items;
+    protected $orderItems;
 
     /**
      * Identifiant de qualification de la transaction.
      * @return string
      */
-    protected $transaction_id = '';
+    protected $transactionId = '';
 
     /**
      * CONSTRUCTEUR.
      *
      * @param WP_Post $post Objet post Wordpress.
-     * @param Shop $shop Instance de la boutique.
      *
      * @return void
      */
-    public function __construct(WP_Post $post, Shop $shop)
+    public function __construct(?WP_Post $post)
     {
-        $this->shop = $shop;
+        $this->setShop(Shop::instance());
 
         parent::__construct($post);
-
-        // Définition de la classe de rappel de traitement de la liste des éléments associés à la commande
-        $this->order_items = new OrderItems($this, $shop);
 
         $this->read();
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function addNote($note, $is_customer = false, $by_user = false)
+    public function addNote(string $note, bool $is_customer = false, bool $by_user = false): int
     {
         if (!$this->getId()) {
             return 0;
         }
 
-        if (($user = $this->users()->getItem()) && $user->can('edit_shop_order', $this->getId()) && $by_user) {
+        if (($user = $this->shop()->users()->get()) && $user->can('edit_shop_order', $this->getId()) && $by_user) {
             $comment_author = $user->getDisplayName();
             $comment_author_email = $user->getEmail();
         } else {
@@ -186,13 +180,14 @@ class Order extends PostQueryItem implements OrderInterface
         if ($is_customer) {
             add_comment_meta($comment_id, 'is_customer_note', 1);
         }
+
         return $comment_id;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function addItem($item)
+    public function addItem($item): void
     {
         $type = $item->getType();
 
@@ -201,55 +196,47 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function create()
+    public function createItemCoupon(): ?OrderItemTypeCoupon
     {
-        $this->set('order_key', uniqid('order_'));
+        return app('shop.order.item.coupon', [0, $this, $this->shop]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createItemFee(): ?OrderItemTypeFee
+    {
+        return app('shop.order.item.fee', [0, $this, $this->shop]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createItemProduct(): ?OrderItemTypeProduct
+    {
+        return app('shop.order.item.product', [0, $this, $this->shop]);
     }
 
     /**
      * @inheritdoc
      */
-    public function createItemCoupon()
-    {
-        return app('shop.orders.item_coupon', [0, $this, $this->shop]);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function createItemFee()
-    {
-        return app('shop.orders.item_fee', [0, $this, $this->shop]);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function createItemProduct()
-    {
-        return app('shop.orders.order_item_type_product', [0, $this, $this->shop]);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function createItemShipping()
+    public function createItemShipping(): ?OrderItemTypeShipping
     {
         return app('shop.orders.item_shipping', [0, $this, $this->shop]);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function createItemTax()
+    public function createItemTax(): ?OrderItemTypeTax
     {
         return app('shop.orders.item_tax', [0, $this, $this->shop]);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getAddressAttr($key, $type = 'billing', $default = '')
     {
@@ -257,45 +244,45 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getCheckoutOrderReceivedUrl()
+    public function getCheckoutOrderReceivedUrl(): string
     {
-        return $this->functions()->url()->checkoutOrderReceivedPage([
+        return $this->shop()->functions()->url()->checkoutOrderReceivedPage([
             'order-received' => $this->getId(),
             'key'            => $this->getOrderKey()
         ]);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getCheckoutPaymentUrl()
+    public function getCheckoutPaymentUrl(): string
     {
-        return $this->functions()->url()->checkoutOrderPayPage([
+        return $this->shop()->functions()->url()->checkoutOrderPayPage([
             'order-pay' => $this->getId(),
             'key'       => $this->getOrderKey()
         ]);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getCustomer()
+    public function getCustomer(): UserCustomer
     {
-        return $this->users()->getItem($this->getCustomerId());
+        return $this->shop()->users()->get($this->getCustomerId());
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getCustomerId()
+    public function getCustomerId(): int
     {
         return (int)$this->get('customer_id', 0);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getItems($type = null)
     {
@@ -305,9 +292,9 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getOrderKey()
+    public function getOrderKey(): string
     {
         return (string)$this->get('order_key', '');
     }
@@ -321,9 +308,9 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getPaymentMethod()
+    public function getPaymentMethod(): string
     {
         return (string)$this->get('payment_method', '');
     }
@@ -333,89 +320,92 @@ class Order extends PostQueryItem implements OrderInterface
      *
      * @return string
      */
-    public function getPaymentMethodLabel()
+    public function getPaymentMethodLabel(): string
     {
-        /** @var GatewayInterface $gateway */
-        return ($gateway = $this->gateways()->get($this->get('payment_method', '')))
+        /** @var Gateway $gateway */
+        return ($gateway = $this->shop()->gateways()->get($this->get('payment_method', '')))
             ? $gateway->getTitle()
             : '';
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getShortStatus()
+    public function getShortStatus(): string
     {
-        return (string)preg_replace('/^order\-/', '', $this->get('status', $this->orders()->getDefaultStatus()));
+        return (string)preg_replace(
+            '/^order\-/', '',
+            $this->get('status', $this->shop()->orders()->getDefaultStatus())
+        );
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getStatus()
     {
-        return (string)$this->get('status', $this->orders()->getDefaultStatus());
+        return (string)$this->get('status', $this->shop()->orders()->getDefaultStatus());
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getStatusLabel()
     {
-        return $this->orders()->getStatusLabel($this->getStatus());
+        return $this->shop()->orders()->getStatusLabel($this->getStatus());
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getTransactionId()
     {
-        return $this->transaction_id;
+        return $this->transactionId;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getTotal()
+    public function getTotal(): float
     {
         return (float)$this->get('total', 0);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function hasStatus($status)
+    public function hasStatus($status): bool
     {
         return in_array($this->getStatus(), (array)$status);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isCustomer($customer_id)
+    public function isCustomer($customer_id): bool
     {
         return (bool)($this->getCustomerId() === (int)$customer_id);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function needPayment()
+    public function needPayment(): bool
     {
-        return $this->hasStatus($this->orders()->getNeedPaymentStatuses()) && ($this->getTotal() > 0);
+        return $this->hasStatus($this->shop()->orders()->getNeedPaymentStatuses()) && ($this->getTotal() > 0);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function needProcessing()
+    public function needProcessing(): bool
     {
         if (!$line_items = $this->getItems('line_item')) {
             return false;
         }
 
-        $virtual_and_downloadable = $line_items->filter(function (OrderItemTypeProductInterface $line_item) {
-            return ($product = $this->products()->getItem($line_item->getProductId()))
+        $virtual_and_downloadable = $line_items->filter(function (OrderItemTypeProduct $line_item) {
+            return ($product = $this->shop()->products()->get($line_item->getProductId()))
                 ? $product->isDownloadable() && $product->isVirtual()
                 : false;
         })->all();
@@ -424,26 +414,52 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * Récupération de l'instance du gestionnaire d'éléments associé à la commande.
+     *
+     * @return OrderItems
      */
-    public function paymentComplete($transaction_id = '')
+    public function orderItems(): OrderItems
+    {
+        if (is_null($this->orderItems)) {
+            $this->orderItems = $this->shop()->resolve('order.items', [$this]);
+        }
+
+        return $this->orderItems;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function parse()
+    {
+        parent::parse();
+
+        $this->set('order_key', $this->get('order_key', uniqid('order_')));
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function paymentComplete($transaction_id = ''): bool
     {
         try {
             if (!$this->getId()) {
                 return false;
             }
-            $this->session()->pull('order_awaiting_payment', false);
+            $this->shop()->session()->pull('order_awaiting_payment', false);
 
-            if ($this->hasStatus($this->orders()->getPaymentValidStatuses())) {
+            if ($this->hasStatus($this->shop()->orders()->getPaymentValidStatuses())) {
                 if (!empty($transaction_id)) {
-                    $this->transaction_id = $transaction_id;
+                    $this->transactionId = $transaction_id;
                 }
                 if (!$this->get('date_paid')) {
-                    $this->set('date_paid', $this->functions()->date()->utc('U'));
+                    $this->set('date_paid', $this->shop()->functions()->date()->utc('U'));
                 }
                 $this->set('status', $this->needProcessing() ? 'order-processing' : 'order-completed');
 
-                $this->save();
+                $this->update();
             }
             events()->trigger('shop.order.payment.completed', [$this]);
         } catch (Exception $e) {
@@ -453,25 +469,25 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function productCount()
+    public function productCount(): int
     {
         return (int)count($this->getItems('line_item'));
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function quantityProductCount()
+    public function quantityProductCount(): int
     {
         return (int)(new Collection($this->getItems('line_item')))->sum('quantity');
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function read()
+    public function read(): void
     {
         $this->attributes = array_merge($this->defaults, $this->attributes);
 
@@ -479,7 +495,7 @@ class Order extends PostQueryItem implements OrderInterface
             return;
         }
 
-        foreach ($this->metas_map as $attr_key => $meta_key) {
+        foreach ($this->metasMap as $attr_key => $meta_key) {
             $this->set(
                 $attr_key,
                 get_post_meta($id, $meta_key, true) ?: $this->get($attr_key, Arr::get($this->defaults, $attr_key))
@@ -498,19 +514,19 @@ class Order extends PostQueryItem implements OrderInterface
         $this->set('parent_id', $this->getParentId());
         $this->set('date_created', $this->getDate(true));
         $this->set('date_modified', $this->getModified(true));
-        $this->set('status',
-            $this->orders()->isStatus($this->post_status) ? $this->post_status : $this->orders()->getDefaultStatus());
+        $this->set('status', $this->shop()->orders()->isStatus($this->post_status)
+            ? $this->post_status : $this->shop()->orders()->getDefaultStatus()
+        );
         $this->set('customer_note', $this->getExcerpt(true));
 
-        // Récupération de la liste des éléments associé à la commande, enregistré en base de donnée.
-        foreach ($this->order_items->getCollection() as $item) {
-            /** @var OrderItemTypeInterface $item */
+        foreach ($this->orderItems()->query() as $item) {
+            /** @var OrderItemType $item */
             $this->items[$item->getType()][$item->getId()] = $item;
         }
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function removeItems(?string $type = null): void
     {
@@ -524,55 +540,52 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function save()
+    public function update()
     {
-        // Mise à jour des données de post
         $post_data = [
             'ID'                => $this->getId(),
-            'post_date'         => $this->functions()->date()->get(),
-            'post_date_gmt'     => $this->functions()->date()->utc(),
+            'post_date'         => $this->shop()->functions()->date()->get(),
+            'post_date_gmt'     => $this->shop()->functions()->date()->utc(),
             'post_status'       => $this->getStatus(),
             'post_parent'       => $this->getParentId(),
             'post_excerpt'      => $this->getExcerpt(true),
-            'post_modified'     => $this->functions()->date()->get(),
-            'post_modified_gmt' => $this->functions()->date()->utc(),
+            'post_modified'     => $this->shop()->functions()->date()->get(),
+            'post_modified_gmt' => $this->shop()->functions()->date()->utc(),
         ];
         wp_update_post($post_data);
 
-        // Sauvegarde des métadonnées
         $this->saveMetas();
 
-        // Sauvegarde des éléments
         $this->saveItems();
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function saveItems()
+    public function saveItems(): void
     {
-        if (!$this->items) {
-            return;
-        }
-        foreach ($this->items as $group => $group_items) {
-            foreach ($group_items as $item_key => $item) {
-                /** @var OrderItemTypeInterface $item */
-                $item->save();
+        if ($this->items) {
+            foreach ($this->items as $group => $group_items) {
+                foreach ($group_items as $item_key => $item) {
+                    /** @var OrderItemType $item */
+                    $item->save();
+                }
             }
         }
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function saveMetas()
+    public function saveMetas(): void
     {
-        if (!$this->metas_map || !$this->getId()) {
+        if (!$this->metasMap || !$this->getId()) {
             return;
         }
-        foreach ($this->metas_map as $attr_key => $meta_key) {
+
+        foreach ($this->metasMap as $attr_key => $meta_key) {
             $meta_value = $this->get($attr_key, '');
 
             switch ($attr_key) {
@@ -600,7 +613,7 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function setBillingAttr($key, $value)
     {
@@ -608,7 +621,7 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function setShippingAttr($key, $value)
     {
@@ -616,25 +629,25 @@ class Order extends PostQueryItem implements OrderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function updateStatus($new_status)
+    public function updateStatus($new_status): bool
     {
-        if (!$this->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) {
+        if (!$this->shop()->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) {
             return false;
         }
 
         $this->set('status', $new_status);
 
-        if (!$this->get('date_paid') && $this->hasStatus($this->orders()->getPaymentCompleteStatuses())) {
-            $this->set('date_paid', $this->functions()->date()->utc('U'));
+        if (!$this->get('date_paid') && $this->hasStatus($this->shop()->orders()->getPaymentCompleteStatuses())) {
+            $this->set('date_paid', $this->shop()->functions()->date()->utc('U'));
         }
 
         if (!$this->get('date_completed') && $this->hasStatus('completed')) {
-            $this->set('date_completed', $this->functions()->date()->utc('U'));
+            $this->set('date_completed', $this->shop()->functions()->date()->utc('U'));
         }
 
-        $this->save();
+        $this->update();
 
         return true;
     }

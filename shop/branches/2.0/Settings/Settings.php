@@ -1,27 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Settings;
 
-use Illuminate\Support\Str;
-use tiFy\Kernel\Params\ParamsBag;
-use tiFy\Plugins\Shop\Contracts\SettingsInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{Settings as SettingsContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\{ParamsBag, Str};
 
-/**
- * @name Settings
- *
- * @desc Controleur de gestion des réglages de la boutique.
- */
-class Settings extends ParamsBag implements SettingsInterface
+class Settings extends ParamsBag implements SettingsContract
 {
-    use ShopResolverTrait;
-
-    /**
-     * Instance de la classe.
-     * @var static
-     */
-    protected static $instance;
+    use ShopAwareTrait;
 
     /**
      * Liste des réglages disponibles.
@@ -95,73 +82,35 @@ class Settings extends ParamsBag implements SettingsInterface
      */
     public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
-        $attrs = $this->config('settings', []);
+        $this->setShop($shop);
 
-        foreach($this->settings as $setting) :
-            if (isset($attrs[$setting])) :
-                continue;
-            endif;
+        $attrs = $this->shop()->config('settings', []);
 
-            if ($value = get_option($setting)) :
-                $attrs[$setting] = $value;
-            else :
-                $method = Str::camel($setting);
-                if (method_exists($this, $method)) :
-                    $attrs[$setting] = call_user_func([$this, $method]);
-                endif;
-            endif;
-        endforeach;
+        $this->boot();
 
-        parent::__construct($attrs);
+        foreach($this->settings as $setting) {
+            if (!isset($attrs[$setting])) {
+                if ($value = get_option($setting)) {
+                    $attrs[$setting] = $value;
+                } else {
+                    $method = Str::camel($setting);
+                    if (method_exists($this, $method)) {
+                        $attrs[$setting] = call_user_func([$this, $method]);
+                    }
+                }
+            }
+        }
+
+        $this->set($attrs)->parse();
     }
 
     /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
+     * @inheritDoc
      */
-    private function __clone()
-    {
-
-    }
+    public function boot(): void { }
 
     /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe.
-     *
-     * @param Shop $shop Classe de rappel de la boutique.
-     *
-     * @return self
-     */
-    public static function make($alias, Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        return self::$instance = new self($shop);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function boot()
-    {
-
-    }
-
-    /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function allowedCountries()
     {
@@ -169,136 +118,136 @@ class Settings extends ParamsBag implements SettingsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function cartEnableListAdd()
+    public function cartEnableListAdd(): bool
     {
         return $this->get('cart_enabled_list_add', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function cartPageId()
+    public function cartPageId(): int
     {
         return (int)$this->get('cart_page_id', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function cartRedirectAfterAdd()
+    public function cartRedirectAfterAdd(): bool
     {
         return $this->get('cart_redirect_after_add', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function checkoutPageId()
+    public function checkoutPageId(): int
     {
         return (int)$this->get('checkout_page_id', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function currency()
+    public function currency(): string
     {
         return $this->get('currency', 'EUR');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function currencyPosition()
+    public function currencyPosition(): string
     {
         return in_array($this->get('currency_position'), ['right', 'left', 'right_space', 'left_space'])
             ? $this->get('currency_position') : 'right';
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function decimalNumber()
+    public function decimalNumber(): int
     {
         return (int)$this->get('decimal_number', 2);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function decimalSeparator()
+    public function decimalSeparator(): string
     {
         return $this->get('decimal_separator', ',');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function defaultCustomerAddress()
+    public function defaultCustomerAddress(): string
     {
         return $this->get('default_customer_address', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function dimensionUnit()
+    public function dimensionUnit(): string
     {
         return $this->get('dimension_unit', 'cm');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isCalcTaxes()
+    public function isCalcTaxes(): bool
     {
         return (bool)$this->get('is_calc_taxes', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isManageStock()
+    public function isManageStock(): bool
     {
         return (bool)$this->get('is_manage_stock', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isPricesIncludeTax()
+    public function isPricesIncludeTax(): bool
     {
         return (bool)$this->get('prices_include_tax', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isShippingCalcEnabled()
+    public function isShippingCalcEnabled(): bool
     {
         return (bool)$this->get('enable_shipping_calc', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isShippingCostRequiresAddress()
+    public function isShippingCostRequiresAddress(): bool
     {
         return (bool)$this->get('shipping_cost_requires_address', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isShippingDebugMode()
+    public function isShippingDebugMode(): bool
     {
         return (bool)$this->get('shipping_debug_mode', false);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function shippingCountries()
     {
@@ -306,81 +255,81 @@ class Settings extends ParamsBag implements SettingsInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function shipToDestination()
+    public function shipToDestination(): string
     {
         return (string)$this->get('ship_to_destination', 'billing_only');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function shopPageId()
+    public function shopPageId(): int
     {
         return (int)$this->get('shop_page_id', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function storeAddress()
+    public function storeAddress(): string
     {
         return $this->get('store_address', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function storeAddressAdditionnal()
+    public function storeAddressAdditionnal(): string
     {
         return $this->get('store_address_additionnal', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function storeCity()
+    public function storeCity(): string
     {
         return $this->get('store_city', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function storeCountry()
+    public function storeCountry(): string
     {
         return $this->get('store_country', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function storePostcode()
+    public function storePostcode(): string
     {
         return $this->get('store_postcode', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function termsPageId()
+    public function termsPageId(): int
     {
         return (int)$this->get('terms_page_id', 0);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function thousandSeparator()
+    public function thousandSeparator(): string
     {
         return $this->get('thousand_separator', '');
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function weightUnit()
+    public function weightUnit(): string
     {
         return $this->get('weight_unit', 'kg');
     }

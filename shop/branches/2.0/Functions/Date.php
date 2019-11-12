@@ -1,21 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use DateTime;
-use DateTimeZone;
-use tiFy\Plugins\Shop\Contracts\FunctionsDateInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\ShopResolverTrait;
+use tiFy\Plugins\Shop\Contracts\{FunctionsDate as FunctionsDateContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\DateTime;
+use Exception;
 
-/**
- * Class Date
- *
- * @desc Controleur de gestion de dates.
- */
-class Date extends DateTime implements FunctionsDateInterface
+class Date extends DateTime implements FunctionsDateContract
 {
-    use ShopResolverTrait;
+    use ShopAwareTrait;
 
     /**
      * Format de date MySql
@@ -26,55 +20,44 @@ class Date extends DateTime implements FunctionsDateInterface
     /**
      * CONSTRUCTEUR.
      *
-     * @param string $time
-     * @param bool|string|DateTimeZone $timezone
      * @param Shop $shop Instance de la boutique.
      *
      * @return void
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function __construct($time = 'now', $timezone = true, Shop $shop)
+    public function __construct(Shop $shop)
     {
-        $this->shop = $shop;
+        $this->setShop($shop);
 
-        if ($timezone instanceof DateTimeZone) :
-        elseif ($timezone === true) :
-            $timezone = new DateTimeZone(\get_option('timezone_string'));
-        elseif(is_string($timezone)) :
-            $timezone = new DateTimeZone($timezone);
-        else :
-            $timezone = null;
-        endif;
-
-        parent::__construct($time, $timezone);
+        parent::__construct();
     }
 
     /**
-     * Récupére la date au format SQL.
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->format(self::SQL);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function get($format = null)
+    public function get($format = null): string
     {
-        return $this->format($format ? : self::SQL);
+        return $this->format($format ?: self::SQL);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function utc($format = null)
+    public function utc($format = null): string
     {
-        return (new static(null, false, $this->shop))
-            ->setTimestamp($this->getTimestamp())
-            ->format($format ? : self::SQL);
+        try {
+            return (new static($this->shop()))->setTimestamp($this->getTimestamp())->format($format ?: self::SQL);
+        } catch (Exception $e) {
+            return '';
+        }
     }
 }

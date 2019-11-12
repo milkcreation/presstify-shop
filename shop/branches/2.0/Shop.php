@@ -2,11 +2,26 @@
 
 namespace tiFy\Plugins\Shop;
 
+use Exception;
 use Psr\Container\ContainerInterface as Container;
 use tiFy\Contracts\View\ViewController;
 use tiFy\Contracts\View\ViewEngine;
 use tiFy\Plugins\Shop\Contracts\{
-    Actions,AddressesInterface as Addresses,CartInterface as Cart,CheckoutInterface as Checkout, FunctionsInterface as Functions, GatewaysInterface as Gateways, NoticesInterface as Notices, OrdersInterface as Orders, ProductsInterface as Products, SessionInterface as Session, SettingsInterface as Settings, ShopInterface as ShopContract, UsersInterface as Users};
+    Actions,
+    Addresses,
+    Cart,
+    Checkout,
+    Functions,
+    Gateways,
+    Notices,
+    Orders,
+    Products,
+    Session,
+    Settings,
+    Shop as ShopContract,
+    User,
+    Users
+};
 
 /**
  * @desc Extension PresstiFy de gestion de boutique en ligne.
@@ -41,6 +56,12 @@ use tiFy\Plugins\Shop\Contracts\{
 class Shop implements ShopContract
 {
     /**
+     * Instance du gestionnaire de boutique.
+     * @var ShopContract
+     */
+    protected static $instance;
+
+    /**
      * Conteneur d'injection de dépendances.
      * @var Container
      */
@@ -52,10 +73,28 @@ class Shop implements ShopContract
      * @param Container $container Conteneur d'injection de dépendances.
      *
      * @return void
+     *
+     * @throws Exception
      */
     public function __construct(Container $container)
     {
+        if (!static::$instance) {
+            static::$instance = $this;
+        } else {
+            throw new Exception(__('Une instance de la boutique existe déjà.', 'tify'));
+        }
+
         $this->container = $container;
+    }
+
+    /**
+     * Récupération de l'instance de la boutique.
+     *
+     * @return static|null
+     */
+    public static function instance(): ?ShopContract
+    {
+        return static::$instance;
     }
 
     /**
@@ -90,7 +129,7 @@ class Shop implements ShopContract
      */
     public function checkout(): Checkout
     {
-        return $this->resolve('checkout.controller');
+        return $this->resolve('checkout');
     }
 
     /**
@@ -106,7 +145,7 @@ class Shop implements ShopContract
      */
     public function functions(): Functions
     {
-        return $this->resolve('functions.controller');
+        return $this->resolve('functions');
     }
 
     /**
@@ -130,7 +169,7 @@ class Shop implements ShopContract
      */
     public function orders(): Orders
     {
-        return $this->resolve('orders.controller');
+        return $this->resolve('orders');
     }
 
     /**
@@ -146,7 +185,7 @@ class Shop implements ShopContract
      */
     public function products(): Products
     {
-        return $this->resolve('products.controller');
+        return $this->resolve('products');
     }
 
     /**
@@ -154,7 +193,7 @@ class Shop implements ShopContract
      */
     public function notices(): Notices
     {
-        return $this->resolve('notices.controller');
+        return $this->resolve('notices');
     }
 
     /**
@@ -162,7 +201,7 @@ class Shop implements ShopContract
      */
     public function resolve($alias, ...$args)
     {
-        return app("shop.{$alias}", $args);
+        return app("shop.{$alias}", ...$args);
     }
 
     /**
@@ -191,7 +230,7 @@ class Shop implements ShopContract
      */
     public function session(): Session
     {
-        return $this->resolve('session.controller');
+        return $this->resolve('session');
     }
 
     /**
@@ -199,15 +238,15 @@ class Shop implements ShopContract
      */
     public function settings(): Settings
     {
-        return $this->resolve('settings.controller');
+        return $this->resolve('settings');
     }
 
     /**
      * @inheritDoc
      */
-    public function user(int $id = null)
+    public function user(int $id = null): ?User
     {
-        return $this->users()->getItem($id);
+        return $this->users()->get($id);
     }
 
     /**
@@ -215,7 +254,7 @@ class Shop implements ShopContract
      */
     public function users(): Users
     {
-        return $this->resolve('users.controller');
+        return $this->resolve('users');
     }
 
     /**

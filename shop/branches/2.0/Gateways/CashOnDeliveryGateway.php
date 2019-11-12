@@ -2,9 +2,6 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-/**
- * Plateforme de paiement à la livraison.
- */
 class CashOnDeliveryGateway extends AbstractGateway
 {
     /**

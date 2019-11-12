@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Actions;
 
-use tiFy\Plugins\Shop\Contracts\{Actions as ActionsContract, ShopInterface as Shop};
+use tiFy\Plugins\Shop\Contracts\{Actions as ActionsContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Proxy\Router;
 
@@ -27,12 +27,12 @@ class Actions implements ActionsContract
     /**
      * @inheritDoc
      */
-    public function boot(): void {}
+    public function boot(): void { }
 
     /**
      * @inheritDoc
      */
-    public function url($alias, $parameters = [], $absolute = false): string
+    public function url(string $alias, array $parameters = [], bool $absolute = false): string
     {
         return Router::url("shop.{$alias}", $parameters, $absolute) ?? '';
     }

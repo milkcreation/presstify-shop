@@ -4,10 +4,7 @@ namespace tiFy\Plugins\Shop\Addresses;
 
 use Illuminate\Support\Str;
 use tiFy\Contracts\Form\FormFactory;
-use tiFy\Plugins\Shop\Contracts\{AddressesInterface as AddressesContract,
-    AddressInterface as AddressContract,
-    ShopInterface as Shop,
-    UserItemInterface as UserItemContract};
+use tiFy\Plugins\Shop\Contracts\{Addresses, Address as AddressContract, Shop, User};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 
 abstract class AbstractAddress implements AddressContract
@@ -28,7 +25,7 @@ abstract class AbstractAddress implements AddressContract
 
     /**
      * Instance de la classe de l'utilisateur courant.
-     * @var UserItemContract
+     * @var User
      */
     protected $user;
 
@@ -46,7 +43,7 @@ abstract class AbstractAddress implements AddressContract
         $this->boot();
 
         add_action('init', function () {
-            $this->user = $this->shop->users()->getItem();
+            $this->user = $this->shop->users()->get();
 
             /**
              * Traitement de la liste des champs.
@@ -85,15 +82,15 @@ abstract class AbstractAddress implements AddressContract
     /**
      * @inheritDoc
      */
-    public function addresses(): AddressesContract
+    public function addresses(): Addresses
     {
-        return $this->shop()->resolve('addresse');
+        return $this->shop()->resolve('addresses');
     }
 
     /**
      * @inheritDoc
      */
-    public function boot(): void {}
+    public function boot(): void { }
 
     /**
      * @inheritDoc

@@ -14,7 +14,7 @@ if (!function_exists('shop')) {
     }
 }
 
-if (!function_exists('shop_action')) :
+if (!function_exists('shop_action')) {
     /**
      * Récupération de l'url d'une action de traitement.
      *
@@ -24,30 +24,30 @@ if (!function_exists('shop_action')) :
      *
      * @return string
      */
-    function shop_action($alias, $parameters = [], $absolute = false)
+    function shop_action(string $alias, array $parameters = [], bool $absolute = false): string
     {
         return shop()->action($alias, $parameters, $absolute);
     }
-endif;
+}
 
-if (!function_exists('shop_cart_add_url')) :
+if (!function_exists('shop_cart_add_url')) {
     /**
      * Url de l'action d'un formulaire d'ajout d'un produit au panier d'achat
      * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
      * de formulaire ayant pour attribut "method" POST.}
      *
-     * @param null|int|\WP_Post|\tiFy\Plugins\Shop\Products\ProductItem $product Identification du produit.
+     * @param null|int|\WP_Post|\tiFy\Plugins\Shop\Products\Product $product Identification du produit.
      * Produit de la page courante|Identifiant WP|Objet Post WP|Objet produit
      *
      * @return string
      */
-    function shop_cart_add_url($product)
+    function shop_cart_add_url($product): string
     {
         return shop()->cart()->addUrl($product);
     }
-endif;
+}
 
-if (!function_exists('shop_cart_count')) :
+if (!function_exists('shop_cart_count')) {
     /**
      * Retourne le nombre de produit dans le panier.
      *
@@ -56,13 +56,13 @@ if (!function_exists('shop_cart_count')) :
      *
      * @return int
      */
-    function shop_cart_count($quantity = true)
+    function shop_cart_count(bool $quantity = true): int
     {
         return $quantity ? shop()->cart()->countQuantity() : shop()->cart()->count();
     }
-endif;
+}
 
-if (!function_exists('shop_cart_update_url')) :
+if (!function_exists('shop_cart_update_url')) {
     /**
      * Url d'action de mise à jour des produits du panier d'achat
      * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
@@ -70,13 +70,13 @@ if (!function_exists('shop_cart_update_url')) :
      *
      * @return string
      */
-    function shop_cart_update_url()
+    function shop_cart_update_url(): string
     {
         return shop()->cart()->updateUrl();
     }
-endif;
+}
 
-if (!function_exists('shop_cart_remove_url')) :
+if (!function_exists('shop_cart_remove_url')) {
     /**
      * Url d'action de suppression d'un produit du panier d'achat
      *
@@ -84,13 +84,13 @@ if (!function_exists('shop_cart_remove_url')) :
      *
      * @return string
      */
-    function shop_cart_remove_url($key)
+    function shop_cart_remove_url(string $key): string
     {
         return shop()->cart()->removeUrl($key);
     }
-endif;
+}
 
-if (!function_exists('shop_checkout_process_url')) :
+if (!function_exists('shop_checkout_process_url')) {
     /**
      * Url d'action d'exécution de la commande
      * {@internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture
@@ -98,37 +98,37 @@ if (!function_exists('shop_checkout_process_url')) :
      *
      * @return string
      */
-    function shop_checkout_process_url()
+    function shop_checkout_process_url(): string
     {
         return shop()->checkout()->processUrl();
     }
-endif;
+}
 
-if (!function_exists('shop_form_billing')) :
+if (!function_exists('shop_form_billing')) {
     /**
      * Formulaire d'adresse de facturation
      *
      * @return string
      */
-    function shop_form_billing()
+    function shop_form_billing(): string
     {
         return shop()->addresses()->billing()->form();
     }
-endif;
+}
 
-if (!function_exists('shop_notices')) :
+if (!function_exists('shop_notices')) {
     /**
      * Affichage de la liste des messages de notification
      *
      * @return string
      */
-    function shop_notices()
+    function shop_notices(): string
     {
         return (string)shop()->notices();
     }
-endif;
+}
 
-if (!function_exists('shop_page_is')) :
+if (!function_exists('shop_page_is')) {
     /**
      * Verification du contexte d'affichage de la page courante
      *
@@ -136,13 +136,13 @@ if (!function_exists('shop_page_is')) :
      *
      * @return string
      */
-    function shop_page_is($name)
+    function shop_page_is(string $name): string
     {
         return shop()->functions()->page()->is($name);
     }
-endif;
+}
 
-if (!function_exists('shop_price_html')) :
+if (!function_exists('shop_price_html')) {
     /**
      * Prix d'affichage au format HTML
      *
@@ -151,28 +151,28 @@ if (!function_exists('shop_price_html')) :
      *
      * @return string
      */
-    function shop_price_html($price, $format = '')
+    function shop_price_html(float $price, string $format = ''): string
     {
         return shop()->functions()->price()->html($price, $format);
     }
-endif;
+}
 
-if (!function_exists('shop_product')) :
+if (!function_exists('shop_product')) {
     /**
      * Récupération des données d'un produit existant.
      *
      * @param null|int|string|\WP_Post $product Identification du produit.
      * Produit de la page courante|ID WP|post_name WP|Objet Post WP|Objet produit courant.
      *
-     * @return tiFy\Plugins\Shop\Contracts\ProductItemInterface
+     * @return tiFy\Plugins\Shop\Contracts\Product
      */
-    function shop_product($product)
+    function shop_product($product): ?tiFy\Plugins\Shop\Contracts\Product
     {
-        return shop()->products()->getItem($product);
+        return shop()->products()->get($product);
     }
-endif;
+}
 
-if (!function_exists('shop_setting')) :
+if (!function_exists('shop_setting')) {
     /**
      * Récupération d'une option de configuration.
      *
@@ -181,25 +181,37 @@ if (!function_exists('shop_setting')) :
      *
      * @return string
      */
-    function shop_setting($key, $default = '')
+    function shop_setting(string $key, string $default = ''): string
     {
         return shop()->settings()->get($key, $default);
     }
-endif;
+}
 
-if (!function_exists('shop_signin')) :
+if (!function_exists('shop_signin')) {
     /**
-     * Récupération de l'authentification à la boutique.
+     * Récupération du formulaire d'authentification à la boutique.
      *
-     * @return tiFy\Contracts\User\SigninFactory
+     * @return tiFy\Contracts\Auth\Signin|null
      */
-    function shop_signin()
+    function shop_signin(): ?tiFy\Contracts\Auth\Signin
     {
         return shop()->users()->signin();
     }
-endif;
+}
 
-if (!function_exists('shop_url')) :
+if (!function_exists('shop_signup')) {
+    /**
+     * Récupération du formulaire d'inscription à la boutique.
+     *
+     * @return tiFy\Contracts\Auth\Signup|null
+     */
+    function shop_signup(): ?tiFy\Contracts\Auth\Signup
+    {
+        return shop()->users()->signup();
+    }
+}
+
+if (!function_exists('shop_url')) {
     /**
      * Url vers une page de la boutique
      *
@@ -207,8 +219,8 @@ if (!function_exists('shop_url')) :
      *
      * @return string
      */
-    function shop_url($name)
+    function shop_url(string $name): string
     {
         return shop()->functions()->url()->page($name);
     }
-endif;
+}

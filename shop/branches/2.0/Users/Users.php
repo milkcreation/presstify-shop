@@ -2,8 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Users;
 
+use tiFy\Contracts\{Auth\Signin, Auth\Signup};
 use tiFy\Plugins\Shop\Contracts\{Users as UsersContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\Auth;
 use WP_User;
 
 class Users implements UsersContract
@@ -15,6 +17,18 @@ class Users implements UsersContract
      * @var WP_User
      */
     private static $current;
+
+    /**
+     * Instance du formulaire d'authentification.
+     * @var Signin|null
+     */
+    protected $signin;
+
+    /**
+     * Instance du formulaire d'inscription.
+     * @var Signup|null
+     */
+    protected $signup;
 
     /**
      * CONSTRUCTEUR.
@@ -31,7 +45,13 @@ class Users implements UsersContract
             user()->role()->register($name, $attrs);
         }
 
-        user()->signin()->register('shop', $this->shop()->config('signin', []));
+        if ($signin = $this->shop()->config('signin', [])) {
+            $this->signin = Auth::registerSignin('shop', $signin);
+        }
+
+        if ($signup = $this->shop()->config('signup', [])) {
+            $this->signup = Auth::registerSignup('shop', $signup);
+        }
     }
 
     /**
@@ -77,8 +97,16 @@ class Users implements UsersContract
     /**
      * @inheritDoc
      */
-    public function signin()
+    public function signin(): ?Signin
     {
-        return user()->signin()->get('shop');
+        return $this->signin;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function signup(): ?Signup
+    {
+        return $this->signup;
     }
 }

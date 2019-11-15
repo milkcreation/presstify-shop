@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\Contracts\User\SigninFactory;
+use tiFy\Contracts\Auth\{Signin, Signup};
 use WP_User;
 
 interface Users extends ShopAwareTrait
@@ -27,7 +27,14 @@ interface Users extends ShopAwareTrait
     /**
      * Instance du formulaire d'authentification.
      *
-     * @return null|SigninFactory
+     * @return Signin|null
      */
-    public function signin();
+    public function signin(): ?Signin;
+
+    /**
+     * Instance du formulaire d'inscription.
+     *
+     * @return Signup|null
+     */
+    public function signup(): ?Signup;
 }

@@ -264,6 +264,7 @@ class Checkout extends AbstractShopSingleton implements CheckoutInterface
         $customer_ip_address = $request->getClientIp();
         $customer_user_agent = $request->headers->get('User-Agent');
         $customer_note = isset($data['order_comments']) ? $data['order_comments'] : '';
+        $payment_method = $data['payment_method'];
         $payment_method_title = $gateway ? $gateway->getTitle() : '';
         $shipping_total = $this->cart()->getTotals()->getShippingTotal();
         $shipping_tax = $this->cart()->getTotals()->getShippingTax();

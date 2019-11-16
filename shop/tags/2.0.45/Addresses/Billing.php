@@ -35,6 +35,11 @@ class Billing extends AbstractAddress implements AddressBillingInterface
             'attrs'        => [
                 'autocomplete' => 'email',
             ],
+            'validations'  => [
+                'call' => function ($value) {
+                    return is_email($value);
+                }
+            ],
             'order'        => 110
         ];
 

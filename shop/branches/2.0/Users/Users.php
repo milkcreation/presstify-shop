@@ -83,10 +83,10 @@ class Users implements UsersContract
     public function get($user = null)
     {
         /** @var User $user */
-        $user = $this->shop()->resolve('user', [new WP_User($user ?? 0)]);
+        $user = $this->shop()->resolve('user', [new WP_User($user ?? get_current_user_id())]);
 
         if ($user->hasRole('shop_manager')) {
-            return $this->shop()->resolve('user.manager', [$user->getWpUser()]);
+            return $this->shop()->resolve('user.shop-manager', [$user->getWpUser()]);
         } elseif ($user->hasRole('customer')) {
             return $this->shop()->resolve('user.customer', [$user->getWpUser()]);
         } else {

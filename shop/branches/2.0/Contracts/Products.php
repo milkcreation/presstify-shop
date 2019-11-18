@@ -66,6 +66,15 @@ interface Products extends ShopAwareTrait
     public function getProductTypes(): array;
 
     /**
+     * Récupération d'une liste d'instance de produits selon un liste de critères de récupération.
+     *
+     * @param array $args Liste des critères de récupération de la liste des instances de produits.
+     *
+     * @return array
+     */
+    public function query(array $args = []): array;
+
+    /**
      * Enregistrement d'un post
      *
      * @param int $post_id Identifiant de qualification du post

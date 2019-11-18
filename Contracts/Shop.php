@@ -3,6 +3,7 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use Psr\Container\ContainerInterface as Container;
+use WP_Post;
 
 interface Shop
 {
@@ -86,11 +87,22 @@ interface Shop
     public function orders(): Orders;
 
     /**
-     * Récupération de la classe de rappel de gestion des produits.
+     * Récupération d'une instance de produit.
      *
-     * @return Products
+     * @param int|string|WP_Post|null.
+     *
+     * @return Product|null
      */
-    public function products(): Products;
+    public function product($id = null): ?Product;
+
+    /**
+     * Récupération de l'instance du gestionnaire de produits|Récupération d'une liste d'instance de produits.
+     *
+     * @param array|null $args Liste des arguments de requête de récupération des produits.
+     *
+     * @return Products|Product[]|null
+     */
+    public function products(?array $args = null);
 
     /**
      * Récupération du fournisseur de services.

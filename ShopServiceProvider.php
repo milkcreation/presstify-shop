@@ -732,7 +732,7 @@ class ShopServiceProvider extends ServiceProvider
         });
 
         $this->getContainer()->add('shop.products.collection', function (): ProductsCollectionContract {
-            $concrete = $this->getConcrete('shop.products.list');
+            $concrete = $this->getConcrete('shop.products.collection');
 
             /** @var ProductsCollectionContract $instance */
             $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
@@ -841,7 +841,7 @@ class ShopServiceProvider extends ServiceProvider
         });
 
         $this->getContainer()->add('shop.user.shop-manager', function ($id = null): ?UserShopManagerContract {
-            $concrete = $this->getConcrete('shop.users.shop-manager');
+            $concrete = $this->getConcrete('shop.user.shop-manager');
 
             /** @var UserShopManagerContract $instance */
             $instance = is_object($concrete) ? $concrete : new $concrete();

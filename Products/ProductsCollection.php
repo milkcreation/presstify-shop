@@ -30,19 +30,11 @@ class ProductsCollection extends Collection implements ProductsCollectionContrac
 
     /**
      * @inheritDoc
-     */
-    public function query(...$args): ProductsCollectionContract
-    {
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
      *
      * @return Product
      */
-    public function wrap($item, $key = null)
+    public function walk($item, $key = null)
     {
-        return $this->items[$key] = $this->shop()->resolve('product', [$item, $this->shop]);
+        return $this->items[$key] = $this->shop()->resolve('product', [$item]);
     }
 }

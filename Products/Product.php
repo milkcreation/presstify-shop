@@ -63,7 +63,7 @@ class Product extends QueryPost implements ProductContract
             'meta_value' => $sku
         ]);
 
-        return ($wpQuery->found_posts === 1) ? new static(current($wpQuery->posts)) : null;
+        return ($wpQuery->found_posts == 1) ? new static(current($wpQuery->posts)) : null;
     }
 
     /**

@@ -46,17 +46,19 @@ class Products implements ProductsContract
 
         foreach ($this->shop()->config('products', []) as $post_type => $attrs) {
             if (empty($attrs['category'])) {
-                return self::$objectTypes[$post_type] = $this->shop()->resolve(
+                self::$objectTypes[$post_type] = $this->shop()->resolve(
                     'products.object-type.uncategorized',
                     [$post_type, $attrs]
                 );
             } else {
-                return self::$objectTypes[$post_type] = $this->shop()->resolve(
+                self::$objectTypes[$post_type] = $this->shop()->resolve(
                     'products.object-type.categorized',
                     [$post_type, $attrs]
                 );
             }
         }
+
+        $this->shop()->product()::setPostType($this->getObjectTypes());
 
         add_action('save_post', [$this, 'saveWpPost'], 10, 2);
     }
@@ -169,9 +171,11 @@ class Products implements ProductsContract
     /**
      * @inheritDoc
      */
-    public function query($query_args = null): ProductsCollection
+    public function query(array $args = []): array
     {
-        return $this->shop()->resolve('products.collection')->query($query_args);
+        $product = $this->shop()->product();
+
+        return $product::queryFromArgs($args) ?? [];
     }
 
     /**

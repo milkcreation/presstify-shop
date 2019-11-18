@@ -15,6 +15,7 @@ use tiFy\Plugins\Shop\Contracts\{
     Gateways,
     Notices,
     Orders,
+    Product,
     Products,
     Session,
     Settings,
@@ -183,9 +184,20 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      */
-    public function products(): Products
+    public function product($id = null): ?Product
     {
-        return $this->resolve('products');
+        return $this->resolve('product', [$id]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function products(?array $args = null)
+    {
+        /** @var Products $products */
+        $products = $this->resolve('products');
+
+        return is_null($args) ? $products : $products->query($args);
     }
 
     /**

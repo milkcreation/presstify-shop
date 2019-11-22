@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Users;
 
 use tiFy\Plugins\Shop\Contracts\{User as UserContract};
 use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
-use tiFy\Wordpress\{Contracts\Query\QueryUser as QueryUserContract, Query\QueryUser};
+use tiFy\Wordpress\Query\QueryUser;
 use WP_User;
 
 class User extends QueryUser implements UserContract

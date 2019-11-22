@@ -2,24 +2,32 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{Cart, CartSessionItems as CartSessionItemsContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Cart, CartSession as CartSessionContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{Arr, ParamsBag};
 
-class SessionItems extends ParamsBag implements CartSessionItemsContract
+class Session extends ParamsBag implements CartSessionContract
 {
     use ShopAwareTrait;
 
     /**
+     * Instance du panier de commande associé.
+     * @var Cart
+     */
+    protected $cart;
+
+    /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Instance de la boutique.
+     * @param Cart $cart
      *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct(Cart $cart)
     {
-        $this->shop = $shop;
+        $this->cart = $cart;
+
+        $this->setShop($this->cart->shop());
     }
 
     /**
@@ -27,7 +35,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
      */
     public function cart(): Cart
     {
-        return $this->shop()->resolve('cart');
+        return $this->cart;
     }
 
     /**
@@ -48,7 +56,7 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
     /**
      * @inheritDoc
      */
-    public function destroy($persistent = true): void
+    public function destroy($persistent = true): CartSessionContract
     {
         foreach ($this->all() as $key => $default) {
             $this->shop()->session()->put($key, $default);
@@ -57,14 +65,16 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
         $this->shop()->session()->save();
 
         if ($persistent) {
-            delete_user_option($this->shop()->users()->get()->getId(), '_tify_shop_cart');
+            delete_user_option($this->shop()->user()->getId(), '_tify_shop_cart');
         }
+
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function fetchCart(): void
+    public function fetchCart(): CartSessionContract
     {
         /**
          * @var array $cart
@@ -81,10 +91,9 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
         if ($stored_cart = get_user_option('_tify_shop_cart') ?: ['cart' => []]) {
             $cart = array_merge($cart, Arr::get($stored_cart, 'cart', []));
         }
-
         if (!empty($cart)) {
             foreach ($cart as $key => $line) {
-                $product = $this->shop()->products()->get($line['product_id']);
+                $product = $this->shop()->product($line['product_id']);
                 $quantity = $line['quantity'];
 
                 if (!$product || ($quantity < 0)) {
@@ -93,24 +102,27 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
                     if (!$product->isPurchasable()) {
                         // do_action( 'woocommerce_remove_cart_item_from_session', $key, $values );
                     } else {
-                        $this->cart()->add($key, compact('key', 'quantity', 'product'));
+                        $line['product'] = $product;
+                        $this->cart()->add($key, $line);
                     }
                 }
             }
         }
 
         $this->cart()->calculate();
+
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function update(): void
+    public function update(): CartSessionContract
     {
         $cart_totals = $this->cart()->calculate()->all();
 
         $cart = [];
-        $lines = $this->cart()->lines();
+        $lines = $this->cart()->all();
 
         foreach ($lines as $key => $line) {
             unset($line['product']);
@@ -127,10 +139,10 @@ class SessionItems extends ParamsBag implements CartSessionItemsContract
             $this->shop()->session()->put($key, $value);
         }
 
-        $this->shop()->session()->save();
-
         if ($user_id = get_current_user_id()) {
             update_user_option($user_id, '_tify_shop_cart', ['cart' => $cart]);
         }
+
+        return $this;
     }
 }

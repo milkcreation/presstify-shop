@@ -29,26 +29,26 @@ class Routes implements RoutesContract
             $router->get('/', [$this->shop->resolve('api'), 'rootEndpoint']);
 
             // Commandes
-            $router->get('/orders[/{id:number}]', [$this->shop->resolve('api.endpoint.orders'), 'endpointGet']);
-            $router->post('/orders[/{id:number}]', [$this->shop->resolve('api.endpoint.orders'), 'endpointPost']);
+            $router->get('/orders[/{id:number}]', [$this->shop->resolve('api.endpoint.orders'), 'handleRequest']);
+            $router->post('/orders[/{id:number}]', [$this->shop->resolve('api.endpoint.orders'), 'handleRequest']);
         })
             ->setStrategy(new ApiStrategy(new ResponseFactory()))
             ->middleware(new ApiMiddleware());
 
         // PANIER
         // Ajout d'un article au panier
-        Router::post('ajouter-au-panier/{product_name}', [$this->shop->cart(), 'addHandler'])->setName('shop.cart.add');
+        Router::post('ajouter-au-panier/{product_name}', [$this->shop->cart(), 'handleAdd'])->setName('shop.cart.add');
 
         // Mise à jour des articles du panier
-        Router::post('mise-a-jour-du-panier', [$this->shop->cart(), 'updateHandler'])->setName('shop.cart.update');
+        Router::post('mise-a-jour-du-panier', [$this->shop->cart(), 'handleUpdate'])->setName('shop.cart.update');
 
         // Suppression d'un article du panier
-        Router::get('supprimer-du-panier/{line_key}', [$this->shop->cart(), 'removeHandler'])
+        Router::get('supprimer-du-panier/{line_key}', [$this->shop->cart(), 'handleRemove'])
             ->setName('shop.cart.remove');
 
         // PAIEMENT
         // Traitement de la commande
-        Router::post('shop/checkout/process', [$this->shop->checkout(), 'process'])->setName('shop.checkout.process');
+        Router::post('shop/checkout/process', [$this->shop->checkout(), 'handleProcess'])->setName('shop.checkout.process');
 
         // COMMANDE
         // Validation de paiement

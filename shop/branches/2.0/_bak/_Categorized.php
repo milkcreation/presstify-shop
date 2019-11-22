@@ -8,7 +8,7 @@
  * @copyright Milkcreation
  */
 
-namespace tiFy\Plugins\Shop\Products\ObjectType;
+namespace __tiFy\Plugins\Shop\Products\ObjectType;
 
 use tiFy\Components;
 use tiFy\CustomType\CustomType;

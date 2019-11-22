@@ -120,7 +120,7 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      */
     public function renderCartLine(): string
     {
-        return (string)$this->shop()->viewer('shop/cart/line/purchasing-option', ['option' => $this]);
+        return (string) $this->shop()->viewer('shop/cart/line/purchasing-option', ['option' => $this]);
     }
 
     /**

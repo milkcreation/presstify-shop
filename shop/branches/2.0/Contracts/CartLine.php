@@ -53,9 +53,9 @@ interface CartLine extends ParamsBag, ShopAwareTrait
     /**
      * Récupération des données du produit associé à l'article du panier.
      *
-     * @return Product
+     * @return Product|null
      */
-    public function getProduct(): Product;
+    public function getProduct(): ?Product;
 
     /**
      * Récupération de l'identifiant de qualification du produit associé à l'article du panier.

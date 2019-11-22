@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Support\ParamsBag;
 
-interface CartSessionItems extends ParamsBag, ShopAwareTrait
+interface CartSession extends ParamsBag, ShopAwareTrait
 {
     /**
      * Récupération de l'instance du panier.
@@ -20,19 +20,19 @@ interface CartSessionItems extends ParamsBag, ShopAwareTrait
      *
      * @return void
      */
-    public function destroy($persistent = true): void;
+    public function destroy($persistent = true): CartSession;
 
     /**
      * Retrouve les articles du panier portés par la session.
      *
      * @return void
      */
-    public function fetchCart(): void;
+    public function fetchCart(): CartSession;
 
     /**
      * Mise à jour des données de session.
      *
      * @return void
      */
-    public function update(): void;
+    public function update(): CartSession;
 }

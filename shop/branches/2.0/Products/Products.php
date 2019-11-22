@@ -58,8 +58,6 @@ class Products implements ProductsContract
             }
         }
 
-        $this->shop()->product()::setPostType($this->getObjectTypes());
-
         add_action('save_post', [$this, 'saveWpPost'], 10, 2);
     }
 

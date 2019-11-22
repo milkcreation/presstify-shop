@@ -5,6 +5,7 @@ namespace tiFy\Plugins\Shop\Products\ObjectType;
 use tiFy\Plugins\Shop\Contracts\{ProductObjectType as ProductObjectTypeContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
+use tiFy\Support\Proxy\PostType;
 
 abstract class ObjectType extends ParamsBag implements ProductObjectTypeContract
 {
@@ -36,7 +37,7 @@ abstract class ObjectType extends ParamsBag implements ProductObjectTypeContract
         $this->boot();
 
         add_action('init', function () {
-            post_type()->register($this->getName(), $this->all());
+            PostType::register($this->getName(), $this->all());
 
             $single_meta_keys = [
                 '_sku', '_regular_price', '_sale_price', '_sale_price_dates_from', '_sale_price_dates_to',
@@ -48,7 +49,7 @@ abstract class ObjectType extends ParamsBag implements ProductObjectTypeContract
             ];
 
             foreach ($single_meta_keys as $single_meta_key) {
-                post_type()->post_meta()->register($this->getName(), $single_meta_key, true);
+                PostType::meta()->register($this->getName(), $single_meta_key, true);
             }
         });
     }

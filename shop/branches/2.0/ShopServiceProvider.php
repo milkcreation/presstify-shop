@@ -3,21 +3,61 @@
 namespace tiFy\Plugins\Shop;
 
 use tiFy\Container\ServiceProvider;
-use tiFy\Plugins\Shop\Contracts\{
-    Actions as ActionsContract,
+use tiFy\Plugins\Shop\{Actions\Actions,
+    Addresses\Addresses,
+    Addresses\Billing as AddressesBilling,
+    Addresses\FormHandler as AddressesFormHandler,
+    Addresses\Shipping as AddressesShipping,
+    Admin\Admin,
+    Api\Api,
+    Api\Endpoint\Orders as ApiEndpointOrders,
+    Cart\Cart,
+    Cart\Line as CartLine,
+    Cart\Session as CartSession,
+    Cart\Total as CartTotal,
+    Checkout\Checkout,
+    Functions\Date as FunctionsDate,
+    Functions\Functions,
+    Functions\Page as FunctionsPage,
+    Functions\Price as FunctionsPrice,
+    Functions\Url as FunctionsUrl,
+    Gateways\CashOnDeliveryGateway,
+    Gateways\ChequeGateway,
+    Gateways\Gateways,
+    Notices\Notices,
+    Orders\Order,
+    Orders\OrderItem,
+    Orders\OrderItemCoupon,
+    Orders\OrderItemFee,
+    Orders\OrderItemProduct,
+    Orders\OrderItemShipping,
+    Orders\OrderItemTax,
+    Orders\Orders,
+    Orders\OrdersCollection,
+    Products\ObjectType\Uncategorized as ProductsObjectTypeUncategorized,
+    Products\Product,
+    Products\ProductPurchasingOption,
+    Products\Products,
+    Products\ProductsCollection,
+    Routing\Routes,
+    Session\Session,
+    Settings\Settings,
+    Users\Customer as UserCustomer,
+    Users\ShopManager as UserShopManager,
+    Users\User,
+    Users\Users};
+use tiFy\Plugins\Shop\Contracts\{Actions as ActionsContract,
     AddressBilling as AddressBillingContract,
+    Addresses as AddressesContract,
     AddressFormHandler as AddressFormHandlerContract,
     AddressShipping as AddressShippingContract,
-    Addresses as AddressesContract,
     Admin as AdminContract,
     Api as ApiContract,
     Cart as CartContract,
     CartLine as CartLineContact,
-    CartLinesCollection as CartLinesCollectionContact,
-    CartSessionItems as CartSessionItemsContact,
+    CartSession as CartSessionContact,
     CartTotal as CartTotalContract,
     Checkout as CheckoutContract,
-    CustomTypes as CustomTypesContract,
     Functions as FunctionsContract,
     FunctionsDate as FunctionsDateContract,
     FunctionsPage as FunctionsPageContract,
@@ -28,78 +68,27 @@ use tiFy\Plugins\Shop\Contracts\{
     Notices as NoticeContract,
     Order as OrderContract,
     OrderItem as OrderItemContract,
-    OrderItemTypeCoupon as OrderItemTypeCouponContract,
-    OrderItemTypeFee as OrderItemTypeFeeContract,
-    OrderItemTypeProduct as OrderItemTypeProductContract,
-    OrderItemTypeShipping as OrderItemTypeShippingContract,
-    OrderItemTypeTax as OrderItemTypeTaxContract,
-    OrderItems as OrderItemsContract,
-    OrderItemsCollection as OrderItemsCollectionContract,
+    OrderItemCoupon as OrderItemCouponContract,
+    OrderItemFee as OrderItemFeeContract,
+    OrderItemProduct as OrderItemProductContract,
+    OrderItemShipping as OrderItemShippingContract,
+    OrderItemTax as OrderItemTaxContract,
     Orders as OrdersContract,
     OrdersCollection as OrdersCollectionContract,
     Product as ProductContract,
-    ProductPurchasingOption as ProductPurchasingOptionContract,
     ProductObjectTypeUncategorized,
+    ProductPurchasingOption as ProductPurchasingOptionContract,
     Products as ProductsContract,
     ProductsCollection as ProductsCollectionContract,
     Routes as RoutesContract,
     Session as SessionContract,
     Settings as SettingsContract,
+    Shop as ShopContract,
+    ShopEntity as EntityContract,
     User as UserContract,
     UserCustomer as UserCustomerContract,
-    UserShopManager as UserShopManagerContract,
     Users as UsersContract,
-    Shop as ShopContract
-};
-use tiFy\Plugins\Shop\{
-    Actions\Actions,
-    Addresses\Addresses,
-    Addresses\Billing as AddressesBilling,
-    Addresses\FormHandler as AddressesFormHandler,
-    Addresses\Shipping as AddressesShipping,
-    Admin\Admin,
-    Api\Api,
-    Api\Endpoint\Orders as ApiEndpointOrders,
-    Cart\Cart,
-    Cart\Line as CartLine,
-    Cart\LinesCollection as CartLinesCollection,
-    Cart\SessionItems as CartSessionItems,
-    Cart\Total as CartTotal,
-    Checkout\Checkout,
-    CustomTypes\CustomTypes,
-    Functions\Functions,
-    Functions\Date as FunctionsDate,
-    Functions\Page as FunctionsPage,
-    Functions\Price as FunctionsPrice,
-    Functions\Url as FunctionsUrl,
-    Gateways\CashOnDeliveryGateway,
-    Gateways\ChequeGateway,
-    Gateways\Gateways,
-    Notices\Notices,
-    Orders\Orders,
-    Orders\Order,
-    Orders\OrderItems,
-    Orders\OrderItem,
-    Orders\OrderItemsCollection,
-    Orders\OrderItemTypeCoupon,
-    Orders\OrderItemTypeFee,
-    Orders\OrderItemTypeProduct,
-    Orders\OrderItemTypeShipping,
-    Orders\OrderItemTypeTax,
-    Orders\OrdersCollection,
-    Products\ObjectType\Uncategorized as ProductsObjectTypeUncategorized,
-    Products\Products,
-    Products\Product,
-    Products\ProductsCollection,
-    Products\ProductPurchasingOption,
-    Routing\Routes,
-    Session\Session,
-    Settings\Settings,
-    Users\Customer as UserCustomer,
-    Users\ShopManager as UserShopManager,
-    Users\User,
-    Users\Users
-};
+    UserShopManager as UserShopManagerContract,};
 
 class ShopServiceProvider extends ServiceProvider
 {
@@ -119,10 +108,10 @@ class ShopServiceProvider extends ServiceProvider
         'shop.api.endpoint.orders'                => ApiEndpointOrders::class,
         'shop.cart'                               => Cart::class,
         'shop.cart.line'                          => CartLine::class,
-        'shop.cart.lines.collection'              => CartLinesCollection::class,
-        'shop.cart.session-items'                 => CartSessionItems::class,
+        'shop.cart.session'                       => CartSession::class,
         'shop.cart.total'                         => CartTotal::class,
         'shop.checkout'                           => Checkout::class,
+        'shop.entity'                             => ShopEntity::class,
         'shop.functions'                          => Functions::class,
         'shop.functions.date'                     => FunctionsDate::class,
         'shop.functions.page'                     => FunctionsPage::class,
@@ -132,16 +121,13 @@ class ShopServiceProvider extends ServiceProvider
         'shop.gateway.cheque'                     => ChequeGateway::class,
         'shop.gateways'                           => Gateways::class,
         'shop.notices'                            => Notices::class,
-        'shop.custom-types'                       => CustomTypes::class,
         'shop.order'                              => Order::class,
         'shop.order.item'                         => OrderItem::class,
-        'shop.order.item.type.coupon'             => OrderItemTypeCoupon::class,
-        'shop.order.item.type.fee'                => OrderItemTypeFee::class,
-        'shop.order.item.type.product'            => OrderItemTypeProduct::class,
-        'shop.order.item.type.shipping'           => OrderItemTypeShipping::class,
-        'shop.order.item.type.tax'                => OrderItemTypeTax::class,
-        'shop.order.items'                        => OrderItems::class,
-        'shop.order.items.collection'             => OrderItemsCollection::class,
+        'shop.order.item.coupon'                  => OrderItemCoupon::class,
+        'shop.order.item.fee'                     => OrderItemFee::class,
+        'shop.order.item.product'                 => OrderItemProduct::class,
+        'shop.order.item.shipping'                => OrderItemShipping::class,
+        'shop.order.item.tax'                     => OrderItemTax::class,
         'shop.orders'                             => Orders::class,
         'shop.orders.collection'                  => OrdersCollection::class,
         'shop.product'                            => Product::class,
@@ -175,7 +161,7 @@ class ShopServiceProvider extends ServiceProvider
         'api',
         'cart',
         'checkout',
-        'custom-types',
+        'entity',
         'functions',
         'gateways',
         'notices',
@@ -261,7 +247,7 @@ class ShopServiceProvider extends ServiceProvider
         $this->registerApi();
         $this->registerCart();
         $this->registerCheckout();
-        $this->registerCustomTypes();
+        $this->registerEntity();
         $this->registerFunctions();
         $this->registerGateways();
         $this->registerNotices();
@@ -392,38 +378,29 @@ class ShopServiceProvider extends ServiceProvider
             return $instance;
         });
 
-        $this->getContainer()->add('shop.cart.line', function (): CartLineContact {
+        $this->getContainer()->add('shop.cart.line', function (CartContract $cart): CartLineContact {
             $concrete = $this->getConcrete('shop.cart.line');
 
             /** @var CartLineContact $instance */
-            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+            $instance = is_object($concrete) ? $concrete : new $concrete($cart);
 
             return $instance;
         });
 
-        $this->getContainer()->add('shop.cart.lines.collection', function (): CartLinesCollectionContact {
-            $concrete = $this->getConcrete('shop.cart.lines.collection');
+        $this->getContainer()->share('shop.cart.session', function (): CartSessionContact {
+            $concrete = $this->getConcrete('shop.cart.session');
 
-            /** @var CartLinesCollectionContact $instance */
-            $instance = is_object($concrete) ? $concrete : new $concrete();
-
-            return $instance->setShop($this->getContainer()->get('shop'));
-        });
-
-        $this->getContainer()->share('shop.cart.session-items', function (): CartSessionItemsContact {
-            $concrete = $this->getConcrete('shop.cart.session-items');
-
-            /** @var CartSessionItemsContact $instance */
-            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+            /** @var CartSessionContact $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop.cart'));
 
             return $instance->parse();
         });
 
-        $this->getContainer()->add('shop.cart.total', function (): CartTotalContract {
+        $this->getContainer()->add('shop.cart.total', function (CartContract $cart): CartTotalContract {
             $concrete = $this->getConcrete('shop.cart.total');
 
             /** @var CartTotalContract $instance */
-            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+            $instance = is_object($concrete) ? $concrete : new $concrete($cart);
 
             return $instance;
         });
@@ -451,12 +428,12 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function registerCustomTypes(): void
+    public function registerEntity(): void
     {
-        $this->getContainer()->share('shop.custom-types', function (): CustomTypesContract {
-            $concrete = $this->getConcrete('shop.custom-types');
+        $this->getContainer()->share('shop.entity', function (): EntityContract {
+            $concrete = $this->getConcrete('shop.entity');
 
-            /** @var CustomTypesContract $instance */
+            /** @var EntityContract $instance */
             $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
 
             return $instance;
@@ -479,13 +456,13 @@ class ShopServiceProvider extends ServiceProvider
             return $instance;
         });
 
-        $this->getContainer()->add('shop.functions.date', function (): FunctionsDateContract {
+        $this->getContainer()->add('shop.functions.date', function (...$args): FunctionsDateContract {
             $concrete = $this->getConcrete('shop.functions.date');
 
             /** @var FunctionsDateContract $instance */
-            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
+            $instance = is_object($concrete) ? $concrete : new $concrete(...$args);
 
-            return $instance;
+            return $instance->setShop($this->getContainer()->get('shop'));
         });
 
         $this->getContainer()->share('shop.functions.page', function (): FunctionsPageContract {
@@ -575,7 +552,7 @@ class ShopServiceProvider extends ServiceProvider
      */
     public function registerOrders(): void
     {
-        $this->getContainer()->add('shop.order', function ($id = null): OrderContract {
+        $this->getContainer()->add('shop.order', function ($id = null): ?OrderContract {
             $concrete = $this->getConcrete('shop.order');
 
             /** @var OrderContract $instance */
@@ -583,27 +560,6 @@ class ShopServiceProvider extends ServiceProvider
 
             return is_null($id) ? $instance : $instance::create($id);
         });
-
-        $this->getContainer()->add('shop.order.items', function (OrderContract $order): OrderItemsContract {
-            $concrete = $this->getConcrete('shop.order.items');
-
-            /** @var OrderItemsContract $instance */
-            $instance = is_object($concrete) ? $concrete : new $concrete($order);
-
-            return $instance;
-        });
-
-        $this->getContainer()->add(
-            'shop.order.items.collection',
-            function (OrderContract $order): OrderItemsCollectionContract {
-                $concrete = $this->getConcrete('shop.order.items.collection');
-
-                /** @var OrderItemsCollectionContract $instance */
-                $instance = is_object($concrete) ? $concrete : new $concrete($order);
-
-                return $instance;
-            }
-        );
 
         $this->getContainer()->add('shop.order.item', function (OrderContract $order): OrderItemContract {
             $concrete = $this->getConcrete('shop.order.item');
@@ -614,63 +570,54 @@ class ShopServiceProvider extends ServiceProvider
             return $instance;
         });
 
-        $this->getContainer()->add(
-            'shop.order.item.coupon',
-            function (OrderItemContract $item): OrderItemTypeCouponContract {
-                $concrete = $this->getConcrete('shop.order.item.coupon');
+        $this->getContainer()->add('shop.order.item.coupon', function (OrderContract $order): OrderItemCouponContract {
+            $concrete = $this->getConcrete('shop.order.item.coupon');
 
-                /** @var OrderItemTypeCouponContract $instance */
-                $instance = is_object($concrete) ? $concrete : new $concrete($item);
+            /** @var OrderItemCouponContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($order);
 
-                return $instance;
-            }
-        );
+            return $instance;
+        });
 
-        $this->getContainer()->add(
-            'shop.order.item.fee',
-            function (OrderItemContract $item): OrderItemTypeFeeContract {
-                $concrete = $this->getConcrete('shop.order.item.fee');
+        $this->getContainer()->add('shop.order.item.fee', function (OrderContract $order): OrderItemFeeContract {
+            $concrete = $this->getConcrete('shop.order.item.fee');
 
-                /** @var OrderItemTypeFeeContract $instance */
-                $instance = is_object($concrete) ? $concrete : new $concrete($item);
+            /** @var OrderItemFeeContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($order);
 
-                return $instance;
-            });
+            return $instance;
+        });
 
-        $this->getContainer()->add(
-            'shop.order.item.product',
-            function (OrderItemContract $item): OrderItemTypeProductContract {
+        $this->getContainer()->add('shop.order.item.product',
+            function (OrderContract $order): OrderItemProductContract {
                 $concrete = $this->getConcrete('shop.order.item.product');
 
-                /** @var OrderItemTypeProductContract $instance */
-                $instance = is_object($concrete) ? $concrete : new $concrete($item);
+                /** @var OrderItemProductContract $instance */
+                $instance = is_object($concrete) ? $concrete : new $concrete($order);
 
                 return $instance;
             }
         );
 
-        $this->getContainer()->add(
-            'shop.order.item.shipping',
-            function (OrderItemContract $item): OrderItemTypeShippingContract {
+        $this->getContainer()->add('shop.order.item.shipping',
+            function (OrderContract $order): OrderItemShippingContract {
                 $concrete = $this->getConcrete('shop.order.item.shipping');
 
-                /** @var OrderItemTypeShippingContract $instance */
-                $instance = is_object($concrete) ? $concrete : new $concrete($item);
+                /** @var OrderItemShippingContract $instance */
+                $instance = is_object($concrete) ? $concrete : new $concrete($order);
 
                 return $instance;
             }
         );
 
-        $this->getContainer()->add(
-            'shop.order.item.tax',
-            function (OrderItemContract $item): OrderItemTypeTaxContract {
-                $concrete = $this->getConcrete('shop.order.item.tax');
+        $this->getContainer()->add('shop.order.item.tax', function (OrderContract $order): OrderItemTaxContract {
+            $concrete = $this->getConcrete('shop.order.item.tax');
 
-                /** @var OrderItemTypeTaxContract $instance */
-                $instance = is_object($concrete) ? $concrete : new $concrete($item);
+            /** @var OrderItemTaxContract $instance */
+            $instance = is_object($concrete) ? $concrete : new $concrete($order);
 
-                return $instance;
-            }
+            return $instance;
+        }
         );
 
         $this->getContainer()->share('shop.orders', function (): OrdersContract {
@@ -831,7 +778,7 @@ class ShopServiceProvider extends ServiceProvider
             return is_null($id) ? $instance : $instance::create($id);
         });
 
-        $this->getContainer()->add('shop.user', function ($id = null): UserContract {
+        $this->getContainer()->add('shop.user', function ($id = null): ?UserContract {
             $concrete = $this->getConcrete('shop.user');
 
             /** @var UserContract $instance */
@@ -859,14 +806,18 @@ class ShopServiceProvider extends ServiceProvider
     {
         $this->getContainer()->share('shop.viewer', function () {
             $default_dir = __DIR__ . '/Resources/views';
-            return view()
+
+            $view = view()
                 ->setDirectory($default_dir)
                 ->setController(config('shop.viewer.controller') ?: ShopViewController::class)
                 ->setOverrideDir(($dir = config('shop.viewer.override_dir')) && is_dir($dir)
                     ? $dir
                     : $default_dir
-                )
-                ->set('shop', $this->shop);
+                );
+
+            $view->params(['shop' => $this->shop]);
+
+            return $view;
         });
     }
 }

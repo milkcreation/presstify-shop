@@ -32,9 +32,7 @@ return [
     ],
 
     // @var array $login Déclarations attributs de configuration de l'interface d'authentification à la boutique
-    // @todo Surchage provider + inclusion de attributs de configuration dans users
     'signin'           => [
-        'controller'   => SignInController::class,
         'form'         => [
             'class'  => 'tiFyForm-Container--login',
             'fields' => [
@@ -72,11 +70,7 @@ return [
     'products'         => [
         // @var string $post_type Identifiant de qualification du type de post de la gamme de produit
         'product' => [
-            // @var $item_controller Controleur de récupération des données d'un produit
-            'item_controller' => ProductItem::class,
-
             // @var bool|string Liste des attributs de configuration du type de post
-            // @see \tiFy\CustomType\CustomType\README.md
 
             // @var string $singular Intitulé d'un élément de la gamme
             'singular'        => __('Produit', 'theme'),
@@ -91,7 +85,6 @@ return [
             /*
                 [
                     // Liste des attributs de configuration de la taxonomy
-                    // @see wp-content/mu-plugins/docs/core/CustomType/README.md
                     'taxonomy' => 'product_cat'
                 ]
             */,
@@ -124,12 +117,10 @@ return [
     ],
 
     // @var array $roles Déclarations des roles et habilitations de la boutique
-    // @todo Surchage provider + inclusion de attributs de configuration dans users
     'roles'            => [
         // @var string $id Identifiant de qualification d'un rôle ex. Gestionnaire boutique
         'shop_manager' => [
             // @var bool|string Liste des attributs de configuration du rôle
-            // @see \tiFy\CustomType\CustomType\README.md
 
             // @var string $display_name Nom d'affichage
             'display_name' => __('Gestionnaire boutique', 'theme'),
@@ -155,7 +146,6 @@ return [
         // @var string $id Identifiant de qualification d'un rôle ex. Gestionnaire boutique
         'customer'     => [
             // @var bool|string Liste des attributs de configuration du rôle
-            // @see \tiFy\CustomType\CustomType\README.md
 
             // @var string $display_name Nom d'affichage
             'display_name' => __('Client', 'theme'),

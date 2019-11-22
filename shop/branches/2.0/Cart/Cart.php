@@ -2,15 +2,8 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use Illuminate\Support\Arr;
-use tiFy\Plugins\Shop\Contracts\{Cart as CartContract,
-    CartLine,
-    CartLinesCollection,
-    CartSessionItems,
-    CartTotal,
-    Product,
-    Shop
-};
+use Illuminate\Support\{Arr, Collection};
+use tiFy\Plugins\Shop\Contracts\{Cart as CartContract, CartLine, CartSession, CartTotal, Product, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{MessagesBag, Proxy\Redirect, Proxy\Request, Proxy\Router};
 
@@ -19,10 +12,10 @@ class Cart implements CartContract
     use ShopAwareTrait;
 
     /**
-     * Instance de la liste des lignes du panier.
-     * @var CartLinesCollection|CartLine[]
+     * Instances des lignes du panier.
+     * @var CartLine[]|array
      */
-    protected $lines;
+    protected $lines = [];
 
     /**
      * Liste des messages de notification.
@@ -32,9 +25,9 @@ class Cart implements CartContract
 
     /**
      * Instance de gestion des données du panier enregistré en session.
-     * @var CartSessionItems
+     * @var CartSession
      */
-    protected $sessionItems;
+    protected $session;
 
     /**
      * Instance de calcul des totaux.
@@ -56,18 +49,24 @@ class Cart implements CartContract
         $this->boot();
 
         add_action('after_setup_theme', function () {
-            $this->sessionItems();
-            $this->initNotices();
+            $this->session();
+
+            $this->notices = array_merge([
+                'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
+                'successfully_updated' => __('Votre panier a été mis à jour avec succès.', 'tify'),
+                'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
+                'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify'),
+            ], $this->shop()->config('cart.notices', []));
         }, 25);
 
         add_action('init', function () {
-            $this->sessionItems()->fetchCart();
+            $this->session()->fetchCart();
         }, 999999);
 
         add_action('get_header', function () {
             if (
                 $this->shop()->functions()->page()->isCart() &&
-                !$this->lines()->count() &&
+                !$this->count() &&
                 ($message = $this->getNotice('is_empty'))
             ) {
                 $this->shop()->notices()->add($message, 'info');
@@ -85,7 +84,7 @@ class Cart implements CartContract
      */
     public function add(string $key, array $attributes): CartContract
     {
-        $this->lines()->put($key, $this->shop()->resolve('cart.line')->set($attributes)->parse());
+        $this->lines[$key] = $this->shop()->resolve('cart.line', [$this])->set($attributes)->parse();
 
         return $this;
     }
@@ -93,12 +92,93 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function addHandler($product_name)
+    public function all(): array
+    {
+        return $this->lines;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addUrl($product): string
+    {
+        if (!$product instanceof Product) {
+            $product = $this->shop()->product($product);
+        }
+
+        return ($product instanceof Product) ? Router::url('shop.cart.add', [$product->getSlug()]) : '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function calculate(): CartTotal
+    {
+        return $this->total = $this->shop()->resolve('cart.total', [$this]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function count(): int
+    {
+        return $this->collect()->count();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function collect(): Collection
+    {
+        return new Collection($this->all());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function destroy(): CartContract
+    {
+        $this->flush()->calculate();
+        $this->session()->destroy();
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function flush(): CartContract
+    {
+        $this->lines = [];
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get(string $key): ?CartLine
+    {
+        return $this->lines[$key] ?? null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getNotice(string $name, string $default = ''): string
+    {
+        return Arr::get($this->notices, $name, $default);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handleAdd(string $product_name)
     {
         $notices = new MessagesBag();
         $redirect = Request::header('referer', get_home_url());
 
-        if (!$product = $this->shop()->products()->get($product_name)) {
+        if (!$product = $this->shop()->product($product_name)) {
             // > Produit inexistant.
             $notices->error(__('Le produit n\'existe pas.', 'tify'));
         } elseif (!$quantity = Request::instance()->request->getInt('quantity', 1)) {
@@ -113,7 +193,7 @@ class Cart implements CartContract
 
             // Identification de la ligne du panier (doit contenir toutes les options d'unicité).
             $key = md5(implode('_', [$product->getid(), maybe_serialize($purchasing_options)]));
-            if ($exists = $this->line($key)) {
+            if ($exists = $this->get($key)) {
                 $quantity += $exists->getQuantity();
             }
 
@@ -125,7 +205,7 @@ class Cart implements CartContract
             ));
 
             // Mise à jour des données de session
-            $this->sessionItems()->update();
+            $this->session()->update();
 
             $notices->success(
                 $this->getNotice('successfully_added')
@@ -146,98 +226,61 @@ class Cart implements CartContract
             }
         }
 
-        if ($redirect) {
-            return Redirect::to($redirect);
+        return $redirect ? Redirect::to($redirect) : null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handleUpdate()
+    {
+        if ($lines = Request::input('cart', [])) {
+            foreach ($lines as $key => $attributes) {
+                if (!$attributes['quantity'] ?? 0) {
+                    $this->remove($key);
+                } else {
+                    $this->update($key, $attributes);
+                }
+            }
+
+            $this->session()->update();
+
+            if ($message = $this->getNotice('successfully_updated')) {
+                $this->shop()->notices()->add($message);
+            }
+        }
+
+        if ($redirect = Request::input('_wp_http_referer', '')) {
+        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
         } else {
-            return null;
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function addUrl($product): string
-    {
-        if (!$product instanceof Product) {
-            $product = $this->shop()->products()->getItem($product);
+            $redirect = wp_get_referer();
         }
 
-        return ($product instanceof Product) ? Router::url('shop.cart.add', [$product->getSlug()]) : '';
+        wp_redirect(($redirect ?: get_home_url()));
+        exit;
     }
 
     /**
      * @inheritDoc
      */
-    public function calculate(): CartTotal
+    public function handleRemove(string $key)
     {
-        return $this->total = $this->shop()->resolve('cart.total');
-    }
+        if ($this->remove($key)) {
+            $this->session()->update();
 
-    /**
-     * @inheritDoc
-     */
-    public function count(): int
-    {
-        return $this->lines()->count();
-    }
+            if ($message = $this->getNotice('successfully_removed')) {
+                $this->shop()->notices()->add($message);
+            }
+        }
 
-    /**
-     * @inheritDoc
-     */
-    public function countQuantity(): int
-    {
-        return $this->lines()->sum(function (CartLine $item) {
-            return is_numeric($item['quantity']) ? $item['quantity'] : 0;
-        });
-    }
+        if ($redirect = Request::input('_wp_http_referer', '')) {
+        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
+        } else {
+            $redirect = wp_get_referer();
+        }
 
-    /**
-     * @inheritDoc
-     */
-    public function destroy(): void
-    {
-        $this->flush();
-        $this->calculate();
-        $this->sessionItems()->destroy();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function flush(): void
-    {
-        $this->lines = $this->shop()->resolve('cart.lines.collection')->flush();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getProductsWeight(): float
-    {
-        return $this->lines()->sum(function (CartLine $item) {
-            return (float)$item->getProduct()->getWeight() * $item->getQuantity();
-        });
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getNotice(string $name, string $default = ''): string
-    {
-        return Arr::get($this->notices, $name, $default);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function initNotices(): void
-    {
-        $this->notices = array_merge([
-            'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
-            'successfully_updated' => __('Votre panier a été mis à jour avec succès.', 'tify'),
-            'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
-            'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify'),
-        ], $this->shop()->config('cart.notices', []));
+        wp_redirect(($redirect ?: get_home_url()));
+        exit;
     }
 
     /**
@@ -245,27 +288,7 @@ class Cart implements CartContract
      */
     public function isEmpty(): bool
     {
-        return $this->lines()->isEmpty();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function line($key): ?CartLine
-    {
-        return $this->lines()->get($key);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function lines(): CartLinesCollection
-    {
-        if (is_null($this->lines)) {
-            $this->lines = $this->shop()->resolve('cart.lines.collection')->flush();
-        }
-
-        return $this->lines;
+        return empty($this->all());
     }
 
     /**
@@ -287,48 +310,29 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
+    public function quantity(): int
+    {
+        return $this->collect()->sum(function (CartLine $item) {
+            return is_numeric($item['quantity']) ? $item['quantity'] : 0;
+        });
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function remove(string $key)
     {
-        return $this->lines()->pull($key);
+        unset($this->lines[$key]);
+
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function removeHandler(string $key)
+    public function session(): CartSession
     {
-        if ($this->remove($key)) {
-            $this->sessionItems()->update();
-
-            if ($message = $this->getNotice('successfully_removed')) {
-                $this->shop()->notices()->add($message);
-            }
-        }
-
-        if ($redirect = Request::input('_wp_http_referer', '')) {
-        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
-        } else {
-            $redirect = wp_get_referer();
-        }
-
-        wp_redirect(($redirect ?: get_home_url()));
-        exit;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function removeUrl(string $key): string
-    {
-        return Router::url('shop.cart.remove', [$key]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function sessionItems(): CartSessionItems
-    {
-        return $this->shop()->resolve('cart.session-items', [$this, $this->shop]);
+        return $this->shop()->resolve('cart.session', [$this]);
     }
 
     /**
@@ -342,17 +346,17 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function update(string $key, array $attributes): CartLinesCollection
+    public function update(string $key, array $attributes): CartContract
     {
-        if ($line = $this->line($key)) {
-            foreach ($attributes as $key => $value) {
-                $line[$key] = $value;
+        if ($line = $this->get($key)) {
+            foreach ($attributes as $k => $v) {
+                $line[$k] = $v;
             }
 
-            $this->lines()->merge([$key => $line]);
+            $this->lines[$key] = $line;
         }
 
-        return $this->lines();
+        return $this;
     }
 
     /**
@@ -366,34 +370,10 @@ class Cart implements CartContract
     /**
      * @inheritDoc
      */
-    public function updateHandler()
+    public function weight(): float
     {
-        $request = request();
-
-        if ($lines = $request->request->get('cart')) {
-            foreach ($lines as $key => $attributes) {
-                if (!$attributes['quantity'] ?? 0) {
-                    $this->remove($key);
-                } else {
-                    $this->update($key, $attributes);
-                }
-            }
-
-            $this->sessionItems()->update();
-
-            if ($message = $this->getNotice('successfully_updated')) {
-                $this->shop()->notices()->add($message);
-            }
-        }
-
-        // Définition de l'url de redirection
-        if ($redirect = $request->request->get('_wp_http_referer', '')) {
-        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
-        } else {
-            $redirect = wp_get_referer();
-        }
-
-        wp_redirect(($redirect ?: get_home_url()));
-        exit;
+        return $this->collect()->sum(function (CartLine $item) {
+            return (float)$item->getProduct()->getWeight() * $item->getQuantity();
+        });
     }
 }

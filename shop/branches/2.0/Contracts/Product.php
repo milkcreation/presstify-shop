@@ -21,142 +21,142 @@ interface Product extends QueryPost, ShopAwareTrait
      *
      * @return array
      */
-    public function getAttributes();
+    public function getAttributes(): array;
 
     /**
      * Récupération des produits de la composition.
      *
-     * @return ProductsCollection|array
+     * @return static[]|array
      */
-    public function getCompositionProducts();
+    public function getCompositionProducts(): array;
 
     /**
      * Récupération des produits du groupe.
      *
-     * @return ProductsCollection|array
+     * @return static[]|array
      */
-    public function getGroupedProducts();
+    public function getGroupedProducts(): array;
 
     /**
      * Récupération de la liste des types de produit.
      *
      * @return ProductObjectType
      */
-    public function getProductObjectType();
+    public function getProductObjectType(): ProductObjectType;
 
     /**
      * Récupération du la liste des étiquettes associées.
      *
-     * @return WP_Term|array
+     * @return WP_Term[]|array
      */
-    public function getProductTags();
-
-    /**
-     * Récupération de la liste des types de produit.
-     *
-     * @return array
-     */
-    public function getProductTypes();
+    public function getProductTags(): array;
 
     /**
      * Récupération du type de produit.
      *
      * @return string
      */
-    public function getProductType();
+    public function getProductType(): string;
 
     /**
-     * Récupération des attribut option d'achat.
+     * Récupération de la liste des types de produit.
+     *
+     * @return array
+     */
+    public function getProductTypes(): array;
+
+    /**
+     * Récupération de l'instance d'une option d'achat.
      *
      * @param string $name Identifiant de qualification de l'option d'achat.
      *
      * @return ProductPurchasingOption
      */
-    public function getPurchasingOption($name);
+    public function getPurchasingOption(string $name): ?ProductPurchasingOption;
 
     /**
-     * Récupération de la liste des options d'achat.
+     * Récupération de la liste des instance d'options d'achat.
      *
-     * @return array|ProductPurchasingOption[]
+     * @return ProductPurchasingOption[]|array
      */
-    public function getPurchasingOptions();
+    public function getPurchasingOptions(): array;
 
     /**
      * Récupération du prix de vente.
      *
      * @return float
      */
-    public function getRegularPrice();
+    public function getRegularPrice(): float;
 
     /**
      * Récupération de l'Unité de Gestion de Stock (SKU).
      *
      * @return string
      */
-    public function getSku();
+    public function getSku(): string;
 
     /**
      * Récupération des produits de montée en gamme.
      *
-     * @return string[]
+     * @return static[]|array
      */
-    public function getUpsellProducts();
+    public function getUpsellProducts(): array;
 
     /**
      * Récupération du poids.
      *
      * @return float
      */
-    public function getWeight();
+    public function getWeight(): float;
 
     /**
      * Vérifie si un produit est téléchargeable.
      *
-     * @return bool
+     * @return boolean
      */
-    public function isDownloadable();
+    public function isDownloadable(): bool;
 
     /**
      * Vérifie si un produit est mis en avant.
      *
-     * @return bool
+     * @return boolean
      */
-    public function isFeatured();
+    public function isFeatured(): bool;
 
     /**
      * Vérifie si un produit est en stock.
      *
-     * @return bool
+     * @return boolean
      */
-    public function isInStock();
+    public function isInStock(): bool;
 
     /**
      * Vérifie si le type de produit correspond au type fourni.
      *
-     * @param string $type Type de produit à vérifier
+     * @param string $type Type de produit à vérifier.
      *
      * @return boolean
      */
-    public function isProductType($type);
+    public function isProductType(string $type): bool;
 
     /**
      * Vérifie si un produit est en droit d'être commandé.
      *
-     * @return bool
+     * @return boolean
      */
-    public function isPurchasable();
+    public function isPurchasable(): bool;
 
     /**
      * Vérifie si un produit est dématérialisé (virtuel).
      *
-     * @return bool
+     * @return boolean
      */
-    public function isVirtual();
+    public function isVirtual(): bool;
 
     /**
      * Récupération du prix de vente affiché.
      *
      * @return string
      */
-    public function salePriceDisplay();
+    public function salePriceDisplay(): string;
 }

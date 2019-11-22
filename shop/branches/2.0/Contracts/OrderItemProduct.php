@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Support\ParamsBag;
 
-interface OrderItemTypeProduct extends OrderItemType
+interface OrderItemProduct extends OrderItem
 {
     /**
      * Récupération de la classe de rappel du produit associé.

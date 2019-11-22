@@ -3,7 +3,6 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use WP_Post;
-use WP_Query;
 
 interface Orders extends ShopAwareTrait
 {
@@ -60,18 +59,11 @@ interface Orders extends ShopAwareTrait
     public function getPaymentValidStatuses(): array;
 
     /**
-     * Récupération de la liste déclaration de statut de commande.
-     *
-     * @return array
-     */
-    public function getRegisteredStatuses(): array;
-
-    /**
-     * Récupération de la liste des statuts en relation avec les post.
+     * Récupération de la liste des statuts en de commande déclarés.
      *
      * @return string[]
      */
-    public function getRelPostStatuses(): array;
+    public function getRegisteredStatuses(): array;
 
     /**
      * Récupération de la liste des status.
@@ -101,6 +93,15 @@ interface Orders extends ShopAwareTrait
     public function handlePaymentComplete(int $order_id);
 
     /**
+     * Vérifie si un statut correspond aux statuts de commandes.
+     *
+     * @param string $status Identifiant de qualification du statut à contrôler.
+     *
+     * @return boolean
+     */
+    public function hasStatus(string $status): bool;
+
+    /**
      * Vérifie d'intégrité d'une commande.
      *
      * @param mixed $order
@@ -108,22 +109,6 @@ interface Orders extends ShopAwareTrait
      * @return boolean
      */
     public function is($order): bool;
-
-    /**
-     * Vérifie si un statut correspond aux statuts de commandes.
-     *
-     * @param string $status Identifiant de qualification du statut à contrôler.
-     *
-     * @return boolean
-     */
-    public function isStatus(string $status): bool;
-
-    /**
-     * Initialisation globale de Wordpress.
-     *
-     * @return void
-     */
-    public function onInit(): void;
 
     /**
      * Evénement lancé à l'issue du paiement.
@@ -135,9 +120,9 @@ interface Orders extends ShopAwareTrait
     /**
      * Récupération des données d'une liste d'élément selon des critères de requête.
      *
-     * @param array|WP_Query|null $query_args Liste des arguments de requête
+     * @param array $args Liste des arguments de requête
      *
-     * @return OrdersCollection|Order[]
+     * @return Order[]|array
      */
-    public function query($query_args = null): OrdersCollection;
+    public function query(array $args = []): array;
 }

@@ -59,7 +59,7 @@ abstract class OrderItemType extends ParamsBag implements OrderItemTypeContract
         $this->order = $order;
         $this->shop = $shop;
 
-        parent::__construct($this->attributes);
+        //parent::__construct($this->attributes);
 
         if ($item instanceof OrderItem) {
             $this->setDatas($item);

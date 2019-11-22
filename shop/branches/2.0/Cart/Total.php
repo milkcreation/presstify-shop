@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{Cart, CartTotal as CartTotalContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Cart, CartTotal as CartTotalContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
 
@@ -11,19 +11,27 @@ class Total extends ParamsBag implements CartTotalContract
     use ShopAwareTrait;
 
     /**
+     * Instance du panier de commande associé.
+     * @var Cart
+     */
+    protected $cart;
+
+    /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Instance de la boutique.
+     * @param Cart $cart
      *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct(Cart $cart)
     {
-        $this->setShop($shop);
+        $this->cart = $cart;
+
+        $this->setShop($this->cart->shop());
 
         $this->parse();
 
-        if ($lines = $this->cart()->lines()) {
+        if ($lines = $this->cart()->all()) {
             foreach ($lines as $line) {
                 // Sous-totaux
                 $line['line_tax_data'] = ['subtotal' => []];
@@ -39,15 +47,17 @@ class Total extends ParamsBag implements CartTotalContract
             //array_map( 'round', array_values( wp_list_pluck( $this->items, 'subtotal' ) ) ) ) );
 
             // Calcul des sous-totaux
-            $this['lines_subtotal'] = $lines->sum('line_subtotal');
-            $this['lines_subtotal_tax'] = $lines->sum('line_subtotal_tax');
+            $this['lines_subtotal'] = $this->cart()->collect()->sum('line_subtotal');
+            $this['lines_subtotal_tax'] = $this->cart()->collect()->sum('line_subtotal_tax');
 
             // Calcul des totaux
-            $this['lines_total'] = $lines->sum('line_total');
-            $this['lines_total_tax'] = $lines->sum('line_tax');
+            $this['lines_total'] = $this->cart()->collect()->sum('line_total');
+            $this['lines_total_tax'] = $this->cart()->collect()->sum('line_tax');
 
             $this['total'] = $this['lines_total'] + $this['fee_total'] + $this['shipping_total'];
         }
+
+        $this->boot();
     }
 
     /**
@@ -61,9 +71,14 @@ class Total extends ParamsBag implements CartTotalContract
     /**
      * @inheritDoc
      */
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
     public function cart(): Cart
     {
-        return $this->shop()->resolve('cart');
+        return $this->cart;
     }
 
     /**

@@ -50,22 +50,12 @@ class Session implements SessionContract
      *
      * @throws BadMethodCallException
      */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments)
     {
         try {
             return $this->store->$name(...$arguments);
         } catch (Exception $e) {
             throw new BadMethodCallException(sprintf(__('La méthode %s n\'est pas disponible.', 'tify'), $name));
         }
-    }
-
-    /**
-     * Appel de la classe responsable du traitement à l'invocation de la classe.
-     *
-     * @return Store
-     */
-    public function __invoke(): Store
-    {
-        return $this->store;
     }
 }

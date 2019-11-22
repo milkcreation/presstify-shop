@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Admin\ListTable;
 
 use tiFy\Contracts\Column\Column;
 use tiFy\Plugins\Shop\Contracts\{ProductObjectType, Shop};
-use tiFy\Plugins\Shop\Products\ObjectType\{Categorized, Uncategorized};
+use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_Screen;
 
@@ -20,7 +20,7 @@ class ListTable
 
     /**
      * Instance du type de produit.
-     * @var Categorized|Uncategorized
+     * @var Uncategorized
      */
     private $objectType;
 

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace tiFy\Plugins\Shop\Cart;
+namespace __tiFy\Plugins\Shop\Cart;
 
 use Illuminate\Support\Collection;
 use tiFy\Plugins\Shop\Contracts\{CartLine, CartLinesCollection as CartLinesCollectionContract};

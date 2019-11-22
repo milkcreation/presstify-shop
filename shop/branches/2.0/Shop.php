@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop;
 
 use Exception;
-use Psr\Container\ContainerInterface as Container;
+use tiFy\Contracts\Container\Container;
 use tiFy\Contracts\View\ViewController;
 use tiFy\Contracts\View\ViewEngine;
 use tiFy\Plugins\Shop\Contracts\{
@@ -14,12 +14,14 @@ use tiFy\Plugins\Shop\Contracts\{
     Functions,
     Gateways,
     Notices,
+    Order,
     Orders,
     Product,
     Products,
     Session,
     Settings,
     Shop as ShopContract,
+    ShopEntity as ShopEntityContract,
     User,
     Users
 };
@@ -101,12 +103,10 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      */
-    public function action($alias, $parameters = [], $absolute = false): string
+    public function action(string $alias, array $parameters = [], bool $absolute = false): string
     {
         /** @var Actions $actions */
-        return ($actions = app('shop.actions'))
-            ? $actions->url($alias, $parameters, $absolute)
-            : '';
+        return ($actions = $this->resolve('actions')) ? $actions->url($alias, $parameters, $absolute) : '';
     }
 
     /**
@@ -136,9 +136,17 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      */
-    public function config($key = null, $default = '')
+    public function config($key = null, $default = null)
     {
         return config($key ? "shop.{$key}" : 'shop', $default);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function entity(): ShopEntityContract
+    {
+        return $this->resolve('entity');
     }
 
     /**
@@ -168,9 +176,20 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      */
-    public function orders(): Orders
+    public function order($id = null): ?Order
     {
-        return $this->resolve('orders');
+        return $this->resolve('order', [$id]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orders(?array $args = null)
+    {
+        /** @var Orders $orders */
+        $orders = $this->resolve('orders');
+
+        return is_null($args) ? $orders : $orders->query($args);
     }
 
     /**
@@ -211,15 +230,23 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      */
-    public function resolve($alias, ...$args)
+    public function resolve(string $alias, ...$args)
     {
-        return app("shop.{$alias}", ...$args);
+        return $this->getContainer()->get("shop.{$alias}", ...$args);
     }
 
     /**
      * @inheritDoc
      */
-    public function resourcesDir($path = ''): string
+    public function resolvable(string $alias): bool
+    {
+        return $this->getContainer()->has("shop.{$alias}");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function resourcesDir(string $path = ''): string
     {
         $path = '/Resources/' . ltrim($path, '/');
 
@@ -229,7 +256,7 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      */
-    public function resourcesUrl($path = ''): string
+    public function resourcesUrl(string $path = ''): string
     {
         $cinfo = class_info($this);
         $path = '/Resources/' . ltrim($path, '/');
@@ -274,7 +301,7 @@ class Shop implements ShopContract
      *
      * @return ViewController|ViewEngine
      */
-    public function viewer($view = null, $data = [])
+    public function viewer(?string $view = null, $data = [])
     {
         /** @var ViewEngine $viewer */
         $viewer = $this->resolve('viewer');

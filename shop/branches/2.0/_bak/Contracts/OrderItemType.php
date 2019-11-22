@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace _tiFy\Plugins\Shop\Contracts;
+namespace __tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Support\ParamsBag;
 

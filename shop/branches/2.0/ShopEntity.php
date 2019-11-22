@@ -96,10 +96,10 @@ class ShopEntity implements ShopEntityContract
             ]);
 
             // Classes de livraison
-            // @todo
+            // @todo EVOLUTION : Mettre en oeuvre
 
             // Produits
-            // @todo
+            // @todo EVOLUTION : Mettre en oeuvre
 
             // Variation de produits
             PostType::register('product_variation', [
@@ -236,12 +236,14 @@ class ShopEntity implements ShopEntityContract
             ]);
 
             // Coupons
+            // @todo EVOLUTION : Mettre en oeuvre
 
             // Webhook
+            // @todo EVOLUTION : Mettre en oeuvre
 
             $this->registered = true;
 
-            /* @todo Création des tables de base de données
+            /* @todo A FAIRE !!
             db()->register(
                 'shop.order.items',
                 [

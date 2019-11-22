@@ -172,7 +172,7 @@ class Checkout implements CheckoutContract
         }
 
         // Mise à jour des données de session
-        // @todo enregistrer les données de session + utilisateur billing & shipping
+        // @todo EVOLUTION : Enregistrer les données de session + utilisateur billing & shipping
 
         // Livraison
         $chosen_shipping_methods = $this->shop()->session()->get('chosen_shipping_methods', []);
@@ -226,7 +226,7 @@ class Checkout implements CheckoutContract
             return redirect($redirect);
         }
 
-        // @todo vérifier les données de panier : status du produit | disponibilité en stock
+        // @todo EVOLUTION : Vérifier les données de panier : status du produit | disponibilité en stock
 
         // Conditions générales validées
         if (empty($data['terms'])) {

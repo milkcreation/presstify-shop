@@ -614,7 +614,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function removeOrderItems(?string $type = null): void
     {
-        /* @todo
+        /* @todo A FAIRE !!
          * if (!empty($type)) {
             $this->orderItems->delete($type);
             unset($this->items[$type]);
@@ -652,7 +652,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function saveItems(): void
     {
-        /* @todo
+        /* @todo A FAIRE !!
         if ($this->items) {
             foreach ($this->items as $group => $group_items) {
                 foreach ($group_items as $item_key => $item) {

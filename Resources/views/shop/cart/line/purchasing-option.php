@@ -4,8 +4,7 @@
  * ---------------------------------------------------------------------------------------------------------------------
  * @var tiFy\Contracts\View\ViewController $this
  * @var \WP_Post $post
- * @var tiFy\Plugins\Shop\Products\ProductItem $product
+ * @var tiFy\Plugins\Shop\Products\Product $product
  * @var tiFy\Plugins\Shop\Contracts\ProductPurchasingOption $option
  */
-?>
-<?php echo $option->getLabel(); ?> : <?php echo $option->getValue(); ?>
+echo "{$option->getLabel()} :  {$option->getValue()}";

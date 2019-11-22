@@ -4,41 +4,38 @@ namespace tiFy\Plugins\Shop\Api;
 
 use Psr\Http\{
     Message\ResponseInterface,
-    Message\ServerRequestInterface,
+    Message\ServerRequestInterface as ServerRequest,
     Server\MiddlewareInterface,
-    Server\RequestHandlerInterface
+    Server\RequestHandlerInterface as RequestHandler
 };
-use tiFy\Contracts\Http\Request;
-use tiFy\Http\Response;
+use tiFy\Support\Proxy\{Response, Request};
+
 
 class Middleware implements MiddlewareInterface
 {
     /**
      * Vérification de l'authentification.
      *
-     * @param Request $request
-     *
      * @return boolean
      */
-    protected function isAuth(Request $request): bool
+    protected function isAuth(): bool
     {
-        return in_array($request->get('authtoken'), config('shop.api.authtoken', []));
+        return in_array(Request::input('authtoken'), config('shop.api.authtoken', []));
     }
 
     /**
      * @inheritDoc
      */
-    public function process(ServerRequestInterface $psrRequest, RequestHandlerInterface $handler) : ResponseInterface
+    public function process(ServerRequest $request, RequestHandler $handler) : ResponseInterface
     {
-        $request = request();
-
-        if (!$this->isAuth($request)) {
-            $response = Response::convertToPsr();
+        if (!$this->isAuth()) {
+            $response = Response::psr();
             $response->getBody()->write(json_encode(['error' => 'Accès restreint, clé d\'autorisation invalide']));
             $response->withStatus(401);
         } else {
-            $response = $handler->handle($psrRequest);
+            $response = $handler->handle($request);
         }
+
         return $response;
     }
 }

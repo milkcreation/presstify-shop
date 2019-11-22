@@ -2,12 +2,20 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Illuminate\Support\Collection;
 use tiFy\Wordpress\Contracts\Query\QueryPost;
 use tiFy\Support\DateTime;
 
-interface Order extends QueryPost
+interface Order extends QueryPost, ShopAwareTrait
 {
+    /**
+     * Récupération d'une instance basée sur une clé d'identification de commande.
+     *
+     * @param string $orderKey
+     *
+     * @return static|null
+     */
+    public static function createFromOrderKey(string $orderKey): ?QueryPost;
+
     /**
      * Ajout d'une note à la commande.
      *
@@ -22,57 +30,56 @@ interface Order extends QueryPost
     /**
      * Ajout d'une ligne d'élément associé à la commande.
      *
-     * @param OrderItemType $item
+     * @param OrderItem $item Instance de l'élément associé.
      *
-     * @return void
+     * @return static
      */
-    public function addItem(OrderItemType $item): void;
+    public function addOrderItem(OrderItem $item): Order;
 
     /**
      * Création d'une ligne de coupon de réduction.
      *
-     * @return OrderItemTypeCoupon|object|null
+     * @return OrderItemCoupon|object|null
      */
-    public function createItemCoupon(): ?OrderItemTypeCoupon;
+    public function createItemCoupon(): ?OrderItemCoupon;
 
     /**
      * Création d'une ligne de promotion.
      *
-     * @return OrderItemTypeFee|object|null
+     * @return OrderItemFee|object|null
      */
-    public function createItemFee(): ?OrderItemTypeFee;
+    public function createItemFee(): ?OrderItemFee;
 
     /**
      * Création d'une ligne de produit.
      *
-     * @return OrderItemTypeProduct|object|null
+     * @return OrderItemProduct|object|null
      */
-    public function createItemProduct(): ?OrderItemTypeProduct;
+    public function createItemProduct(): ?OrderItemProduct;
 
     /**
      * Création d'une ligne de livraison.
      *
-     * @return OrderItemTypeShipping|object|null
+     * @return OrderItemShipping|object|null
      */
-    public function createItemShipping(): ?OrderItemTypeShipping;
+    public function createItemShipping(): ?OrderItemShipping;
 
     /**
      * Création d'une ligne de taxe.
      *
-     * @return OrderItemTypeTax|object|null
+     * @return OrderItemTax|object|null
      */
-    public function createItemTax(): ?OrderItemTypeTax;
+    public function createItemTax(): ?OrderItemTax;
 
     /**
-     * Récupération d'un attribut pour un type d'adresse.
+     * Récupération de la liste des attributs de l'addresse de facturation|Un attribut particulier.
      *
-     * @param string $key Clé d'identification de l'attribut à retourner.
-     * @param string $type Type d'adresse. billing|shipping.
+     * @param string|null $key Clé d'indice de l'attribut (syntaxe à point permise. null pour tous.
      * @param mixed $default Valeur de retour par défaut.
      *
      * @return mixed
      */
-    public function getAddressAttr($key, $type = 'billing', $default = '');
+    public function getBilling(?string $key = null, $default = null);
 
     /**
      * Récupération de l'url vers la page de paiement reçu.
@@ -104,14 +111,13 @@ interface Order extends QueryPost
     public function getCustomerId(): int;
 
     /**
-     * Récupération de la liste des éléments associés à la commande.
+     * Récupération des l'instance d'éléments associés à la commande.
      *
-     * @param string $type Type d'éléments à récupérer.
-     * null pour tous par défaut|coupon|fee|line_item (product)|shipping|tax.
+     * @param string|null $type Type d'éléments à retourner. coupon|fee|line_item|shipping|tax.
      *
-     * @return Collection
+     * @return OrderItem[]|array
      */
-    public function getItems($type = null);
+    public function getOrderItems(?string $type = null): array;
 
     /**
      * Récupération de la clé d'identification de la commande.
@@ -142,6 +148,16 @@ interface Order extends QueryPost
     public function getPaymentMethodLabel(): string;
 
     /**
+     * Récupération de la liste des attributs de l'addresse de livraison|Un attribut particulier.
+     *
+     * @param string|null $key Clé d'indice de l'attribut (syntaxe à point permise. null pour tous.
+     * @param mixed $default Valeur de retour par défaut.
+     *
+     * @return mixed
+     */
+    public function getShipping(?string $key = null, $default = null);
+
+    /**
      * Récupération du nom de qualification court du statut.
      *
      * @return string
@@ -170,13 +186,13 @@ interface Order extends QueryPost
     public function hasStatus($status): bool;
 
     /**
-     * Vérification de correspondance du client associé à la commande.
+     * Vérifie de correspondance de l'identifiant de qualification d'un utilisateur avec celui associé à la commande.
      *
-     * @param int $customer_id Identifiant de qualification de l'utilisateur à contrôler.
+     * @param int $id Identifiant de qualification du client à vérifier.
      *
      * @return boolean
      */
-    public function isCustomer($customer_id): bool;
+    public function isCustomer(int $id): bool;
 
     /**
      * Vérifie si une commande nécessite un paiement.
@@ -218,20 +234,13 @@ interface Order extends QueryPost
     public function quantityProductCount(): int;
 
     /**
-     * Récupération de la liste des attributs.
-     *
-     * @return void
-     */
-    public function read(): void;
-
-    /**
      * Suppression de la liste des éléments de la commande.
      *
      * @param string $type Type d'élément de la commande à supprimer. Défaut null, pour tous.
      *
      * @return void
      */
-    public function removeItems(?string $type = null): void;
+    public function removeOrderItems(?string $type = null): void;
 
     /**
      * Sauvegarde de la liste des éléments.
@@ -253,9 +262,9 @@ interface Order extends QueryPost
      * @param string $key Identifiant de qualification de l'attribut.
      * @param mixed $value Valeur de définition de l'attribut.
      *
-     * @return mixed
+     * @return static
      */
-    public function setBillingAttr($key, $value);
+    public function setBilling(string $key, $value): Order;
 
     /**
      * Définition d'un attribut de l'adresse de livraison.
@@ -263,9 +272,9 @@ interface Order extends QueryPost
      * @param string $key Identifiant de qualification de l'attribut.
      * @param mixed $value Valeur de définition de l'attribut.
      *
-     * @return mixed
+     * @return static
      */
-    public function setShippingAttr($key, $value);
+    public function setShipping(string $key, $value): Order;
 
     /**
      * Mise à jour du statut et enregistrement immédiat.

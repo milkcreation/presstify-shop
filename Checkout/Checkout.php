@@ -44,7 +44,7 @@ class Checkout implements CheckoutContract
      */
     public function createOrderItemsProduct(Order $order): void
     {
-        if ($lines = $this->shop()->cart()->lines()) {
+        if ($lines = $this->shop()->cart()->all()) {
             foreach ($lines as $line) {
                 $product = $line->getProduct();
                 $item = $order->createItemProduct();
@@ -81,7 +81,7 @@ class Checkout implements CheckoutContract
                 }
                 $item->set('purchasing_options', $purchasing_options);
 
-                $order->addItem($item);
+                $order->addOrderItem($item);
             }
         }
     }
@@ -99,7 +99,7 @@ class Checkout implements CheckoutContract
     /**
      * @inheritDoc
      */
-    public function process()
+    public function handleProcess()
     {
         // Définition de l'url de redirection
         if ($redirect = Request::input('_wp_http_referer', '')) {
@@ -273,11 +273,11 @@ class Checkout implements CheckoutContract
         }
 
         if ($order->has('cart_hash') && $order->hasStatus(['order-pending', 'order-failed'])) {
-            $order->removeItems();
+            $order->removeOrderItems();
         }
 
         $created_via = 'checkout';
-        $cart_hash = md5(json_encode($this->shop()->cart()->lines()->all()) . $this->shop()->cart()->total());
+        $cart_hash = md5(json_encode($this->shop()->cart()->all()) . $this->shop()->cart()->total());
         $customer_id = $this->shop()->users()->get()->getId();
         $currency = $this->shop()->settings()->currency();
         $prices_include_tax = $this->shop()->settings()->isPricesIncludeTax();
@@ -315,9 +315,9 @@ class Checkout implements CheckoutContract
         );
         foreach ($data as $key => $value) {
             if (preg_match('#^billing_(.*)#', $key, $match)) {
-                $order->setBillingAttr($match[1], $value);
+                $order->setBilling($match[1], $value);
             } elseif (preg_match('#^shipping_(.*)#', $key, $match)) {
-                $order->setShippingAttr($match[1], $value);
+                $order->setShipping($match[1], $value);
             } else {
                 $order->set($key, $value);
             }
@@ -327,7 +327,7 @@ class Checkout implements CheckoutContract
             $order->set($key, $value);
         }
 
-        events()->trigger('shop.checkout.create_order', [&$this]);
+        events()->trigger('shop.checkout.create_order', [&$this, $order]);
 
         $order->create();
 

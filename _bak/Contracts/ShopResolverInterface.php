@@ -1,6 +1,6 @@
 <?php
 
-namespace tiFy\Plugins\Shop__Bak\Contracts;
+namespace __tiFy\Plugins\Shop__Bak\Contracts;
 
 interface ShopResolverInterface
 {

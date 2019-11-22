@@ -4,121 +4,64 @@ namespace tiFy\Plugins\Shop\Orders;
 
 use Exception;
 use Illuminate\Support\Collection;
-use tiFy\Wordpress\Query\QueryPost;
+use tiFy\Contracts\PostType\PostTypeStatus;
+use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
 use tiFy\Plugins\Shop\Contracts\{Gateway,
     Order as OrderContract,
-    OrderItemType,
-    OrderItemTypeCoupon,
-    OrderItemTypeFee,
-    OrderItemTypeProduct,
-    OrderItems,
-    OrderItemTypeShipping,
-    OrderItemTypeTax,
+    OrderItem,
+    OrderItemCoupon,
+    OrderItemFee,
+    OrderItemProduct,
+    OrderItemShipping,
+    OrderItemTax,
     UserCustomer};
-use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
-use tiFy\Support\{Arr, DateTime};
+use tiFy\Support\DateTime;
+use tiFy\Support\Proxy\{Database, PostType};
+use tiFy\Wordpress\Contracts\Query\QueryPost as QueryPostContract;
+use tiFy\Wordpress\Query\QueryPost;
 use WP_Post;
+use WP_Query;
 
 class Order extends QueryPost implements OrderContract
 {
     use ShopAwareTrait;
 
     /**
-     * Liste des données de commande par défaut.
-     *
-     * @var array
+     * Nom de qualification du type de post ou liste de types de post associés.
+     * @var string|string[]|null
      */
-    protected $defaults = [
-        'parent_id'            => 0,
-        'status'               => '',
-        'currency'             => '',
-        'version'              => '',
-        'prices_include_tax'   => false,
-        'date_created'         => null,
-        'date_modified'        => null,
-        'discount_total'       => 0,
-        'discount_tax'         => 0,
-        'shipping_total'       => 0,
-        'shipping_tax'         => 0,
-        'cart_tax'             => 0,
-        'total'                => 0,
-        'total_tax'            => 0,
-
-        // Order props
-        'customer_id'          => 0,
-        'order_key'            => '',
-        'billing'              => [
-            'first_name' => '',
-            'last_name'  => '',
-            'company'    => '',
-            'address_1'  => '',
-            'address_2'  => '',
-            'city'       => '',
-            'state'      => '',
-            'postcode'   => '',
-            'country'    => '',
-            'email'      => '',
-            'phone'      => '',
-        ],
-        'shipping'             => [
-            'first_name' => '',
-            'last_name'  => '',
-            'company'    => '',
-            'address_1'  => '',
-            'address_2'  => '',
-            'city'       => '',
-            'state'      => '',
-            'postcode'   => '',
-            'country'    => '',
-        ],
-        'payment_method'       => '',
-        'payment_method_title' => '',
-        'transaction_id'       => '',
-        'customer_ip_address'  => '',
-        'customer_user_agent'  => '',
-        'created_via'          => '',
-        'customer_note'        => '',
-        'date_completed'       => null,
-        'date_paid'            => null,
-        'cart_hash'            => '',
-    ];
-
-    /**
-     * Liste des éléments associés à la commande.
-     * @var array
-     */
-    protected $items = [];
+    protected static $postType = 'shop_order';
 
     /**
      * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
      * @var array
      */
     protected $metasMap = [
-        'order_key'            => '_order_key',
+        'cart_hash'            => '_cart_hash',
+        'cart_tax'             => '_order_tax',
+        'created_via'          => '_created_via',
+        'currency'             => '_order_currency',
         'customer_id'          => '_customer_user',
-        'payment_method'       => '_payment_method',
-        'payment_method_title' => '_payment_method_title',
-        'transaction_id'       => '_transaction_id',
         'customer_ip_address'  => '_customer_ip_address',
         'customer_user_agent'  => '_customer_user_agent',
-        'created_via'          => '_created_via',
         'date_completed'       => '_date_completed',
         'date_paid'            => '_date_paid',
-        'cart_hash'            => '_cart_hash',
-        'currency'             => '_order_currency',
-        'discount_total'       => '_cart_discount',
         'discount_tax'         => '_cart_discount_tax',
-        'shipping_total'       => '_order_shipping',
+        'discount_total'       => '_cart_discount',
+        'order_key'            => '_order_key',
+        'payment_method'       => '_payment_method',
+        'payment_method_title' => '_payment_method_title',
+        'prices_include_tax'   => '_prices_include_tax',
         'shipping_tax'         => '_order_shipping_tax',
-        'cart_tax'             => '_order_tax',
+        'shipping_total'       => '_order_shipping',
+        'transaction_id'       => '_transaction_id',
         'total'                => '_order_total',
         'version'              => '_order_version',
-        'prices_include_tax'   => '_prices_include_tax',
     ];
 
     /**
      * Instance du gestionnaires d'éléments associés à la commande.
-     * @var OrderItems
+     * @var OrderItem[]|array|null
      */
     protected $orderItems;
 
@@ -141,7 +84,43 @@ class Order extends QueryPost implements OrderContract
 
         parent::__construct($post);
 
-        $this->read();
+        $this->parse();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function create($id = null, ...$args): ?QueryPostContract
+    {
+        if (is_numeric($id)) {
+            return static::createFromId((int)$id);
+        } elseif (is_string($id)) {
+            return static::createFromOrderKey($id);
+        } elseif ($id instanceof WP_Post) {
+            return (new static($id));
+        } elseif (is_null($id) && ($instance = static::createFromGlobal())) {
+            if (($postType = static::$postType) && ($postType!== 'any')) {
+                return $instance->typeIn($postType) ? $instance : null;
+            } else {
+                return $instance;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function createFromOrderKey(string $orderKey): ?QueryPostContract
+    {
+        $wpQuery = new WP_Query(static::parseQueryArgs([
+            'meta_key' => '_order_key',
+            'meta_value' => $orderKey,
+            'post_status' => 'any'
+        ]));
+
+        return ($wpQuery->found_posts == 1) ? new static(current($wpQuery->posts)) : null;
     }
 
     /**
@@ -153,7 +132,7 @@ class Order extends QueryPost implements OrderContract
             return 0;
         }
 
-        if (($user = $this->shop()->users()->get()) && $user->can('edit_shop_order', $this->getId()) && $by_user) {
+        if (($user = $this->shop()->user()) && $user->can('edit_shop_order', $this->getId()) && $by_user) {
             $comment_author = $user->getDisplayName();
             $comment_author_email = $user->getEmail();
         } else {
@@ -187,60 +166,140 @@ class Order extends QueryPost implements OrderContract
     /**
      * @inheritDoc
      */
-    public function addItem($item): void
+    public function addOrderItem(OrderItem $orderItem): OrderContract
     {
-        $type = $item->getType();
+        $type = $orderItem->getType();
+        $group = "new:{$type}";
 
-        $count = isset($this->items[$type]) ? count($this->items[$type]) : 0;
-        $this->items = Arr::add($this->items, $type . '.new:' . $type . $count, $item);
+        if (!isset($this->orderItems[$group])) {
+            $this->orderItems[$group] = [];
+        }
+
+        $this->orderItems[$group][] = $orderItem;
+
+        return $this;
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemCoupon(): ?OrderItemTypeCoupon
+    public function createItemCoupon(): OrderItemCoupon
     {
-        return app('shop.order.item.coupon', [0, $this, $this->shop]);
+        /** @var OrderItemCoupon $instance */
+        $instance = $this->shop()->resolve('order.item.coupon', [$this]);
+
+        return $instance->set(['type' => 'coupon'])->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemFee(): ?OrderItemTypeFee
+    public function createItemFee(): OrderItemFee
     {
-        return app('shop.order.item.fee', [0, $this, $this->shop]);
+        /** @var OrderItemFee $instance */
+        $instance = $this->shop()->resolve('order.item.fee', [$this]);
+
+        return $instance->set(['type' => 'fee'])->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemProduct(): ?OrderItemTypeProduct
+    public function createItemProduct(): OrderItemProduct
     {
-        return app('shop.order.item.product', [0, $this, $this->shop]);
+        /** @var OrderItemProduct $instance */
+        $instance = $this->shop()->resolve('order.item.product', [$this]);
+
+        return $instance->set(['type' => 'line_item'])->parse();
     }
 
     /**
      * @inheritdoc
      */
-    public function createItemShipping(): ?OrderItemTypeShipping
+    public function createItemShipping(): OrderItemShipping
     {
-        return app('shop.orders.item_shipping', [0, $this, $this->shop]);
+        /** @var OrderItemShipping $instance */
+        $instance = $this->shop()->resolve('order.item.shipping', [$this]);
+
+        return $instance->set(['type' => 'shipping'])->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemTax(): ?OrderItemTypeTax
+    public function createItemTax(): OrderItemTax
     {
-        return app('shop.orders.item_tax', [0, $this, $this->shop]);
+        /** @var OrderItemTax $instance */
+        $instance = $this->shop()->resolve('order.item.tax', [$this]);
+
+        return $instance->set(['type' => 'tax'])->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function getAddressAttr($key, $type = 'billing', $default = '')
+    public function defaults()
     {
-        return $this->get("{$type}.{$key}", $default);
+        return [
+            'billing'              => [
+                'first_name' => '',
+                'last_name'  => '',
+                'company'    => '',
+                'address_1'  => '',
+                'address_2'  => '',
+                'city'       => '',
+                'state'      => '',
+                'postcode'   => '',
+                'country'    => '',
+                'email'      => '',
+                'phone'      => '',
+            ],
+            'cart_hash'            => '',
+            'cart_tax'             => 0,
+            'currency'             => '',
+            'customer_id'          => 0,
+            'customer_ip_address'  => '',
+            'customer_user_agent'  => '',
+            'created_via'          => '',
+            'customer_note'        => '',
+            'date_completed'       => null,
+            'date_created'         => null,
+            'date_modified'        => null,
+            'date_paid'            => null,
+            'discount_tax'         => 0,
+            'discount_total'       => 0,
+            'order_key'            => '',
+            'parent_id'            => 0,
+            'payment_method'       => '',
+            'payment_method_title' => '',
+            'prices_include_tax'   => false,
+            'status'               => '',
+            'shipping'             => [
+                'first_name' => '',
+                'last_name'  => '',
+                'company'    => '',
+                'address_1'  => '',
+                'address_2'  => '',
+                'city'       => '',
+                'state'      => '',
+                'postcode'   => '',
+                'country'    => '',
+            ],
+            'shipping_total'       => 0,
+            'shipping_tax'         => 0,
+            'transaction_id'       => '',
+            'total'                => 0,
+            'total_tax'            => 0,
+            'version'              => '',
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getBilling(?string $key = null, $default = null): string
+    {
+        return is_null($key) ? $this->get('billing', []) : $this->get("billing.{$key}", $default);
     }
 
     /**
@@ -250,7 +309,7 @@ class Order extends QueryPost implements OrderContract
     {
         return $this->shop()->functions()->url()->checkoutOrderReceivedPage([
             'order-received' => $this->getId(),
-            'key'            => $this->getOrderKey()
+            'key'            => $this->getOrderKey(),
         ]);
     }
 
@@ -261,7 +320,7 @@ class Order extends QueryPost implements OrderContract
     {
         return $this->shop()->functions()->url()->checkoutOrderPayPage([
             'order-pay' => $this->getId(),
-            'key'       => $this->getOrderKey()
+            'key'       => $this->getOrderKey(),
         ]);
     }
 
@@ -270,7 +329,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function getCustomer(): UserCustomer
     {
-        return $this->shop()->users()->get($this->getCustomerId());
+        return $this->shop()->user($this->getCustomerId());
     }
 
     /**
@@ -282,13 +341,49 @@ class Order extends QueryPost implements OrderContract
     }
 
     /**
-     * @inheritDoc
+     * Récupération des l'instance d'éléments associés à la commande.
+     *
+     * @param string|null $type Type d'éléments à retourner. coupon|fee|line_item|shipping|tax.
+     *
+     * @return OrderItem[]|array
      */
-    public function getItems($type = null)
+    public function getOrderItems(?string $type = null): array
     {
-        $items = $type ? Arr::get($this->items, $type) : $this->items;
+        if (is_null($this->orderItems)) {
+            $this->orderItems = [];
 
-        return new Collection($items);
+            $queryItems = Database::table('tify_shop_order_items')->where('order_id', $this->getId())->get();
+
+            if ($queryItems->count()) {
+                foreach ($queryItems as $queryItem) {
+
+                    /** @var OrderItem $orderItem */
+                    switch ($queryItem->order_item_type) {
+                        default :
+                            if ($this->shop()->resolvable("order.item.{$queryItem->order_item_type}")) {
+                                $orderItem = $this->shop()->resolve("order.item.{$queryItem->order_item_type}",
+                                    [$this]);
+                            } else {
+                                $orderItem = $this->shop()->resolve("order.item", [$this]);
+                            }
+                            break;
+                        case 'line_item' :
+                            $orderItem = $this->shop()->resolve("order.item.product", [$this]);
+                            break;
+                    }
+
+                    $orderItem->set(get_object_vars($queryItem))->parse();
+
+                    if (!isset($this->orderItems[$orderItem->getType()])) {
+                        $this->orderItems[$orderItem->getType()] = [];
+                    }
+
+                    $this->orderItems[$orderItem->getType()][] = $orderItem;
+                }
+            }
+        }
+
+        return is_null($type) ? $this->orderItems : ($this->orderItems[$type] ?? []);
     }
 
     /**
@@ -331,20 +426,27 @@ class Order extends QueryPost implements OrderContract
     /**
      * @inheritDoc
      */
-    public function getShortStatus(): string
+    public function getShipping(?string $key = null, $default = null): string
     {
-        return (string)preg_replace(
-            '/^order\-/', '',
-            $this->get('status', $this->shop()->orders()->getDefaultStatus())
-        );
+        return is_null($key) ? $this->get('shipping', []) : $this->get("shipping.{$key}", $default);
     }
 
     /**
      * @inheritDoc
      */
-    public function getStatus()
+    public function getShortStatus(): string
     {
-        return (string)$this->get('status', $this->shop()->orders()->getDefaultStatus());
+        $regex = '/^order\-/';
+
+        return (string)preg_replace($regex, '', $this->get('status', $this->shop()->orders()->getDefaultStatus()));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getStatus(): PostTypeStatus
+    {
+        return PostType::status($this->get('status', $this->shop()->orders()->getDefaultStatus()));
     }
 
     /**
@@ -352,7 +454,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function getStatusLabel()
     {
-        return $this->shop()->orders()->getStatusLabel($this->getStatus());
+        return $this->getStatus()->getLabel();
     }
 
     /**
@@ -376,15 +478,31 @@ class Order extends QueryPost implements OrderContract
      */
     public function hasStatus($status): bool
     {
-        return in_array($this->getStatus(), (array)$status);
+        return in_array($this->getStatus()->getName(), (array)$status);
     }
 
     /**
      * @inheritDoc
      */
-    public function isCustomer($customer_id): bool
+    public function isCustomer(int $id): bool
     {
-        return (bool)($this->getCustomerId() === (int)$customer_id);
+        return $this->getCustomerId() === $id;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function mapMeta($key, ?string $metaKey = null): OrderContract
+    {
+        $keys = is_array($key) ? $key : [$key => $metaKey];
+
+        foreach ($keys as $key => $metaKey) {
+            if ($value = $this->getMetaSingle($metaKey)) {
+                $this->set($key, $value);
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -400,41 +518,48 @@ class Order extends QueryPost implements OrderContract
      */
     public function needProcessing(): bool
     {
-        if (!$line_items = $this->getItems('line_item')) {
+        if ($lineItems = $this->getOrderItems('line_item')) {
+            return (new Collection($lineItems))->filter(function (OrderItemProduct $lineItem) {
+                    return ($product = $this->shop()->product($lineItem->getProductId()))
+                        ? $product->isDownloadable() && $product->isVirtual()
+                        : false;
+                })->count() === 0;
+        } else {
             return false;
         }
-
-        $virtual_and_downloadable = $line_items->filter(function (OrderItemTypeProduct $line_item) {
-            return ($product = $this->shop()->products()->get($line_item->getProductId()))
-                ? $product->isDownloadable() && $product->isVirtual()
-                : false;
-        })->all();
-
-        return count($virtual_and_downloadable) === 0;
-    }
-
-    /**
-     * Récupération de l'instance du gestionnaire d'éléments associé à la commande.
-     *
-     * @return OrderItems
-     */
-    public function orderItems(): OrderItems
-    {
-        if (is_null($this->orderItems)) {
-            $this->orderItems = $this->shop()->resolve('order.items', [$this]);
-        }
-
-        return $this->orderItems;
     }
 
     /**
      * @inheritDoc
      */
-    public function parse()
+    public function parse(): OrderContract
     {
         parent::parse();
 
-        $this->set('order_key', $this->get('order_key', uniqid('order_')));
+        if (!$id = $this->getId()) {
+            return $this;
+        }
+
+        $this->mapMeta($this->metasMap);
+
+        foreach (['billing', 'shipping'] as $type) {
+            if ($datas = $this->get($type, []) ?: []) {
+                foreach (array_keys($datas) as $key) {
+                    $this->mapMeta("{$type}.{$key}", "_{$type}_{$key}");
+                }
+            }
+        }
+
+        $this->set([
+            'customer_note' => $this->getExcerpt(true),
+            'date_created'  => $this->getDate(true),
+            'date_modified' => $this->getModified(true),
+            'order_key'     => $this->get('order_key', uniqid('order_')),
+            'parent_id'     => $this->getParentId(),
+
+            'status' => $this->shop()->orders()->hasStatus($this->get('post_status'))
+                ? $this->get('post_status') : $this->shop()->orders()->getDefaultStatus(),
+        ]);
 
         return $this;
     }
@@ -473,7 +598,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function productCount(): int
     {
-        return (int)count($this->getItems('line_item'));
+        return (int)count($this->getOrderItems('line_item'));
     }
 
     /**
@@ -481,62 +606,22 @@ class Order extends QueryPost implements OrderContract
      */
     public function quantityProductCount(): int
     {
-        return (int)(new Collection($this->getItems('line_item')))->sum('quantity');
+        return (int)(new Collection($this->getOrderItems('line_item')))->sum('quantity');
     }
 
     /**
      * @inheritDoc
      */
-    public function read(): void
+    public function removeOrderItems(?string $type = null): void
     {
-        $this->attributes = array_merge($this->defaults, $this->attributes);
-
-        if (!$id = $this->getId()) {
-            return;
-        }
-
-        foreach ($this->metasMap as $attr_key => $meta_key) {
-            $this->set(
-                $attr_key,
-                get_post_meta($id, $meta_key, true) ?: $this->get($attr_key, Arr::get($this->defaults, $attr_key))
-            );
-        }
-
-        foreach (['billing', 'shipping'] as $address_type) {
-            if (!$address_data = $this->get($address_type, [])) {
-                continue;
-            }
-            foreach ($address_data as $key => $value) {
-                $this->set("{$address_type}.{$key}", get_post_meta($id, "_{$address_type}_{$key}", true));
-            }
-        }
-
-        $this->set('parent_id', $this->getParentId());
-        $this->set('date_created', $this->getDate(true));
-        $this->set('date_modified', $this->getModified(true));
-        $this->set('status', $this->shop()->orders()->isStatus($this->post_status)
-            ? $this->post_status : $this->shop()->orders()->getDefaultStatus()
-        );
-        $this->set('customer_note', $this->getExcerpt(true));
-
-        foreach ($this->orderItems()->query() as $item) {
-            /** @var OrderItemType $item */
-            $this->items[$item->getType()][$item->getId()] = $item;
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function removeItems(?string $type = null): void
-    {
-        if (!empty($type)) {
-            $this->order_items->delete($type);
+        /* @todo
+         * if (!empty($type)) {
+            $this->orderItems->delete($type);
             unset($this->items[$type]);
         } else {
-            $this->order_items->delete();
+            $this->orderItems->delete();
             $this->items = [];
-        }
+        }*/
     }
 
     /**
@@ -546,14 +631,15 @@ class Order extends QueryPost implements OrderContract
     {
         $post_data = [
             'ID'                => $this->getId(),
-            'post_date'         => $this->shop()->functions()->date()->get(),
+            'post_date'         => $this->shop()->functions()->date()->local(),
             'post_date_gmt'     => $this->shop()->functions()->date()->utc(),
-            'post_status'       => $this->getStatus(),
+            'post_status'       => $this->getStatus()->getName(),
             'post_parent'       => $this->getParentId(),
             'post_excerpt'      => $this->getExcerpt(true),
-            'post_modified'     => $this->shop()->functions()->date()->get(),
+            'post_modified'     => $this->shop()->functions()->date()->local(),
             'post_modified_gmt' => $this->shop()->functions()->date()->utc(),
         ];
+
         wp_update_post($post_data);
 
         $this->saveMetas();
@@ -566,14 +652,15 @@ class Order extends QueryPost implements OrderContract
      */
     public function saveItems(): void
     {
+        /* @todo
         if ($this->items) {
             foreach ($this->items as $group => $group_items) {
                 foreach ($group_items as $item_key => $item) {
-                    /** @var OrderItemType $item */
+                    // @var OrderItemType $item
                     $item->save();
                 }
             }
-        }
+        } */
     }
 
     /**
@@ -590,8 +677,6 @@ class Order extends QueryPost implements OrderContract
 
             switch ($attr_key) {
                 case 'date_paid' :
-                    update_post_meta($this->getId(), $meta_key, !is_null($meta_value) ? $meta_value : '');
-                    break;
                 case 'date_completed' :
                     update_post_meta($this->getId(), $meta_key, !is_null($meta_value) ? $meta_value : '');
                     break;
@@ -615,17 +700,17 @@ class Order extends QueryPost implements OrderContract
     /**
      * @inheritDoc
      */
-    public function setBillingAttr($key, $value)
+    public function setBilling(string $key, $value): OrderContract
     {
-        return $this->set('billing', array_merge($this->get('billing', []), [$key => $value]));
+        return $this->set("billing.{$key}", $value);
     }
 
     /**
      * @inheritDoc
      */
-    public function setShippingAttr($key, $value)
+    public function setShipping(string $key, $value): OrderContract
     {
-        return $this->set('shipping', array_merge($this->get('shipping', []), [$key => $value]));
+        return $this->set("shipping.{$key}", $value);
     }
 
     /**
@@ -633,7 +718,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function updateStatus($new_status): bool
     {
-        if (!$this->shop()->orders()->isStatus($new_status) || ($this->get('status') === $new_status)) {
+        if (!$this->shop()->orders()->hasStatus($new_status) || ($this->get('status') === $new_status)) {
             return false;
         }
 

@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use Illuminate\Support\Collection;
 use WP_Post;
 
 interface Cart extends ShopAwareTrait
@@ -17,13 +18,11 @@ interface Cart extends ShopAwareTrait
     public function add(string $key, array $attributes): Cart;
 
     /**
-     * Traitement de l'ajout d'un produit au panier
+     * Récupération de la liste des instances de lignes du panier.
      *
-     * @param string $product_name Identifiant de qualification d'url (Slug) du produit
-     *
-     * @return mixed
+     * @return CartLine[]|array
      */
-    public function addHandler($product_name);
+    public function all(): array;
 
     /**
      * Url d'action d'ajout d'un produit au panier d'achat
@@ -52,6 +51,13 @@ interface Cart extends ShopAwareTrait
     public function calculate(): CartTotal;
 
     /**
+     * Retrouve la collection des lignes de produits associées au panier de commande.
+     *
+     * @return Collection
+     */
+    public function collect(): Collection;
+
+    /**
      * Compte le nombre de ligne du panier
      *
      * @return int
@@ -59,32 +65,27 @@ interface Cart extends ShopAwareTrait
     public function count(): int;
 
     /**
-     * Compte la quantité de produits contenus dans le panier.
-     *
-     * @return int
-     */
-    public function countQuantity(): int;
-
-    /**
      * Détruit complétement le panier.
      *
-     * @return void
+     * @return Cart
      */
-    public function destroy(): void;
+    public function destroy(): Cart;
 
     /**
      * Vide la liste complète des lignes du panier.
      *
-     * @return void
+     * @return Cart
      */
-    public function flush(): void;
+    public function flush(): Cart;
 
     /**
-     * Compte le poids que représente l'ensemble des ligne de produits du panier
+     * Récupération d'une ligne du panier.
      *
-     * @return float
+     * @param string $key Identifiant de qualification de la ligne
+     *
+     * @return CartLine|null
      */
-    public function getProductsWeight(): float;
+    public function get(string $key): ?CartLine;
 
     /**
      * Récupération d'un message de notification
@@ -98,11 +99,29 @@ interface Cart extends ShopAwareTrait
     public function getNotice(string $name, string $default = ''): string;
 
     /**
-     * Initialisation des messages de notification
+     * Traitement de l'ajout d'un produit au panier
+     *
+     * @param string $product_name Identifiant de qualification d'url (Slug) du produit
+     *
+     * @return mixed
+     */
+    public function handleAdd(string $product_name);
+
+    /**
+     * Traitement de la mise à jour des produits du panier
      *
      * @return void
      */
-    public function initNotices(): void;
+    public function handleUpdate();
+
+    /**
+     * Traitement de la suppression d'un produit du panier
+     *
+     * @param string $key Identifiant de qualification de la ligne du panier à supprimer
+     *
+     * @return mixed
+     */
+    public function handleRemove(string $key);
 
     /**
      * Vérifie si le panier est vide
@@ -110,22 +129,6 @@ interface Cart extends ShopAwareTrait
      * @return boolean
      */
     public function isEmpty(): bool;
-
-    /**
-     * Récupération d'une ligne du panier
-     *
-     * @param string $key Identifiant de qualification de la ligne
-     *
-     * @return CartLine|null
-     */
-    public function line($key): ?CartLine;
-
-    /**
-     * Récupération de l'instance du gestionnaires des lignes du panier.
-     *
-     * @return CartLinesCollection|CartLine[]
-     */
-    public function lines(): CartLinesCollection;
 
     /**
      * Vérifie si le panier nécessite un paiement.
@@ -142,6 +145,13 @@ interface Cart extends ShopAwareTrait
     public function needShipping(): bool;
 
     /**
+     * Compte la quantité de produits parmis toutes les lignes du panier.
+     *
+     * @return int
+     */
+    public function quantity(): int;
+
+    /**
      * Suppression d'une ligne du panier
      *
      * @param string $key Identifiant de qualification de la ligne
@@ -151,30 +161,11 @@ interface Cart extends ShopAwareTrait
     public function remove(string $key);
 
     /**
-     * Traitement de la suppression d'un produit du panier
-     *
-     * @param string $key Identifiant de qualification de la ligne du panier à supprimer
-     *
-     * @return mixed
-     */
-    public function removeHandler(string $key);
-
-    /**
-     * Url d'action de suppression d'un produit du panier d'achat
-     *
-     * @param string $key Identifiant de qualification de la ligne du panier a supprimer
-     *
-     * @return string
-     */
-    public function removeUrl(string $key): string;
-
-    /**
      * Récupération de la classe de rappel de gestion des éléments du panier d'achat stocké en session.
      *
-     * @return CartSessionItems
+     * @return CartSession
      */
-    public function sessionItems(): CartSessionItems;
-
+    public function session(): CartSession;
 
     /**
      * Récupération de l'instance du total
@@ -189,9 +180,9 @@ interface Cart extends ShopAwareTrait
      * @param string $key Identifiant de qualification de la ligne
      * @param array $attributes Liste des attributs de la ligne
      *
-     * @return CartLinesCollection
+     * @return Cart
      */
-    public function update(string $key, array $attributes): CartLinesCollection;
+    public function update(string $key, array $attributes): Cart;
 
     /**
      * Url d'action de mise à jour des produits du panier d'achat
@@ -203,9 +194,9 @@ interface Cart extends ShopAwareTrait
     public function updateUrl(): string;
 
     /**
-     * Traitement de la mise à jour des produits du panier
+     * Compte le poids que représente l'ensemble des ligne de produits du panier
      *
-     * @return void
+     * @return float
      */
-    public function updateHandler();
+    public function weight(): float;
 }

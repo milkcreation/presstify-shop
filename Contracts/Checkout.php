@@ -61,7 +61,7 @@ interface Checkout extends ShopAwareTrait
      *
      * @return void
      */
-    public function process();
+    public function handleProcess();
 
     /**
      * Url d'action d'exécution de la commande.

@@ -58,7 +58,7 @@ if (!function_exists('shop_cart_count')) {
      */
     function shop_cart_count(bool $quantity = true): int
     {
-        return $quantity ? shop()->cart()->countQuantity() : shop()->cart()->count();
+        return $quantity ? shop()->cart()->quantity() : shop()->cart()->count();
     }
 }
 
@@ -86,7 +86,7 @@ if (!function_exists('shop_cart_remove_url')) {
      */
     function shop_cart_remove_url(string $key): string
     {
-        return shop()->cart()->removeUrl($key);
+        return ($line = shop()->cart()->get($key)) ? $line->removeUrl() : '';
     }
 }
 

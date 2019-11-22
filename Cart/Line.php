@@ -2,24 +2,33 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{Cart, CartLine as CartLineContract, Product, Shop};
+use tiFy\Plugins\Shop\Contracts\{Cart, CartLine as CartLineContract, Product};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
+use tiFy\Support\Proxy\Router;
 
 class Line extends ParamsBag implements CartLineContract
 {
     use ShopAwareTrait;
 
     /**
+     * Instance du panier de commande associé.
+     * @var Cart
+     */
+    protected $cart;
+
+    /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop Instance de la boutique.
+     * @param Cart $cart
      *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct(Cart $cart)
     {
-        $this->setShop($shop);
+        $this->cart = $cart;
+
+        $this->setShop($this->cart->shop());
     }
 
     /**
@@ -27,7 +36,7 @@ class Line extends ParamsBag implements CartLineContract
      */
     public function cart(): Cart
     {
-        return $this->shop()->resolve('cart');
+        return $this->cart;
     }
 
     /**
@@ -73,7 +82,7 @@ class Line extends ParamsBag implements CartLineContract
     /**
      * @inheritDoc
      */
-    public function getProduct(): Product
+    public function getProduct(): ?Product
     {
         return $this->get('product', null);
     }
@@ -94,7 +103,7 @@ class Line extends ParamsBag implements CartLineContract
         $purchasing_options = [];
 
         foreach ($this->get('purchasing_options', []) as $product_id => $opts) {
-            if ($product = $this->shop()->products()->get($product_id)) {
+            if ($product = $this->shop()->product($product_id)) {
                 foreach ($opts as $name => $selected) {
                     if ($po = $product->getPurchasingOption($name)) {
                         $po->setSelected($selected);
@@ -207,6 +216,6 @@ class Line extends ParamsBag implements CartLineContract
      */
     public function removeUrl(): string
     {
-        return $this->cart()->removeUrl($this->getKey());
+        return Router::url('shop.cart.remove', [$this->getKey()]);
     }
 }

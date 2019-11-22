@@ -2,52 +2,54 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use tiFy\Plugins\Shop\Contracts\OrderItemTypeProduct as OrderItemTypeProductContract;
+use tiFy\Plugins\Shop\Contracts\{OrderItemProduct as OrderItemProductContract};
 use tiFy\Support\ParamsBag;
 
-class OrderItemTypeProduct extends OrderItemType implements OrderItemTypeProductContract
+class OrderItemProduct extends AbstractOrderItem implements OrderItemProductContract
 {
     /**
      * Cartographie des attributs en correspondance avec les métadonnées enregistrées en base.
      * @var array
      */
     protected $metasMap = [
+        'quantity'           => '_qty',
         'product_id'         => '_product_id',
         'product_sku'        => '_product_sku',
         'product'            => '_product',
-        'variation_id'       => '_variation_id',
-        'quantity'           => '_qty',
-        'tax_class'          => '_tax_class',
+        'purchasing_options' => '_purchasing_options',
         'subtotal'           => '_line_subtotal',
         'subtotal_class'     => '_line_subtotal_tax',
+        'tax_class'          => '_tax_class',
+        'taxes'              => '_line_tax_data',
         'total'              => '_line_total',
         'total_tax'          => '_line_tax',
-        'taxes'              => '_line_tax_data',
-        'purchasing_options' => '_purchasing_options'
+        'variation_id'       => '_variation_id'
     ];
 
     /**
-     * Liste des attributs.
-     * @var array
+     * @inheritDoc
      */
-    protected $attributes = [
-        'id'           => 0,
-        'name'         => '',
-        'type'         => '',
-        'order_id'     => 0,
-        'product_id'   => 0,
-        'variation_id' => 0,
-        'quantity'     => 1,
-        'tax_class'    => '',
-        'subtotal'     => 0,
-        'subtotal_tax' => 0,
-        'total'        => 0,
-        'total_tax'    => 0,
-        'taxes'        => [
-            'subtotal' => [],
-            'total'    => [],
-        ]
-    ];
+    public function defaults(): array
+    {
+        return [
+            'id'           => 0,
+            'name'         => '',
+            'order_id'     => 0,
+            'product_id'   => 0,
+            'quantity'     => 1,
+            'subtotal'     => 0,
+            'subtotal_tax' => 0,
+            'tax_class'    => '',
+            'taxes'        => [
+                'subtotal' => [],
+                'total'    => [],
+            ],
+            'total'        => 0,
+            'total_tax'    => 0,
+            'type'         => '',
+            'variation_id' => 0,
+        ];
+    }
 
     /**
      * @inheritDoc
@@ -127,14 +129,6 @@ class OrderItemTypeProduct extends OrderItemType implements OrderItemTypeProduct
     public function getTotalTax(): float
     {
         return (float)$this->get('total_tax', 0);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getType(): string
-    {
-        return 'line_item';
     }
 
     /**

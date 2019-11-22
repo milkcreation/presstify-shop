@@ -5,12 +5,19 @@ namespace tiFy\Plugins\Shop\Products;
 use tiFy\Plugins\Shop\Contracts\{Product as ProductContract, ProductObjectType, ProductPurchasingOption};
 use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
 use tiFy\Wordpress\{Contracts\Query\QueryPost as QueryPostContract, Query\QueryPost};
+use WP_Error;
 use WP_Post;
 use WP_Query;
 
 class Product extends QueryPost implements ProductContract
 {
     use ShopAwareTrait;
+
+    /**
+     * Nom de qualification du type de post ou liste de types de post associés.
+     * @var string|string[]|null
+     */
+    protected static $postType = 'product';
 
     /**
      * Classe de rappel de l'Object Type.
@@ -40,13 +47,17 @@ class Product extends QueryPost implements ProductContract
     public static function create($id = null, ...$args): ?QueryPostContract
     {
         if (is_numeric($id)) {
-            return static::createFromId($id);
+            return static::createFromId((int)$id);
         } elseif (is_string($id)) {
             return static::createFromSku($id);
         } elseif ($id instanceof WP_Post) {
             return (new static($id));
-        } elseif(is_null($id)) {
-            return static::createFromGlobal();
+        } elseif(is_null($id) && ($instance = static::createFromGlobal())) {
+            if (($postType = static::$postType) && ($postType!== 'any')) {
+                return $instance->typeIn($postType) ? $instance : null;
+            } else {
+                return $instance;
+            }
         } else {
             return null;
         }
@@ -57,11 +68,10 @@ class Product extends QueryPost implements ProductContract
      */
     public static function createFromSku(string $sku): ?QueryPostContract
     {
-        $wpQuery = new WP_Query([
-            'post_type' => static::$postType ? : 'any',
+        $wpQuery = new WP_Query(static::parseQueryArgs([
             'meta_key' => '_sku',
-            'meta_value' => $sku
-        ]);
+            'meta_value' => $sku,
+        ]));
 
         return ($wpQuery->found_posts == 1) ? new static(current($wpQuery->posts)) : null;
     }
@@ -69,7 +79,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return [];
     }
@@ -77,7 +87,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getCompositionProducts()
+    public function getCompositionProducts(): array
     {
         $products = [];
 
@@ -86,19 +96,19 @@ class Product extends QueryPost implements ProductContract
             ($product_ids = $this->getMetaSingle('_composition_products'))
         ) {
             foreach ($product_ids as $product_id) {
-                if ($product = $this->shop()->products()->get($product_id)) {
+                if ($product = $this->shop()->product($product_id)) {
                     $products[] = $product;
                 }
             }
         }
 
-        return $this->shop()->products()->resolveCollection($products);
+        return $products;
     }
 
     /**
      * @inheritDoc
      */
-    public function getGroupedProducts()
+    public function getGroupedProducts(): array
     {
         $products = [];
 
@@ -107,19 +117,19 @@ class Product extends QueryPost implements ProductContract
             ($product_ids = $this->getMetaSingle('_grouped_products'))
         ) {
             foreach ($product_ids as $product_id) {
-                if ($product = $this->shop()->products()->getItem($product_id)) {
+                if ($product = $this->shop()->product($product_id)) {
                     $products[] = $product;
                 }
             }
         }
 
-        return $this->shop()->products()->resolveCollection($products);
+        return $products;
     }
 
     /**
      * @inheritDoc
      */
-    public function getProductObjectType()
+    public function getProductObjectType(): ProductObjectType
     {
         if (!is_null($this->productObjectType)) {
             return $this->productObjectType;
@@ -131,19 +141,21 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getProductTags()
+    public function getProductTags(): array
     {
-        return wp_get_post_terms($this->getId(), 'product_tag');
+        $tags = wp_get_post_terms($this->getId(), 'product_tag');
+
+        return !$tags instanceof WP_Error ? $tags : [];
     }
 
     /**
      * @inheritDoc
      */
-    public function getProductType()
+    public function getProductType(): string
     {
         if (!$terms = get_the_terms($this->getId(), 'product_type')) {
             return $this->getProductObjectType()->getDefaultProductType();
-        } elseif (is_wp_error($terms)) {
+        } elseif ($terms instanceof WP_Error) {
             return $this->getProductObjectType()->getDefaultProductType();
         }
 
@@ -158,7 +170,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getProductTypes()
+    public function getProductTypes(): array
     {
         return $this->getProductObjectType()->getProductTypes();
     }
@@ -166,7 +178,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getPurchasingOption($name)
+    public function getPurchasingOption(string $name): ?ProductPurchasingOption
     {
         $purchasing_options = $this->getPurchasingOptions();
 
@@ -176,7 +188,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getPurchasingOptions()
+    public function getPurchasingOptions(): array
     {
         if (is_null($this->purchasingOptions)) {
             $this->purchasingOptions = [];
@@ -201,41 +213,41 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function getRegularPrice()
+    public function getRegularPrice(): float
     {
-        return $this->getMetaSingle('_regular_price', 0);
+        return (float)$this->getMetaSingle('_regular_price', 0);
     }
 
     /**
      * @inheritDoc
      */
-    public function getSku()
+    public function getSku(): string
     {
-        return $this->getMetaSingle('_sku', '');
+        return (string)$this->getMetaSingle('_sku', '');
     }
 
     /**
      * @inheritDoc
      */
-    public function getUpsellProducts()
+    public function getUpsellProducts(): array
     {
         $products = [];
 
         if ($product_ids = $this->getMetaSingle('_upsell_ids')) {
             foreach ($product_ids as $product_id) {
-                if ($product = $this->shop()->products()->getItemBy('sku', $product_id)) {
+                if ($product = $this->shop()->product($product_id)) {
                     $products[] = $product;
                 }
             }
         }
 
-        return $this->shop()->products()->resolveCollection($products);
+        return $products;
     }
 
     /**
      * @inheritDoc
      */
-    public function getWeight()
+    public function getWeight(): float
     {
         return 0;
     }
@@ -243,7 +255,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function isDownloadable()
+    public function isDownloadable(): bool
     {
         return false;
     }
@@ -251,11 +263,11 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function isFeatured()
+    public function isFeatured(): bool
     {
         if (!$terms = wp_get_post_terms($this->getId(), 'product_visibility', ['fields' => 'names'])) {
             return false;
-        } elseif (is_wp_error($terms)) {
+        } elseif ($terms instanceof WP_Error) {
             return false;
         }
 
@@ -265,7 +277,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function isInStock()
+    public function isInStock(): bool
     {
         return true;
     }
@@ -273,7 +285,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function isProductType($type)
+    public function isProductType(string $type): bool
     {
         return $this->getProductType() === $type;
     }
@@ -281,15 +293,15 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function isPurchasable()
+    public function isPurchasable(): bool
     {
-        return $this->isProductType('composing') ? false : $this->getStatus() === 'publish';
+        return $this->isProductType('composing') ? false : ($this->getStatus()->getName() === 'publish');
     }
 
     /**
      * @inheritDoc
      */
-    public function isVirtual()
+    public function isVirtual(): bool
     {
         return false;
     }
@@ -297,7 +309,7 @@ class Product extends QueryPost implements ProductContract
     /**
      * @inheritDoc
      */
-    public function salePriceDisplay()
+    public function salePriceDisplay(): string
     {
         return $this->shop()->functions()->price()->html($this->getRegularPrice());
     }

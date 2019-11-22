@@ -2,10 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use tiFy\User\Session\SessionStore;
+use tiFy\Session\Store;
 
 /**
- * @mixin SessionStore
+ * @mixin Store
  */
 interface Session extends ShopAwareTrait
 {

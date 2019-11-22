@@ -6,7 +6,7 @@ use tiFy\Plugins\Shop\Contracts\{
     ProductObjectType,
     Shop
 };
-use tiFy\Plugins\Shop\Products\ObjectType\{Categorized, Uncategorized};
+use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_Post;
 use WP_Screen;
@@ -23,7 +23,7 @@ class Edit
 
     /**
      * Instance du type de produit.
-     * @var Categorized|Uncategorized
+     * @var Uncategorized
      */
     private $objectType;
 
@@ -192,7 +192,7 @@ class Edit
      */
     public function generalPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/general', compact('post', 'product'));
     }
@@ -206,7 +206,7 @@ class Edit
      */
     public function inventoryPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/inventory', compact('post', 'product'));
     }
@@ -220,7 +220,7 @@ class Edit
      */
     public function shippingPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/shipping', compact('post', 'product'));
     }
@@ -234,7 +234,7 @@ class Edit
      */
     public function linkedPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/linked', compact('post', 'product'));
     }
@@ -248,7 +248,7 @@ class Edit
      */
     public function attributesPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/attributes', compact('post', 'product'));
     }
@@ -262,7 +262,7 @@ class Edit
      */
     public function variationsPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/variations', compact('post', 'product'));
     }
@@ -276,7 +276,7 @@ class Edit
      */
     public function advancedPanel($post)
     {
-        $product = $this->shop()->products()->getItem($post);
+        $product = $this->shop()->product($post);
 
         return $this->shop()->viewer('admin/edit/advanced', compact('post', 'product'));
     }

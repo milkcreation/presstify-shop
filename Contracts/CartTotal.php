@@ -14,6 +14,13 @@ interface CartTotal extends ParamsBag, ShopAwareTrait
     public function __toString(): string;
 
     /**
+     * Initialisation de la classe.
+     *
+     * @return void
+     */
+    public function boot(): void;
+
+    /**
      * Récupération de l'instance du panier associé.
      *
      * @return Cart

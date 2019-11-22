@@ -7,9 +7,9 @@ interface UserCustomer extends User
     /**
      * Récupération de la liste des commandes du client
      *
-     * @param array $query_args Liste des arguments de requête personnalisée.
+     * @param array $args Liste des arguments de requête personnalisée.
      *
-     * @return OrdersCollection
+     * @return array
      */
-    public function queryOrders($query_args = []);
+    public function getOrders(array $args = []): array;
 }

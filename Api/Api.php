@@ -4,6 +4,7 @@ namespace tiFy\Plugins\Shop\Api;
 
 use tiFy\Plugins\Shop\Contracts\{Api as ApiContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\{Request, Url};
 
 class Api implements ApiContract
 {
@@ -42,8 +43,8 @@ class Api implements ApiContract
                         '_links'  => [
                             'self' => add_query_arg(
                                 'authtoken',
-                                request()->get('authtoken', '1234'),
-                                home_url('/shop/api')
+                                Request::input('authtoken', 'XXXXXXX'),
+                                (string)Url::root('/shop/api')
                             ),
                         ],
                     ],
@@ -56,10 +57,7 @@ class Api implements ApiContract
                                 'args'    => [
                                     'authtoken'      => [
                                         'required'    => true,
-                                        'description' => __(
-                                            'Jeton d\'accès aux resultats.',
-                                            'tify'
-                                        ),
+                                        'description' => __('Jeton d\'accès aux resultats.', 'tify'),
                                         'type'        => 'string',
                                     ],
                                     'page'           => [
@@ -169,8 +167,8 @@ class Api implements ApiContract
                         '_links'    => [
                             'self' => add_query_arg(
                                 'authtoken',
-                                request()->get('authtoken', '1234'),
-                                home_url('/shop/api/orders')
+                                Request::input('authtoken', 'XXXXXXX'),
+                                (string)Url::root('/shop/api/orders')
                             ),
                         ],
                     ],

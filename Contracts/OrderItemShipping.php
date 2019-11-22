@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface OrderItemTypeTax extends OrderItemType
+interface OrderItemShipping extends OrderItem
 {
 
 }

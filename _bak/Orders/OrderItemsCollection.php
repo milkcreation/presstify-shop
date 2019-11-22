@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace tiFy\Plugins\Shop\Orders;
+namespace __tiFy\Plugins\Shop\Orders;
 
 use tiFy\Plugins\Shop\Contracts\{OrderItemsCollection as OrderItemsCollectionContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;

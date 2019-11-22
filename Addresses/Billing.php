@@ -14,23 +14,24 @@ class Billing extends AbstractAddress implements AddressBillingContract
         $fields = parent::fields();
 
         $fields['phone'] = [
-            'title'    => __('Numéro de téléphone', 'tify'),
-            'type'     => 'text',
-            'required' => true,
             'attrs'    => [
                 'autocomplete' => 'phone',
             ],
             'order'    => 100,
+            'required' => true,
+            'title'    => __('Numéro de téléphone', 'tify'),
+            'type'     => 'text',
         ];
 
         $fields['email'] = [
-            'title'    => __('Adresse de messagerie', 'tify'),
-            'type'     => 'text',
-            'required' => true,
-            'attrs'    => [
+            'attrs'       => [
                 'autocomplete' => 'email',
             ],
-            'order'    => 110,
+            'order'       => 110,
+            'required'    => true,
+            'validations' => 'email',
+            'title'       => __('Adresse de messagerie', 'tify'),
+            'type'        => 'text',
         ];
 
         return $fields;

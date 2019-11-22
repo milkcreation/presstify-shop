@@ -2,10 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use Illuminate\Support\Collection;
-use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, OrdersCollection, Shop};
+use tiFy\Contracts\PostType\PostTypeStatus;
+use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
-use tiFy\Support\{Arr, Proxy\Redirect, Proxy\Request};
+use tiFy\Support\Proxy\{Redirect, Request};
 
 class Orders implements OrdersContract
 {
@@ -13,9 +13,9 @@ class Orders implements OrdersContract
 
     /**
      * Liste des statuts de commande.
-     * @var array
+     * @var array|null
      */
-    protected $statuses = [];
+    protected $statuses;
 
     /**
      * Nombre d'élément total trouvés
@@ -34,44 +34,6 @@ class Orders implements OrdersContract
     {
         $this->setShop($shop);
 
-        /* db()->register(
-            'shop.order.items',
-            [
-                'install'    => true,
-                'name'       => 'tify_shop_order_items',
-                'primary'    => 'order_item_id',
-                'col_prefix' => 'order_item_',
-                'meta'       => [
-                    'meta_type' => 'tify_shop_order_item',
-                    'join_col'  => 'order_item_id'
-                ],
-                'columns'    => [
-                    'id'       => [
-                        'type'           => 'BIGINT',
-                        'size'           => 20,
-                        'unsigned'       => true,
-                        'auto_increment' => true
-                    ],
-                    'name'     => [
-                        'type' => 'TEXT',
-                    ],
-                    'type'     => [
-                        'type'    => 'VARCHAR',
-                        'size'    => 200,
-                        'default' => ''
-                    ],
-                    'order_id' => [
-                        'type'     => 'BIGINT',
-                        'size'     => 20,
-                        'unsigned' => true,
-                        'prefix'   => false
-                    ]
-                ],
-                'keys'       => ['order_id' => ['cols' => 'order_id', 'type' => 'INDEX']],
-            ]
-        ); */
-
-        add_action('init', [$this, 'onInit']);
         add_action('get_header', [$this, 'onReceived']);
     }
 
@@ -85,9 +47,10 @@ class Orders implements OrdersContract
      */
     public function create(): ?Order
     {
-        if (! $id = wp_insert_post(['post_type' => 'order'])) {
+        if (! $id = wp_insert_post(['post_type' => 'shop_order'])) {
             return null;
         }
+
         return $this->get($id);
     }
 
@@ -148,99 +111,6 @@ class Orders implements OrdersContract
      */
     public function getRegisteredStatuses(): array
     {
-        return [
-            'order-pending'    => [
-                'label'                     => _x('En attente de paiement', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'En attente de paiement <span class="count">(%s)</span>',
-                    'En attente de paiement <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-            'order-processing' => [
-                'label'                     => _x('En préparation', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'En préparation <span class="count">(%s)</span>',
-                    'En préparation <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-            'order-on-hold'    => [
-                'label'                     => _x('En attente', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'En attente <span class="count">(%s)</span>',
-                    'En attente <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-            'order-completed'  => [
-                'label'                     => _x('Terminée', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'Terminée <span class="count">(%s)</span>',
-                    'Terminée <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-            'order-cancelled'  => [
-                'label'                     => _x('Annulée', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'Annulée <span class="count">(%s)</span>',
-                    'Annulée <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-            'order-refunded'   => [
-                'label'                     => _x('Remboursée', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'Remboursée <span class="count">(%s)</span>',
-                    'Remboursée <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-            'order-failed'     => [
-                'label'                     => _x('Echouée', 'shop_order_status', 'tify'),
-                'public'                    => false,
-                'exclude_from_search'       => false,
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => _n_noop(
-                    'Echouée <span class="count">(%s)</span>',
-                    'Echouée <span class="count">(%s)</span>',
-                    'tify'
-                ),
-            ],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getRelPostStatuses(): array
-    {
         return array_keys($this->getStatuses());
     }
 
@@ -249,13 +119,15 @@ class Orders implements OrdersContract
      */
     public function getStatuses(): array
     {
-        if ($this->statuses) {
-            return $this->statuses;
+        if (is_null($this->statuses)) {
+            $statuses = $this->shop()->entity()->getOrderStatuses();
+
+            array_walk($statuses, function (PostTypeStatus $item) {
+                $this->statuses[$item->getName()] = $item->getLabel();
+            });
         }
 
-        return $this->statuses = (new Collection($this->getRegisteredStatuses()))->mapWithKeys(function($item, $key) {
-            return [$key => $item['label']];
-        })->all();
+        return $this->statuses ? : [];
     }
 
     /**
@@ -263,7 +135,9 @@ class Orders implements OrdersContract
      */
     public function getStatusLabel($name, $default = ''): string
     {
-        return Arr::get($this->getStatuses(), $name, $default);
+        $statuses = $this->getStatuses();
+
+        return $statuses[$name] ?? $default;
     }
 
     /**
@@ -274,6 +148,14 @@ class Orders implements OrdersContract
     public function getTotal(): int
     {
         return $this->total;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hasStatus(string $status): bool
+    {
+        return in_array($status, array_keys($this->getStatuses()));
     }
 
     /**
@@ -323,26 +205,6 @@ class Orders implements OrdersContract
     }
 
     /**
-     * @inheritDoc
-     */
-    public function isStatus(string $status): bool
-    {
-        return in_array($status, array_keys($this->getStatuses()));
-    }
-
-    /**
-     * Initialisation globale de Wordpress.
-     *
-     * @return void
-     */
-    public function onInit(): void
-    {
-        foreach ($this->getRegisteredStatuses() as $order_status => $values) {
-            register_post_status($order_status, $values);
-        }
-    }
-
-    /**
      * Evénement lancé à l'issue du paiement.
      *
      * @return void
@@ -369,12 +231,14 @@ class Orders implements OrdersContract
     /**
      * @inheritDoc
      */
-    public function query($query_args = null): OrdersCollection
+    public function query(array $args = []): array
     {
-        if (!isset($query_args['post_status'])) {
-            $query_args['post_status'] = $this->getRelPostStatuses();
+        if (!isset($args['post_status'])) {
+            $args['post_status'] = $this->getRegisteredStatuses();
         }
 
-        return $this->shop()->resolve('orders.collection')->query($query_args);
+        $order = $this->shop()->order();
+
+        return $order::queryFromArgs($args);
     }
 }

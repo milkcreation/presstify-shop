@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-interface OrderItemTypeCoupon extends OrderItemType
+interface OrderItemCoupon extends OrderItem
 {
 
 }

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
-use Psr\Container\ContainerInterface as Container;
+use tiFy\Contracts\Container\Container;
 use WP_Post;
 
 interface Shop
@@ -23,7 +23,7 @@ interface Shop
      *
      * @return string
      */
-    public function action($alias, $parameters = [], $absolute = false): string;
+    public function action(string $alias, array $parameters = [], bool $absolute = false): string;
 
     /**
      * Récupération de la classe de rappel de gestion des adresses : livraison|facturation.
@@ -56,7 +56,14 @@ interface Shop
      *
      * @return mixed
      */
-    public function config($key = null, $default = '');
+    public function config($key = null, $default = null);
+
+    /**
+     * Récupération de l'instance de la gestion des entités de la boutique.
+     *
+     * @return ShopEntity
+     */
+    public function entity(): ShopEntity;
 
     /**
      * Récupération de la dépendance des fournisseurs de service.
@@ -80,11 +87,22 @@ interface Shop
     public function getContainer(): Container;
 
     /**
+     * Récupération d'une instance de commande.
+     *
+     * @param int|string|WP_Post|null.
+     *
+     * @return Order|null
+     */
+    public function order($id = null): ?Order;
+
+    /**
      * Récupération de la classe de rappel de gestion des commandes.
      *
-     * @return Orders
+     * @param array|null $args Liste des arguments de requête de récupération des commandes.
+     *
+     * @return Orders|Order[]|null
      */
-    public function orders(): Orders;
+    public function orders(?array $args = null);
 
     /**
      * Récupération d'une instance de produit.
@@ -157,6 +175,15 @@ interface Shop
      * @return mixed
      */
     public function resolve(string $alias, ...$args);
+
+    /**
+     * Vérifie si un service est fourni.
+     *
+     * @param string $alias Nom de qualification du service.
+     *
+     * @return boolean
+     */
+    public function resolvable(string $alias): bool;
 
     /**
      * Récupération du chemin absolu vers une ressource.

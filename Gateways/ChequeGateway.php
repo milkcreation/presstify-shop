@@ -41,7 +41,7 @@ class ChequeGateway extends AbstractGateway
      */
     public function processPayment(Order $order): array
     {
-        // @todo Mise à jour du status vers en attente.
+        // @todo EVOLUTION : Mise à jour du status vers en attente.
         if ($order->getTotal() > 0) {
             $order->updateStatus('order-on-hold');
             $order->addNote(__('En attente du réglement par chèque', 'tify'));
@@ -49,7 +49,7 @@ class ChequeGateway extends AbstractGateway
             $order->paymentComplete();
         }
 
-        // @todo Mise à jour des stocks.
+        // @todo EVOLUTION : Mise à jour des stocks.
 
         // Suppression des éléments du panier.
         $this->shop->cart()->destroy();

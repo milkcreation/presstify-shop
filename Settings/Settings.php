@@ -31,46 +31,46 @@ class Settings extends ParamsBag implements SettingsContract
         'weight_unit', 'dimension_unit',
 
         // Produits - Général > Avis
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // Produits - Inventaire
         'is_manage_stock', // @todo
 
         // Produits - Produits téléchargeable
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // TVA - Options TVA
         'prices_include_tax',
 
         // TVA - Taux standards
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // TVA - Taux réduit
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // TVA - Taux zéro
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // Expédition - Zone d'expédition
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // Expédition - Options de livraison
         'enable_shipping_calc', 'shipping_cost_requires_address', 'ship_to_destination', 'shipping_debug_mode',
 
         // Expédition - Classes de livraison
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // Commande - Options de commande > Processus de commande
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // Commande - Options de commande > Page de commande
         'cart_page_id', 'checkout_page_id', 'terms_page_id'
 
         // Commande - Options de commande > Terminaisons de commande
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
 
         // Commande - Options de commande > Passerelles de paiement
-        // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
     ];
 
     /**

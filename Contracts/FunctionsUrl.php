@@ -13,7 +13,7 @@ interface FunctionsUrl extends ShopAwareTrait
 
     /**
      * Url vers la page d'ajout de moyen de paiement.
-     * @todo
+     * @todo EVOLUTION : Mettre en oeuvre
      *
      * @return string
      */
@@ -21,7 +21,7 @@ interface FunctionsUrl extends ShopAwareTrait
 
     /**
      * Url vers la page de suppression de moyen de paiement.
-     * @todo
+     * @todo EVOLUTION : Mettre en oeuvre
      *
      * @return string
      */
@@ -54,7 +54,7 @@ interface FunctionsUrl extends ShopAwareTrait
 
     /**
      * Url vers la page de définition du moyen de paiement par défaut.
-     * @todo
+     * @todo EVOLUTION : Mettre en oeuvre
      *
      * @return string
      */

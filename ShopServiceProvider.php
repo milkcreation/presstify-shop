@@ -261,7 +261,7 @@ class ShopServiceProvider extends ServiceProvider
     }
 
     /**
-     * @todo
+     * @todo EVOLUTION : Mettre en oeuvre
      */
     public function registerActions(): void
     {

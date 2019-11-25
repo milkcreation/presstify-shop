@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use Illuminate\Database\Query\Builder;
 use tiFy\Contracts\PostType\PostTypeStatus;
 
 interface ShopEntity extends ShopAwareTrait
@@ -19,4 +20,18 @@ interface ShopEntity extends ShopAwareTrait
      * @return PostTypeStatus[]|array
      */
     public function getOrderStatuses(): array;
+
+    /**
+     * Récupération d'une instance du gestionnaire de requête des éléments associés à une commande.
+     *
+     * @return Builder
+     */
+    public function orderItemsTable(): Builder;
+
+    /**
+     * Récupération d'une instance du gestionnaire de requête des métadonnées d'éléments associés à une commande.
+     *
+     * @return Builder
+     */
+    public function orderItemMetaTable(): Builder;
 }

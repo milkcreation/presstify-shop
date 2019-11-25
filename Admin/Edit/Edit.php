@@ -150,7 +150,7 @@ class Edit
      */
     public function panelHeader($post)
     {
-        $product = $this->shop()->products()->get($post);
+        $product = $this->shop()->product($post);
 
         $product_type_selector = '';
         if ($product_types = $product->getProductTypes()) :

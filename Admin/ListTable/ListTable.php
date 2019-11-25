@@ -116,7 +116,7 @@ class ListTable
      */
     public function columnFeatured($column_name, $post_id)
     {
-        $product = $this->shop->products()->get($post_id);
+        $product = $this->shop->product($post_id);
 
         return $product->isFeatured()
             ? "<span class=\"dashicons dashicons-star-filled\"></span>"
@@ -133,7 +133,7 @@ class ListTable
      */
     public function columnPrice($column_name, $post_id)
     {
-        $product = $this->shop()->products()->get($post_id);
+        $product = $this->shop()->product($post_id);
 
         if ($product->isProductType('composing')) :
             return '<em>' . __('Non vendu séparément', 'tify') . '</em>';
@@ -154,7 +154,7 @@ class ListTable
      */
     public function columnProductType($column_name, $post_id)
     {
-        $product = $this->shop()->products()->get($post_id);
+        $product = $this->shop()->product($post_id);
 
         return (string)partial('tag', [
             'tag'     => 'a',
@@ -189,7 +189,7 @@ class ListTable
      */
     public function columnThumbnail($column_name, $post_id)
     {
-        $product = $this->shop()->products()->get($post_id);
+        $product = $this->shop()->product($post_id);
 
         if ($thumb = $product->getThumbnail([80, 80])) {
         } else {

@@ -4,10 +4,10 @@ namespace tiFy\Plugins\Shop\Orders;
 
 use BadMethodCallException;
 use Exception;
+use Illuminate\Database\Query\Builder;
 use tiFy\Plugins\Shop\Contracts\{Order, OrderItem as OrderItemContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
-use tiFy\Support\{ParamsBag, Str};
-use tiFy\Support\Proxy\Database;
+use tiFy\Support\{Arr, ParamsBag, Str};
 
 /**
  * @mixin OrderItem
@@ -56,6 +56,8 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
     {
         $this->order = $order;
 
+        $this->set('order_id', $this->order()->getId());
+
         $this->setShop($order->shop());
     }
 
@@ -80,7 +82,7 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
             'id'       => 0,
             'name'     => '',
             'order_id' => 0,
-            'type'     => ''
+            'type'     => '',
         ];
     }
 
@@ -108,7 +110,7 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
         if (is_null($this->metas)) {
             $this->metas = [];
 
-            $queryMetas = Database::table('tify_shop_order_itemmeta')->where('order_item_id', $this->getId())->get();
+            $queryMetas = $this->tableMeta()->where('order_item_id', $this->getId())->get();
 
             if ($queryMetas->count()) {
                 foreach ($queryMetas as $q) {
@@ -126,7 +128,7 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
      */
     public function getOrderId(): int
     {
-        return (int)$this->get('id', 0);
+        return (int)$this->get('order_id', 0);
     }
 
     /**
@@ -144,7 +146,7 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
     {
         $keys = is_array($key) ? $key : [$key => $mapKey];
 
-        foreach($keys as $key => $mapKey) {
+        foreach ($keys as $key => $mapKey) {
             if ($value = $this->pull($mapKey)) {
                 $this->set($key, $value);
             }
@@ -160,13 +162,21 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
     {
         $keys = is_array($key) ? $key : [$key => $mapKey];
 
-        foreach($keys as $key => $mapKey) {
+        foreach ($keys as $key => $mapKey) {
             if ($value = $this->getMeta($mapKey, null)) {
                 $this->set($key, $value);
             }
         }
 
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function order(): Order
+    {
+        return $this->order;
     }
 
     /**
@@ -185,5 +195,70 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
         $this->mapMeta($this->metasMap);
 
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function save(): int
+    {
+        if (!$this->getId()) {
+            if ($id = $this->table()->insertGetId([
+                'order_item_name' => $this->getName(),
+                'order_item_type' => $this->getType(),
+                'order_id'        => $this->getOrderId(),
+            ])) {
+                $this->set('id', $id);
+            }
+        }
+
+        return $this->getId();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function saveMetas(): array
+    {
+        $ids = [];
+        if ($metas = $this->metasMap) {
+            foreach ($this->metasMap as $key => $mapKey) {
+                $ids[] = $this->saveMeta($mapKey, $this->get($key));
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function saveMeta(string $key, $value): int
+    {
+        if (!$id = $this->getId()) {
+            return 0;
+        } else {
+            return $this->tableMeta()->insertGetId([
+                'order_item_id' => $id,
+                'meta_key'      => $key,
+                'meta_value'    => Arr::serialize($value),
+            ]);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function table(): Builder
+    {
+        return $this->shop()->entity()->orderItemsTable();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function tableMeta(): Builder
+    {
+        return $this->shop()->entity()->orderItemMetaTable();
     }
 }

@@ -7,6 +7,15 @@ use WP_Post;
 interface Orders extends ShopAwareTrait
 {
     /**
+     * Récupération d'une collection de commande.
+     *
+     * @param Order[]|array $orders
+     *
+     * @return OrdersCollection
+     */
+    public function collect(array $orders = []): OrdersCollection;
+
+    /**
      * Création d'une nouvelle commande.
      *
      * @return Order|null
@@ -42,7 +51,7 @@ interface Orders extends ShopAwareTrait
      *
      * @return array
      */
-    public function getNotEmptyCartStatus(): array;
+    public function getNotEmptyCartStatuses(): array;
 
     /**
      * Récupération de la liste des statuts relatif à un processus de paiement abouti.
@@ -109,13 +118,6 @@ interface Orders extends ShopAwareTrait
      * @return boolean
      */
     public function is($order): bool;
-
-    /**
-     * Evénement lancé à l'issue du paiement.
-     *
-     * @return void
-     */
-    public function onReceived(): void;
 
     /**
      * Récupération des données d'une liste d'élément selon des critères de requête.

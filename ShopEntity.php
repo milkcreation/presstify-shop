@@ -2,9 +2,11 @@
 
 namespace tiFy\Plugins\Shop;
 
+use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Schema\Blueprint;
 use tiFy\Contracts\PostType\PostTypeStatus;
 use tiFy\Plugins\Shop\Contracts\{ShopEntity as ShopEntityContract, Shop};
-use tiFy\Support\Proxy\{PostType};
+use tiFy\Support\Proxy\{Database, PostType, Schema};
 
 class ShopEntity implements ShopEntityContract
 {
@@ -55,7 +57,7 @@ class ShopEntity implements ShopEntityContract
         if (!$this->registered) {
             $objectTypes = $this->shop()->products()->getObjectTypes();
 
-            // Type de produit
+            // Type de produit.
             taxonomy()->register('product_type', [
                 'hierarchical'      => false,
                 'show_ui'           => false,
@@ -67,7 +69,7 @@ class ShopEntity implements ShopEntityContract
                 'object_type'       => $objectTypes,
             ]);
 
-            // Visibilité d'un produit
+            // Visibilité d'un produit.
             taxonomy()->register('product_visibility', [
                 'hierarchical'      => false,
                 'show_ui'           => false,
@@ -79,7 +81,7 @@ class ShopEntity implements ShopEntityContract
                 'object_type'       => array_merge($objectTypes, ['product_variation']),
             ]);
 
-            // Catégorie de produit
+            // Catégorie de produit.
             taxonomy()->register('product_cat', [
                 'hierarchical' => true,
                 'singular'     => __('categorie', 'tify'),
@@ -87,7 +89,7 @@ class ShopEntity implements ShopEntityContract
                 'show_ui'      => true,
             ]);
 
-            // Etiquette de produit
+            // Etiquette de produit.
             taxonomy()->register('product_tag', [
                 'hierarchical' => false,
                 'singular'     => __('étiquette', 'tify'),
@@ -95,13 +97,13 @@ class ShopEntity implements ShopEntityContract
                 'show_ui'      => true,
             ]);
 
-            // Classes de livraison
+            // Classes de livraison.
             // @todo EVOLUTION : Mettre en oeuvre
 
-            // Produits
+            // Produits.
             // @todo EVOLUTION : Mettre en oeuvre
 
-            // Variation de produits
+            // Variation de produits.
             PostType::register('product_variation', [
                 'plural'          => __('variations', 'tify'),
                 'singular'        => __('variation', 'tify'),
@@ -113,7 +115,7 @@ class ShopEntity implements ShopEntityContract
                 'rewrite'         => false,
             ]);
 
-            // Commandes
+            // Commandes.
             PostType::register('shop_order', [
                 'plural'              => __('commandes', 'tify'),
                 'singular'            => __('commande', 'tify'),
@@ -133,6 +135,7 @@ class ShopEntity implements ShopEntityContract
                 'has_archive'         => false,
             ]);
 
+            // Statuts de commandes.
             $this->orderStatuses['pending'] = PostType::status('order-pending', [
                 'label'                     => _x('En attente de paiement', 'shop_order_status', 'tify'),
                 'public'                    => false,
@@ -224,7 +227,7 @@ class ShopEntity implements ShopEntityContract
                 ),
             ]);
 
-            // Remboursements
+            // Remboursements.
             PostType::register('shop_order_refund', [
                 'plural'          => __('remboursements', 'tify'),
                 'singular'        => __('remboursement', 'tify'),
@@ -235,51 +238,35 @@ class ShopEntity implements ShopEntityContract
                 'rewrite'         => false,
             ]);
 
-            // Coupons
+            // Coupons.
             // @todo EVOLUTION : Mettre en oeuvre
 
-            // Webhook
+            // Webhook.
             // @todo EVOLUTION : Mettre en oeuvre
+
+            // Création des tables de base de données.
+            if (!Schema::hasTable('tify_shop_order_items')) {
+                Schema::create('tify_shop_order_items', function (Blueprint $table) {
+                    $table->bigIncrements('order_item_id');
+                    $table->text('order_item_name');
+                    $table->string('order_item_type', 200);
+                    $table->bigInteger('order_id')->unsigned();
+                    $table->index('order_id', 'order_id');
+                });
+            }
+
+            if (!Schema::hasTable('tify_shop_order_itemmeta')) {
+                Schema::create('tify_shop_order_itemmeta', function (Blueprint $table) {
+                    $table->bigIncrements('meta_id');
+                    $table->bigInteger('order_item_id')->default(0);
+                    $table->string('meta_key', 255)->nullable();
+                    $table->longText('meta_value')->nullable();
+                    $table->index('order_item_id', 'order_item_id');
+                    $table->index('meta_key', 'meta_key');
+                });
+            }
 
             $this->registered = true;
-
-            /* @todo A FAIRE !!
-            db()->register(
-                'shop.order.items',
-                [
-                    'install'    => true,
-                    'name'       => 'tify_shop_order_items',
-                    'primary'    => 'order_item_id',
-                    'col_prefix' => 'order_item_',
-                    'meta'       => [
-                        'meta_type' => 'tify_shop_order_item',
-                        'join_col'  => 'order_item_id'
-                    ],
-                    'columns'    => [
-                        'id'       => [
-                            'type'           => 'BIGINT',
-                            'size'           => 20,
-                            'unsigned'       => true,
-                            'auto_increment' => true
-                        ],
-                        'name'     => [
-                            'type' => 'TEXT',
-                        ],
-                        'type'     => [
-                            'type'    => 'VARCHAR',
-                            'size'    => 200,
-                            'default' => ''
-                        ],
-                        'order_id' => [
-                            'type'     => 'BIGINT',
-                            'size'     => 20,
-                            'unsigned' => true,
-                            'prefix'   => false
-                        ]
-                    ],
-                    'keys'       => ['order_id' => ['cols' => 'order_id', 'type' => 'INDEX']],
-                ]
-            ); */
         }
 
         return $this;
@@ -291,5 +278,21 @@ class ShopEntity implements ShopEntityContract
     public function getOrderStatuses(): array
     {
         return $this->orderStatuses;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orderItemsTable(): Builder
+    {
+        return Database::table('tify_shop_order_items');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orderItemMetaTable(): Builder
+    {
+        return Database::table('tify_shop_order_itemmeta');
     }
 }

@@ -17,12 +17,6 @@ class OrdersCollection extends Collection implements OrdersCollectionContract
     protected $items = [];
 
     /**
-     * Nombre d'élément total trouvés
-     * @var int
-     */
-    protected $total = 0;
-
-    /**
      * CONSTRUCTEUR.
      *
      * @param Shop $shop
@@ -35,38 +29,18 @@ class OrdersCollection extends Collection implements OrdersCollectionContract
     }
 
     /**
-     * @inheritDoc
-     */
-    public function getTotal(): int
-    {
-        return $this->total;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function query(...$args): OrdersCollectionContract
-    {
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function setTotal($total): OrdersCollectionContract
-    {
-        $this->total = $total;
-
-        return $this;
-    }
-
-    /**
      * {@inheritDoc}
+     *
+     * @param Order $item
      *
      * @return Order
      */
-    public function walk($item, $key = null): Order
+    public function walk($item, $key = null): ?Order
     {
-        return $this->items[$key] = $this->shop()->resolve('order', [$item, $this->shop]);
+        if ($item instanceof Order) {
+            return $this->items[$key] = $item;
+        } else {
+            return null;
+        }
     }
 }

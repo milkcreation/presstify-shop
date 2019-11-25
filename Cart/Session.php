@@ -61,7 +61,7 @@ class Session extends ParamsBag implements CartSessionContract
         foreach ($this->all() as $key => $default) {
             $this->shop()->session()->put($key, $default);
         }
-        $this->shop()->session()->put('order_awaiting_payment', 0);
+        $this->shop()->session()->forget('order_awaiting_payment');
         $this->shop()->session()->save();
 
         if ($persistent) {

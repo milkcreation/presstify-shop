@@ -165,9 +165,18 @@ interface Order extends QueryPost, ShopAwareTrait
     public function getShortStatus(): string;
 
     /**
+     * Récupération de l'intitulé de qualification du statut de commande.
      *
+     * @return string
      */
-    public function getStatusLabel();
+    public function getStatusLabel(): string;
+
+    /**
+     * Récupération de l'identifiant de qualification de transaction.
+     *
+     * @return int|string
+     */
+    public function getTransactionId();
 
     /**
      * Récupération du montant total de la commande.
@@ -193,6 +202,16 @@ interface Order extends QueryPost, ShopAwareTrait
      * @return boolean
      */
     public function isCustomer(int $id): bool;
+
+    /**
+     * Cartographie des metadonnés d'attributs de la commande.
+     *
+     * @param string|array $key Clé d'indice|Tableau de cartographie attr <> meta
+     * @param string|null $metaKey Clé d'indice de la métadonnée en correspondance.
+     *
+     * @return static
+     */
+    public function mapMeta($key, ?string $metaKey = null): Order;
 
     /**
      * Vérifie si une commande nécessite un paiement.
@@ -277,11 +296,18 @@ interface Order extends QueryPost, ShopAwareTrait
     public function setShipping(string $key, $value): Order;
 
     /**
+     * Mise à jour des données de commande.
+     *
+     * @return void
+     */
+    public function update(): void;
+
+    /**
      * Mise à jour du statut et enregistrement immédiat.
      *
      * @param string $new_status Nom de qualification du nouveau statut.
      *
      * @return boolean
      */
-    public function updateStatus($new_status): bool;
+    public function updateStatus(string $new_status): bool;
 }

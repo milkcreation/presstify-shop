@@ -89,6 +89,7 @@ use tiFy\Plugins\Shop\Contracts\{Actions as ActionsContract,
     UserCustomer as UserCustomerContract,
     Users as UsersContract,
     UserShopManager as UserShopManagerContract,};
+use tiFy\Support\Proxy\Request;
 
 class ShopServiceProvider extends ServiceProvider
 {
@@ -200,6 +201,25 @@ class ShopServiceProvider extends ServiceProvider
             foreach ($this->resolve as $alias) {
                 $this->getContainer()->get("shop.{$alias}")->boot();
             }
+
+            events()->listen('tify.shop.init', function (Shop $shop) {
+                if ($orderId = Request::instance()->query->getInt('order-received', 0)) {
+                    $orderKey = Request::input('key', '');
+
+                    if (($order = $shop->order($orderId)) && ($order->getOrderKey() === $orderKey)) {
+                        $shop->cart()->destroy();
+                    }
+                }
+
+                if (
+                    ($orderId = (int)$shop->session()->get('order_awaiting_payment', 0)) &&
+                    ($order = $shop->order($orderId)) && ! $order->hasStatus($shop->orders()->getNotEmptyCartStatuses())
+                ) {
+                    $shop->cart()->destroy();
+                }
+            });
+
+            events()->trigger('tify.shop.init', [$this->shop]);
         });
     }
 

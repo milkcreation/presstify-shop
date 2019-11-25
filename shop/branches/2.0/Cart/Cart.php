@@ -55,23 +55,13 @@ class Cart implements CartContract
                 'successfully_added'   => __('L\'article a été ajouté à votre panier avec succès.', 'tify'),
                 'successfully_updated' => __('Votre panier a été mis à jour avec succès.', 'tify'),
                 'successfully_removed' => __('L\'article a été supprimé de votre panier avec succès.', 'tify'),
-                'is_empty'             => __('Votre panier ne contient actuellement aucun article.', 'tify'),
+                'empty'                => __('Votre panier ne contient actuellement aucun article.', 'tify'),
             ], $this->shop()->config('cart.notices', []));
         }, 25);
 
         add_action('init', function () {
             $this->session()->fetchCart();
         }, 999999);
-
-        add_action('get_header', function () {
-            if (
-                $this->shop()->functions()->page()->isCart() &&
-                !$this->count() &&
-                ($message = $this->getNotice('is_empty'))
-            ) {
-                $this->shop()->notices()->add($message, 'info');
-            }
-        });
     }
 
     /**
@@ -139,6 +129,7 @@ class Cart implements CartContract
     public function destroy(): CartContract
     {
         $this->flush()->calculate();
+
         $this->session()->destroy();
 
         return $this;

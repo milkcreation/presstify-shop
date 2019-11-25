@@ -7,6 +7,15 @@ use WP_Post;
 interface Products extends ShopAwareTrait
 {
     /**
+     * Récupération d'une collection de produits.
+     *
+     * @param Product[]|array $products
+     *
+     * @return ProductsCollection
+     */
+    public function collect(array $products = []): ProductsCollection;
+
+    /**
      * Récupération d'un produit.
      *
      * @param int|string|Wp_Post|null

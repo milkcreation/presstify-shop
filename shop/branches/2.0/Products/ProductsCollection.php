@@ -30,11 +30,27 @@ class ProductsCollection extends Collection implements ProductsCollectionContrac
 
     /**
      * @inheritDoc
+     */
+    public function featured(): array
+    {
+        return $this->collect($this->items)->filter(function (Product $item) {
+            return $item->isFeatured();
+        })->values()->all();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param Product $item
      *
      * @return Product
      */
-    public function walk($item, $key = null)
+    public function walk($item, $key = null): ?Product
     {
-        return $this->items[$key] = $this->shop()->resolve('product', [$item]);
+        if ($item instanceof Product) {
+            return $this->items[$key] = $item;
+        } else {
+            return null;
+        }
     }
 }

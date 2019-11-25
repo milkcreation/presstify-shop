@@ -6,7 +6,7 @@ interface FunctionsPrice extends ShopAwareTrait
 {
     /**
      * Récupération du symbole de la devise.
-     * @todo EVOLUTION : Utilisé la librairie suivante
+     * @todo EVOLUTION : Utiliser la librairie suivante >>
      * @see https://github.com/xsolla/currency-format
      *
      * @param string|null $currency Identifiant de qualification de la devise.

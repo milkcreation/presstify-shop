@@ -6,5 +6,10 @@ use tiFy\Contracts\Support\Collection;
 
 interface ProductsCollection extends Collection, ShopAwareTrait
 {
-
+    /**
+     * Récupération de la liste des produits mis en avant.
+     *
+     * @return Product[]|array
+     */
+    public function featured(): array;
 }

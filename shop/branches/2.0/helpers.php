@@ -168,7 +168,7 @@ if (!function_exists('shop_product')) {
      */
     function shop_product($product): ?tiFy\Plugins\Shop\Contracts\Product
     {
-        return shop()->products()->get($product);
+        return shop()->product($product);
     }
 }
 

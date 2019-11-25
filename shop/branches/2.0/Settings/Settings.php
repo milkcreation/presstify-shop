@@ -34,7 +34,8 @@ class Settings extends ParamsBag implements SettingsContract
         // @todo EVOLUTION : Mettre en oeuvre
 
         // Produits - Inventaire
-        'is_manage_stock', // @todo
+        // @todo EVOLUTION : Mettre en oeuvre
+        'is_manage_stock',
 
         // Produits - Produits téléchargeable
         // @todo EVOLUTION : Mettre en oeuvre

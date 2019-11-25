@@ -2,8 +2,10 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Plugins\Shop\Contracts\{Product,
+use tiFy\Plugins\Shop\Contracts\{
+    Product,
     Products as ProductsContract,
+    ProductsCollection,
     ProductObjectType,
     ProductObjectTypeUncategorized,
     Shop};
@@ -65,6 +67,14 @@ class Products implements ProductsContract
      * @inheritDoc
      */
     public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function collect(array $products = []): ProductsCollection
+    {
+        return $this->shop()->resolve('products.collection')->set($products);
+    }
 
     /**
      * @inheritDoc

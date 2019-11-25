@@ -67,7 +67,7 @@ class Order extends QueryPost implements OrderContract
 
     /**
      * Identifiant de qualification de la transaction.
-     * @return string
+     * @return string|int
      */
     protected $transactionId = '';
 
@@ -452,7 +452,7 @@ class Order extends QueryPost implements OrderContract
     /**
      * @inheritDoc
      */
-    public function getStatusLabel()
+    public function getStatusLabel(): string
     {
         return $this->getStatus()->getLabel();
     }
@@ -554,9 +554,8 @@ class Order extends QueryPost implements OrderContract
             'customer_note' => $this->getExcerpt(true),
             'date_created'  => $this->getDate(true),
             'date_modified' => $this->getModified(true),
-            'order_key'     => $this->get('order_key', uniqid('order_')),
+            'order_key'     => $this->get('order_key') ? : uniqid('order_'),
             'parent_id'     => $this->getParentId(),
-
             'status' => $this->shop()->orders()->hasStatus($this->get('post_status'))
                 ? $this->get('post_status') : $this->shop()->orders()->getDefaultStatus(),
         ]);
@@ -573,7 +572,7 @@ class Order extends QueryPost implements OrderContract
             if (!$this->getId()) {
                 return false;
             }
-            $this->shop()->session()->pull('order_awaiting_payment', false);
+            $this->shop()->session()->forget('order_awaiting_payment');
 
             if ($this->hasStatus($this->shop()->orders()->getPaymentValidStatuses())) {
                 if (!empty($transaction_id)) {
@@ -614,37 +613,28 @@ class Order extends QueryPost implements OrderContract
      */
     public function removeOrderItems(?string $type = null): void
     {
-        /* @todo A FAIRE !!
-         * if (!empty($type)) {
-            $this->orderItems->delete($type);
-            unset($this->items[$type]);
-        } else {
-            $this->orderItems->delete();
-            $this->items = [];
-        }*/
-    }
+        if (!is_null($type)) {
+            if ($items =  $this->getOrderItems($type)) {
+                $ids = (new Collection($items))->pluck('id')->unique()->all();
 
-    /**
-     * @inheritDoc
-     */
-    public function update()
-    {
-        $post_data = [
-            'ID'                => $this->getId(),
-            'post_date'         => $this->shop()->functions()->date()->local(),
-            'post_date_gmt'     => $this->shop()->functions()->date()->utc(),
-            'post_status'       => $this->getStatus()->getName(),
-            'post_parent'       => $this->getParentId(),
-            'post_excerpt'      => $this->getExcerpt(true),
-            'post_modified'     => $this->shop()->functions()->date()->local(),
-            'post_modified_gmt' => $this->shop()->functions()->date()->utc(),
-        ];
+                foreach($ids as $id) {
+                    $this->shop()->entity()->orderItemsTable()->where([
+                        'order_item_id'     => $id,
+                        'order_item_type'   => $type,
+                        'order_id'          => $this->getId()
+                    ])->delete();
 
-        wp_update_post($post_data);
-
-        $this->saveMetas();
-
-        $this->saveItems();
+                    $this->shop()->entity()->orderItemMetaTable()->where([
+                        'order_item_id'     => $id,
+                    ])->delete();
+                }
+                unset($this->orderItems[$type]);
+            }
+        } elseif ($types = array_keys($this->getOrderItems())) {
+            foreach($types as $type) {
+                $this->removeOrderItems($type);
+            }
+        }
     }
 
     /**
@@ -652,15 +642,14 @@ class Order extends QueryPost implements OrderContract
      */
     public function saveItems(): void
     {
-        /* @todo A FAIRE !!
-        if ($this->items) {
-            foreach ($this->items as $group => $group_items) {
-                foreach ($group_items as $item_key => $item) {
-                    // @var OrderItemType $item
-                    $item->save();
+        foreach($this->getOrderItems() as $group => $grouped) {
+            foreach($grouped as $key => $item) {
+                /** @var OrderItem $item */
+                if ($id = $item->save()) {
+                    $item->saveMetas();
                 }
             }
-        } */
+        }
     }
 
     /**
@@ -670,30 +659,30 @@ class Order extends QueryPost implements OrderContract
     {
         if (!$this->metasMap || !$this->getId()) {
             return;
-        }
+        } else {
+            foreach ($this->metasMap as $attr_key => $meta_key) {
+                $meta_value = $this->get($attr_key, '');
 
-        foreach ($this->metasMap as $attr_key => $meta_key) {
-            $meta_value = $this->get($attr_key, '');
+                switch ($attr_key) {
+                    case 'date_paid' :
+                    case 'date_completed' :
+                        update_post_meta($this->getId(), $meta_key, !is_null($meta_value) ? $meta_value : '');
+                        break;
+                    default :
+                        update_post_meta($this->getId(), $meta_key, $meta_value);
+                        break;
+                }
+            }
 
-            switch ($attr_key) {
-                case 'date_paid' :
-                case 'date_completed' :
-                    update_post_meta($this->getId(), $meta_key, !is_null($meta_value) ? $meta_value : '');
-                    break;
-                default :
-                    update_post_meta($this->getId(), $meta_key, $meta_value);
-                    break;
+            foreach (['billing', 'shipping'] as $address_type) {
+                if (!$address_data = $this->get($address_type, [])) {
+                    continue;
+                }
+                foreach ($address_data as $key => $value) {
+                    update_post_meta($this->getId(), "_{$address_type}_{$key}", $value);
+                }
+                update_post_meta($this->getId(), "_{$address_type}_address_index", implode(' ', $address_data));
             }
-        }
-
-        foreach (['billing', 'shipping'] as $address_type) {
-            if (!$address_data = $this->get($address_type, [])) {
-                continue;
-            }
-            foreach ($address_data as $key => $value) {
-                update_post_meta($this->getId(), "_{$address_type}_{$key}", $value);
-            }
-            update_post_meta($this->getId(), "_{$address_type}_address_index", implode(' ', $address_data));
         }
     }
 
@@ -716,24 +705,47 @@ class Order extends QueryPost implements OrderContract
     /**
      * @inheritDoc
      */
-    public function updateStatus($new_status): bool
+    public function update(): void
+    {
+        $post_data = [
+            'ID'                => $this->getId(),
+            'post_date'         => $this->shop()->functions()->date()->local(),
+            'post_date_gmt'     => $this->shop()->functions()->date()->utc(),
+            'post_status'       => $this->getStatus()->getName(),
+            'post_parent'       => $this->getParentId(),
+            'post_excerpt'      => $this->getExcerpt(true),
+            'post_modified'     => $this->shop()->functions()->date()->local(),
+            'post_modified_gmt' => $this->shop()->functions()->date()->utc(),
+        ];
+
+        wp_update_post($post_data);
+
+        $this->saveMetas();
+
+        $this->saveItems();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function updateStatus(string $new_status): bool
     {
         if (!$this->shop()->orders()->hasStatus($new_status) || ($this->get('status') === $new_status)) {
             return false;
+        } else {
+            $this->set('status', $new_status);
+
+            if (!$this->get('date_paid') && $this->hasStatus($this->shop()->orders()->getPaymentCompleteStatuses())) {
+                $this->set('date_paid', $this->shop()->functions()->date()->utc('U'));
+            }
+
+            if (!$this->get('date_completed') && $this->hasStatus('completed')) {
+                $this->set('date_completed', $this->shop()->functions()->date()->utc('U'));
+            }
+
+            $this->update();
+
+            return true;
         }
-
-        $this->set('status', $new_status);
-
-        if (!$this->get('date_paid') && $this->hasStatus($this->shop()->orders()->getPaymentCompleteStatuses())) {
-            $this->set('date_paid', $this->shop()->functions()->date()->utc('U'));
-        }
-
-        if (!$this->get('date_completed') && $this->hasStatus('completed')) {
-            $this->set('date_completed', $this->shop()->functions()->date()->utc('U'));
-        }
-
-        $this->update();
-
-        return true;
     }
 }

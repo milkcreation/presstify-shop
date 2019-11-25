@@ -91,7 +91,7 @@ interface Cart extends ShopAwareTrait
      * Récupération d'un message de notification
      *
      * @param string $name Nom de qualification du message de notification.
-     * @internal successfully_added|successfully_updated|successfully_removed|is_empty
+     * @internal successfully_added|successfully_updated|successfully_removed|empty
      * @param string $default Valeur de retour par défaut
      *
      * @return string

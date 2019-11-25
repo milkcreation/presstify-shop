@@ -2,6 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Contracts;
 
+use Illuminate\Database\Query\Builder;
 use tiFy\Contracts\Support\ParamsBag;
 use tiFy\Plugins\Shop\Orders\OrderItem as DelegateOrderItem;
 
@@ -78,4 +79,49 @@ interface OrderItem extends ParamsBag, ShopAwareTrait
      * @return static
      */
     public function mapMeta($key, ?string $mapKey = null): OrderItem;
+
+    /**
+     * Récupération de l'instance de la commande associée.
+     *
+     * @return Order
+     */
+    public function order(): Order;
+
+    /**
+     * Sauvegarde des données de l'élément de commande en base.
+     *
+     * @return int Identifiant de qualification en base.
+     */
+    public function save(): int;
+
+    /**
+     * Sauvegarde des metadonnées de l'élément de commande en base.
+     *
+     * @return int[] Liste des identifiant de qualification des métadonnées en base.
+     */
+    public function saveMetas(): array;
+
+    /**
+     * Sauvegarde d'une metadonnée de l'élément de commande en base.
+     *
+     * @param string $key Clé d'indice de la métadonnée.
+     * @param mixed $value Valeur de la métadonnée.
+     *
+     * @return int Identifiant de qualification de la métadonnée en base.
+     */
+    public function saveMeta(string $key, $value): int;
+
+    /**
+     * Récupération d'une instance du gestionnaire de requête des éléments associés à une commande.
+     *
+     * @return Builder
+     */
+    public function table(): Builder;
+
+    /**
+     * Récupération d'une instance du gestionnaire de requête des métadonnées d'éléments associés à une commande.
+     *
+     * @return Builder
+     */
+    public function tableMeta(): Builder;
 }

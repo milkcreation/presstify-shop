@@ -4,7 +4,7 @@ namespace tiFy\Plugins\Shop\Checkout;
 
 use tiFy\Plugins\Shop\Contracts\{Checkout as CheckoutContract, Order, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
-use tiFy\Support\Proxy\Request;
+use tiFy\Support\Proxy\{Redirect, Request};
 
 class Checkout implements CheckoutContract
 {
@@ -48,24 +48,25 @@ class Checkout implements CheckoutContract
             foreach ($lines as $line) {
                 $product = $line->getProduct();
                 $item = $order->createItemProduct();
-                $item
-                    ->set('name', $product->getTitle())
-                    ->set('quantity', $line->getQuantity())
-                    ->set('variation', '')
-                    ->set('subtotal', $line->getSubtotal())
-                    ->set('subtotal_tax', $line->getSubtotalTax())
-                    ->set('total', $line->getTotal())
-                    ->set('total_tax', $line->getTax())
-                    ->set('taxes', [])
-                    ->set('tax_class', '')
-                    ->set('product_id', $product->getId())
-                    ->set('product_sku', $product->getSku())
-                    ->set('product', $product->all())
-                    ->set('variation_id', 0);
+                $item->set([
+                    'name'         => $product->getTitle(),
+                    'product'      => $product->all(),
+                    'product_id'   => $product->getId(),
+                    'product_sku'  => $product->getSku(),
+                    'quantity'     => $line->getQuantity(),
+                    'subtotal'     => $line->getSubtotal(),
+                    'subtotal_tax' => $line->getSubtotalTax(),
+                    'total'        => $line->getTotal(),
+                    'total_tax'    => $line->getTax(),
+                    'tax_class'    => '',
+                    'taxes'        => [],
+                    'variation'    => '',
+                    'variation_id' => 0,
+                ]);
 
                 $purchasing_options = [];
                 foreach ($line->get('purchasing_options', []) as $product_id => $opts) {
-                    if ($prod = $this->shop()->products()->get($product_id)) {
+                    if ($prod = $this->shop()->product($product_id)) {
                         $purchasing_options[$product_id] = [];
                         foreach ($opts as $name => $opt) {
                             if ($po = $prod->getPurchasingOption($name)) {
@@ -114,12 +115,12 @@ class Checkout implements CheckoutContract
                 __('Impossible de procéder à votre commande, merci de réessayer.', 'tify'), 'error'
             );
 
-            return redirect($redirect);
+            return Redirect::to($redirect);
         } elseif ($this->shop()->cart()->isEmpty()) {
             // Vérification du contenu du panier.
             $this->shop()->notices()->add(__('Désolé, il semblerait que votre session ait expirée.', 'tify'), 'error');
 
-            return redirect($redirect);
+            return Redirect::to($redirect);
         }
 
         // Récupération des données de formulaire
@@ -223,7 +224,8 @@ class Checkout implements CheckoutContract
             foreach ($fieldset_errors as $error) {
                 $this->shop()->notices()->add($error, 'error');
             }
-            return redirect($redirect);
+
+            return Redirect::to($redirect);
         }
 
         // @todo EVOLUTION : Vérifier les données de panier : status du produit | disponibilité en stock
@@ -233,14 +235,15 @@ class Checkout implements CheckoutContract
             $this->shop()->notices()->add(
                 __('Veuillez prendre connaissance et accepter les conditions générales de vente.', 'tify'), 'error'
             );
-            return redirect($redirect);
+
+            return Redirect::to($redirect);
         }
 
         // Adresse de livraison
         if ($this->shop()->cart()->needShipping()) {
             $this->shop()->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
 
-            return redirect($redirect);
+            return Redirect::to($redirect);
         }
 
         if ($this->shop()->cart()->needPayment()) {
@@ -249,27 +252,28 @@ class Checkout implements CheckoutContract
                     __('Merci de bien vouloir sélectionner votre mode de paiement.', 'tify'), 'error'
                 );
 
-                return redirect($redirect);
+                return Redirect::to($redirect);
             } elseif (!$gateway = $this->shop()->gateways()->get($data['payment_method'])) {
                 $this->shop()->notices()->add(
                     __('Désolé, le mode de paiement choisi n\'est pas valide dans cette boutique.', 'tify'), 'error'
                 );
 
-                return redirect($redirect);
+                return Redirect::to($redirect);
             }
         } else {
             $gateway = null;
         }
 
         $order = ($order_id = $this->shop()->session()->get('order_awaiting_payment', 0))
-            ? $this->shop()->orders()->get($order_id)
+            ? $this->shop()->order($order_id)
             : $this->shop()->orders()->create();
 
         if (!$this->shop()->orders()->is($order)) {
             $this->shop()->notices()->add(
                 __('Désolé, impossible de procéder à votre commande, veuillez réessayer.', 'tify'), 'error'
             );
-            return redirect($redirect);
+
+            return Redirect::to($redirect);
         }
 
         if ($order->has('cart_hash') && $order->hasStatus(['order-pending', 'order-failed'])) {
@@ -284,6 +288,7 @@ class Checkout implements CheckoutContract
         $customer_ip_address = Request::ip();
         $customer_user_agent = Request::header('User-Agent');
         $customer_note = isset($data['order_comments']) ? $data['order_comments'] : '';
+        $payment_method = $data['payment_method'];
         $payment_method_title = $gateway ? $gateway->getTitle() : '';
         $shipping_total = $this->shop()->cart()->total()->getShippingTotal();
         $shipping_tax = $this->shop()->cart()->total()->getShippingTax();
@@ -292,19 +297,10 @@ class Checkout implements CheckoutContract
         $cart_tax = $this->shop()->cart()->total()->getGlobalTax() + $this->shop()->cart()->total()->getFeeTax();
         $total = $this->shop()->cart()->total()->getGlobal();
 
-        // Liste des articles du panier associés à la commande
         $this->createOrderItemsProduct($order);
-
-        // Liste des promotions associées à la commande
         $this->createOrderItemsFee($order);
-
-        // Liste des livraisons associées à la commande
         $this->createOrderItemsShipping($order);
-
-        // Liste des taxes associées à la commandes
         $this->createOrderItemsTax($order);
-
-        // Liste des coupons de réduction associé à la commande
         $this->createOrderItemsCoupon($order);
 
         $order_datas = compact(
@@ -313,6 +309,7 @@ class Checkout implements CheckoutContract
             'shipping_tax',
             'discount_total', 'discount_tax', 'cart_tax', 'total'
         );
+
         foreach ($data as $key => $value) {
             if (preg_match('#^billing_(.*)#', $key, $match)) {
                 $order->setBilling($match[1], $value);
@@ -329,14 +326,10 @@ class Checkout implements CheckoutContract
 
         events()->trigger('shop.checkout.create_order', [&$this, $order]);
 
-        $order->create();
-
         $order->update();
 
         if ($this->shop()->cart()->needPayment()) {
-            $this->shop()->session()
-                ->put('order_awaiting_payment', $order->getId())
-                ->save();
+            $this->shop()->session()->put('order_awaiting_payment', $order->getId())->save();
 
             $result = $gateway->processPayment($order);
             $redirect = $result['redirect'] ?? $redirect;
@@ -344,7 +337,7 @@ class Checkout implements CheckoutContract
 
         events()->trigger('shop.checkout.proceeded', [&$this, $order]);
 
-        return redirect($redirect);
+        return Redirect::to($redirect);
     }
 
     /**

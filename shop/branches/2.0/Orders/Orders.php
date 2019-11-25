@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Orders;
 
 use tiFy\Contracts\PostType\PostTypeStatus;
-use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, OrdersCollection, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Proxy\{Redirect, Request};
 
@@ -33,14 +33,20 @@ class Orders implements OrdersContract
     public function __construct(Shop $shop)
     {
         $this->setShop($shop);
-
-        add_action('get_header', [$this, 'onReceived']);
     }
 
     /**
      * @inheritDoc
      */
     public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function collect(array $orders = []): OrdersCollection
+    {
+        return $this->shop()->resolve('orders.collection')->set($orders);
+    }
 
     /**
      * @inheritDoc
@@ -85,7 +91,7 @@ class Orders implements OrdersContract
     /**
      * @inheritDoc
      */
-    public function getNotEmptyCartStatus(): array
+    public function getNotEmptyCartStatuses(): array
     {
         return ['order-cancelled', 'order-failed', 'order-pending'];
     }
@@ -202,30 +208,6 @@ class Orders implements OrdersContract
     public function is($order): bool
     {
         return $order instanceof Order;
-    }
-
-    /**
-     * Evénement lancé à l'issue du paiement.
-     *
-     * @return void
-     */
-    public function onReceived(): void
-    {
-        if ($order_id = Request::instance()->query->getInt('order-received', 0)) {
-            $order_key = Request::input('key', '');
-
-            if (($order = $this->get($order_id)) && ($order->getOrderKey() === $order_key)) {
-                $this->shop()->cart()->destroy();
-            }
-        }
-
-        if (
-            ($order_awaiting_payment = (int)$this->shop()->session()->get('order_awaiting_payment')) &&
-            ($order = $this->get($order_awaiting_payment)) &&
-            ! $order->hasStatus($this->getNotEmptyCartStatus())
-        ) {
-            $this->shop()->cart()->destroy();
-        }
     }
 
     /**

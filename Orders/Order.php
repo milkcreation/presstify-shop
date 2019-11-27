@@ -60,7 +60,7 @@ class Order extends QueryPost implements OrderContract
     ];
 
     /**
-     * Instance du gestionnaires d'éléments associés à la commande.
+     * Instances d'éléments associés à la commande.
      * @var OrderItem[]|array|null
      */
     protected $orderItems;
@@ -383,7 +383,22 @@ class Order extends QueryPost implements OrderContract
             }
         }
 
-        return is_null($type) ? $this->orderItems : ($this->orderItems[$type] ?? []);
+        if (is_null($type)) {
+            return $this->orderItems ? : [];
+        } elseif ($this->orderItems) {
+            $orderItems = [];
+            foreach($this->orderItems as $items) {
+                foreach ($items as $item) {
+                    $orderItems[] = $item;
+                }
+            }
+
+            return (new Collection($orderItems))->filter(function (OrderItem $item) use ($type) {
+                 return $item->getType() === $type;
+            })->all();
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -709,8 +724,6 @@ class Order extends QueryPost implements OrderContract
     {
         $post_data = [
             'ID'                => $this->getId(),
-            'post_date'         => $this->shop()->functions()->date()->local(),
-            'post_date_gmt'     => $this->shop()->functions()->date()->utc(),
             'post_status'       => $this->getStatus()->getName(),
             'post_parent'       => $this->getParentId(),
             'post_excerpt'      => $this->getExcerpt(true),

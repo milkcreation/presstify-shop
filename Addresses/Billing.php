@@ -1,48 +1,37 @@
-<?php
-
-/**
- * @name Billing
- * @desc Gestion des adresses de facturation
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Address
- * @version 1.1
- * @since 1.2.600
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Addresses;
 
-class Billing extends AbstractAddress implements BillingInterface
+use tiFy\Plugins\Shop\Contracts\AddressBilling as AddressBillingContract;
+
+class Billing extends AbstractAddress implements AddressBillingContract
 {
     /**
-     * Récupération de la liste des champs de formulaire.
-     *
-     * @return array
+     * @inheritDoc
      */
-    public function fields()
+    public function fields(): array
     {
         $fields = parent::fields();
 
         $fields['phone'] = [
-            'title'        => __('Numéro de téléphone', 'tify'),
-            'type'         => 'text',
-            'required'     => true,
-            'attrs'        => [
+            'attrs'    => [
                 'autocomplete' => 'phone',
             ],
-            'order'        => 100
+            'order'    => 100,
+            'required' => true,
+            'title'    => __('Numéro de téléphone', 'tify'),
+            'type'     => 'text',
         ];
 
         $fields['email'] = [
-            'title'        => __('Adresse de messagerie', 'tify'),
-            'type'         => 'text',
-            'required'     => true,
-            'attrs'        => [
+            'attrs'       => [
                 'autocomplete' => 'email',
             ],
-            'order'        => 110
+            'order'       => 110,
+            'required'    => true,
+            'validations' => 'email',
+            'title'       => __('Adresse de messagerie', 'tify'),
+            'type'        => 'text',
         ];
 
         return $fields;

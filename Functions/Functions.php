@@ -1,168 +1,72 @@
-<?php
-
-/**
- * @name Functions
- * @desc Controleur de gestion des fonctions
- * @namespace \tiFy\Plugins\Shop\Functions
- * @package presstify-plugins/shop
- * @version 1.0.2
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Contracts\{
+    Functions as FunctionsContract,
+    FunctionsDate,
+    FunctionsPage,
+    FunctionsPrice,
+    FunctionsUrl,
+    Shop
+};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-class Functions extends AppController implements FunctionsInterface, ProvideTraitsInterface
+class Functions implements FunctionsContract
 {
-    use ProvideTraits;
+    use ShopAwareTrait;
 
     /**
-     * Instance de la classe.
-     * @var Functions
-     */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique.
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * Liste des fonctions disponibles.
-     * @var string[]
-     */
-    protected $available = [];
-
-    /**
-     * CONSTRUCTEUR
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
-    {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe
+     * CONSTRUCTEUR.
      *
      * @param Shop $shop
      *
-     * @return Functions
+     * @return void
      */
-    public static function make(Shop $shop)
+    public function __construct(Shop $shop)
     {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
+        $this->setShop($shop);
 
-        return self::$instance = new self($shop);
+        $this->boot();
     }
 
     /**
-     * Appel d'une fonction disponible.
-     *
-     * @param string $function Identifiant de qualification de la fonction.
-     * @param array $args Liste des variables passées en argument.
-     * @param string $instanceof Intitulé de l'instance à controler.
-     *
-     * @return array|mixed
+     * @inheritDoc
      */
-    private function call($name, $args = [], $instanceof = null)
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function date($time = 'now', $timezone = true): FunctionsDate
     {
-        if (in_array($name, $this->available)) :
-            return $this->provide('functions.' . $name, $args);
-        endif;
+        /** @var Date $date */
+        $date = $this->shop()->resolve('functions.date');
 
-        $new = $this->provide('functions.' . $name, $args);
-        if ($instanceof) :
-            if(! $new instanceof $instanceof) :
-                throw new LogicException(
-                    sprintf(
-                        __('Le controleur de surcharge doit implémenter %s', 'tify'),
-                        $instanceof
-                    ),
-                    500
-                );
-            endif;
-        endif;
-
-        array_push($this->available, $name);
-
-        return $new;
+        return $date;
     }
 
     /**
-     * Alias de récupération du fournisseur de gestion des contextes d'affichage
-     *
-     * @param string $time Date à traité. now par défaut.
-     * @see http://php.net/manual/fr/class.datetime.php
-     *
-     * @return object|DateInterface
+     * @inheritDoc
      */
-    final public function date($time = 'now', $timezone = true)
+    public function page(): FunctionsPage
     {
-        return $this->call('date', [$time, $timezone, $this->shop], DateInterface::class);
+        return $this->shop()->resolve('functions.page');
     }
 
     /**
-     * Alias de récupération du fournisseur de gestion des contextes d'affichage.
-     *
-     * @return object|PageInterface
+     * @inheritDoc
      */
-    final public function page()
+    public function price(): FunctionsPrice
     {
-        return $this->call('page', [$this->shop], PageInterface::class);
+        return $this->shop()->resolve('functions.price');
     }
 
     /**
-     * Alias de récupération du fournisseur de gestion des tarifs de la boutique.
-     *
-     * @return object|PriceInterface
+     * @inheritDoc
      */
-    final public function price()
+    public function url(): FunctionsUrl
     {
-        return $this->call('price', [$this->shop], PriceInterface::class);
-    }
-
-    /**
-     * Alias de récupération du fournisseur de gestion des urls de la boutique.
-     *
-     * @return object|UrlInterface
-     */
-    final public function url()
-    {
-        return $this->call('url', [$this->shop], UrlInterface::class);
+        return $this->shop()->resolve('functions.url');
     }
 }

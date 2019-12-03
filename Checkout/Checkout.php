@@ -1,254 +1,191 @@
-<?php
-
-/**
- * @name Checkout
- * @desc Controleur de gestion des réglages de la boutique
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Checkout
- * @version 1.1
- * @since 1.2.600
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Checkout;
 
-use Illuminate\Support\Arr;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use tiFy\Apps\AppController;
-use tiFy\Route\Route;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Orders\OrderInterface;
+use tiFy\Plugins\Shop\Contracts\{Checkout as CheckoutContract, Order, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\{Redirect, Request};
 
-class Checkout extends AppController implements CheckoutInterface, ProvideTraitsInterface
+class Checkout implements CheckoutContract
 {
-    use ProvideTraits;
+    use ShopAwareTrait;
 
     /**
-     * Instance de la classe
-     * @var Checkout
-     */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
-
-    /**
-     * CONSTRUCTEUR
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
-    {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
-
-        // Déclaration des événements
-        $this->appAddAction('tify_route_register', null, 0);
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe
+     * CONSTRUCTEUR.
      *
      * @param Shop $shop
      *
-     * @return Checkout
+     * @return void
      */
-    public static function make(Shop $shop)
+    public function __construct(Shop $shop)
     {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
+        $this->setShop($shop);
 
-        self::$instance = new static($shop);
-
-        if(! self::$instance instanceof Checkout) :
-            throw new LogicException(
-                sprintf(
-                    __('Le controleur de surcharge doit hériter de %s', 'tify'),
-                    Checkout::class
-                ),
-                500
-            );
-        endif;
-
-        return self::$instance;
+        $this->boot();
     }
 
     /**
-     * Déclaration du chemin des routes.
-     *
-     * @param Route $route Classe de rappel de traitement des routes.
-     *
-     * @return void
+     * @inheritDoc
      */
-    final public function tify_route_register($route)
+    public function boot(): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function createOrderItemsCoupon(Order $order): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function createOrderItemsFee(Order $order): void { }
+
+    /**
+     * @inheritDoc
+     */
+    public function createOrderItemsProduct(Order $order): void
     {
-        // Ajout d'un produit au panier
-        $route->register(
-            'tify.plugins.shop.checkout.process',
-            [
-                'method' => 'post',
-                'path'   => '/commander',
-                'cb'     => function (ServerRequestInterface $psrRequest, ResponseInterface $psrResponse) {
-                    $this->appAddAction(
-                        'wp_loaded',
-                        function () use ($psrRequest, $psrResponse) {
-                            call_user_func_array([$this, 'process'], [$psrRequest, $psrResponse]);
-                        },
-                        20
-                    );
+        if ($lines = $this->shop()->cart()->all()) {
+            foreach ($lines as $line) {
+                $product = $line->getProduct();
+                $item = $order->createItemProduct();
+                $item->set([
+                    'name'         => $product->getTitle(),
+                    'product'      => $product->all(),
+                    'product_id'   => $product->getId(),
+                    'product_sku'  => $product->getSku(),
+                    'quantity'     => $line->getQuantity(),
+                    'subtotal'     => $line->getSubtotal(),
+                    'subtotal_tax' => $line->getSubtotalTax(),
+                    'total'        => $line->getTotal(),
+                    'total_tax'    => $line->getTax(),
+                    'tax_class'    => '',
+                    'taxes'        => [],
+                    'variation'    => '',
+                    'variation_id' => 0,
+                ]);
+
+                $purchasing_options = [];
+                foreach ($line->get('purchasing_options', []) as $product_id => $opts) {
+                    if ($prod = $this->shop()->product($product_id)) {
+                        $purchasing_options[$product_id] = [];
+                        foreach ($opts as $name => $opt) {
+                            if ($po = $prod->getPurchasingOption($name)) {
+                                $po->setSelected($opt);
+                                $purchasing_options[$product_id][$po->getName()] = [
+                                    'selected' => $opt,
+                                    'render'   => trim((string)$po->renderCartLine()),
+                                    'sku'      => $prod->getSku(),
+                                ];
+                            }
+                        }
+                    }
                 }
-            ]
-        );
+                $item->set('purchasing_options', $purchasing_options);
+
+                $order->addOrderItem($item);
+            }
+        }
     }
 
     /**
-     * Url d'action d'exécution de la commande
-     * @internal Requête de type POST; l'url doit être intégrée en tant qu'attribut "action" d'une balise d'ouverture de formulaire ayant pour attribut "method" POST
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function processUrl()
-    {
-        return $this->appServiceGet(Route::class)->url('tify.plugins.shop.checkout.process');
-    }
+    public function createOrderItemsShipping(Order $order): void { }
 
     /**
-     * Traitement de la commande
-     *
-     * @param ServerRequestInterface $psrRequest Requête HTTP Psr-7
-     * @param ResponseInterface $psrResponse Requête HTTP Psr-7
-     *
-     * @return void
+     * @inheritDoc
      */
-    final public function process(ServerRequestInterface $psrRequest, ResponseInterface $psrResponse)
-    {
-        /**
-         * Conversion de la requête PSR-7
-         * @see https://symfony.com/doc/current/components/psr7.html
-         * @var \Symfony\Component\HttpFoundation\Request $request
-         */
-        $request = (new HttpFoundationFactory())->createRequest($psrRequest);
+    public function createOrderItemsTax(Order $order): void { }
 
+    /**
+     * @inheritDoc
+     */
+    public function handleProcess()
+    {
         // Définition de l'url de redirection
-        if ($redirect = $request->request->get('_wp_http_referer', '')) :
-        elseif ($redirect = $this->functions()->url()->checkoutPage()) :
-        elseif (!$redirect = \wp_get_referer()) :
+        if ($redirect = Request::input('_wp_http_referer', '')) {
+        } elseif ($redirect = $this->shop()->functions()->url()->checkoutPage()) {
+        } elseif (!$redirect = wp_get_referer()) {
             $redirect = get_home_url();
-        endif;
+        }
 
-        // Vérification de la validité de la requête
-        if (!\wp_verify_nonce($request->request->get('_wpnonce', ''), 'tify_shop-process_checkout')) :
-            $this->notices()->add(__('Impossible de procéder à votre commande, merci de réessayer.', 'tify'),
-                'error');
+        if (!wp_verify_nonce(Request::input('_wpnonce', ''), 'tify_shop-process_checkout')) {
+            // Vérification de la validité de la requête.
+            $this->shop()->notices()->add(
+                __('Impossible de procéder à votre commande, merci de réessayer.', 'tify'), 'error'
+            );
 
-            \wp_redirect($redirect);
-            exit;
-        endif;
+            return Redirect::to($redirect);
+        } elseif ($this->shop()->cart()->isEmpty()) {
+            // Vérification du contenu du panier.
+            $this->shop()->notices()->add(__('Désolé, il semblerait que votre session ait expirée.', 'tify'), 'error');
 
-        // Vérification du contenu du panier
-        if ($this->cart()->isEmpty()) :
-            $this->notices()->add(__('Désolé, il semblerait votre session ait expirée.', 'tify'), 'error');
-
-            \wp_redirect($redirect);
-            exit;
-        endif;
+            return Redirect::to($redirect);
+        }
 
         // Récupération des données de formulaire
         $data = [
-            'terms'                              => $request->request->getInt('terms', 1),
+            'terms'                              => Request::input('terms', 1),
             'createaccount'                      => (int)!empty($_POST['createaccount']),
-            'payment_method'                     => $request->request->get('payment_method', ''),
-            'shipping_method'                    => $request->request->get('shipping_method', ''),
-            'ship_to_different_address'          => $request->request->getBoolean('ship_to_different_address', false),
-            'woocommerce_checkout_update_totals' => $request->request->getBoolean('checkout_update_totals', false)
+            'payment_method'                     => Request::input('payment_method', ''),
+            'shipping_method'                    => Request::input('shipping_method', ''),
+            'ship_to_different_address'          => Request::input('ship_to_different_address', false),
+            'woocommerce_checkout_update_totals' => Request::input('checkout_update_totals', false),
         ];
 
         // Données de champ
         $fieldsets = [
-            'billing'  => $this->addresses()->billing()->fields(),
-            'shipping' => $this->addresses()->shipping()->fields(),
+            'billing'  => $this->shop()->addresses()->billing()->fields(),
+            'shipping' => $this->shop()->addresses()->shipping()->fields(),
             'order'    => [
                 'comments' => [
                     'type'        => 'textarea',
                     'label'       => 'note de commande',
-                    'placeholder' => __('Commentaires concernant votre commande, ex.: consignes de livraison', 'tify')
-                ]
-            ]
+                    'placeholder' => __('Commentaires concernant votre commande, ex.: consignes de livraison', 'tify'),
+                ],
+            ],
         ];
 
         // Données de champs ignorés
         $skipped_fieldsets = [];
-        if (! $data['ship_to_different_address']) :
+        if (!$data['ship_to_different_address']) {
             array_push($skipped_fieldsets, 'shipping');
-        endif;
+        }
 
         // Hydratation des données de champs déclarés (hors ignorés)
-        foreach ($fieldsets as $key => $fields) :
-            if (in_array($key, $skipped_fieldsets)) :
+        foreach ($fieldsets as $key => $fields) {
+            if (in_array($key, $skipped_fieldsets)) {
                 continue;
-            endif;
-
-            foreach ($fields as $slug => $attrs) :
-                $data["{$key}_{$slug}"] = $request->request->get(
+            }
+            foreach ($fields as $slug => $attrs) {
+                $data["{$key}_{$slug}"] = Request::input(
                     "{$key}_{$slug}",
-                    $this->session()->get("{$key}.{$slug}", '')
+                    $this->shop()->session()->get("{$key}.{$slug}", '')
                 );
-            endforeach;
-        endforeach;
+            }
+        }
 
         // Hydratation des données de champs ignorés
-        if (in_array('shipping', $skipped_fieldsets)) :
-            foreach($fieldsets['shipping'] as $slug => $attrs) :
+        if (in_array('shipping', $skipped_fieldsets)) {
+            foreach ($fieldsets['shipping'] as $slug => $attrs) {
                 $data["shipping_{$slug}"] = isset($data["billing_{$slug}"]) ? $data["billing_{$slug}"] : '';
-            endforeach;
-        endif;
+            }
+        }
 
         // Mise à jour des données de session
-        // @todo enregistrer les données de session + utilisateur billing & shipping
+        // @todo EVOLUTION : Enregistrer les données de session + utilisateur billing & shipping
 
         // Livraison
-        $chosen_shipping_methods = $this->session()->get('chosen_shipping_methods', []);
-        if (is_array($data['shipping_method'])) :
-            foreach ($data['shipping_method'] as $i => $value) :
+        $chosen_shipping_methods = $this->shop()->session()->get('chosen_shipping_methods', []);
+        if (is_array($data['shipping_method'])) {
+            foreach ($data['shipping_method'] as $i => $value) {
                 $chosen_shipping_methods[$i] = $value;
-            endforeach;
-        endif;
-        $this->session()->put('chosen_shipping_methods', $chosen_shipping_methods);
+            }
+        }
+        $this->shop()->session()->put('chosen_shipping_methods', $chosen_shipping_methods);
 
         // Méthode de paiement
-        $this->session()->put('chosen_payment_method', $data['payment_method']);
+        $this->shop()->session()->put('chosen_payment_method', $data['payment_method']);
 
         // DEBUG - données de session
         // var_dump($this->session()->all());
@@ -256,120 +193,118 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
         // Vérification de l'intégrité des données soumises par le formulaire de paiement
         // Données de facturation
         $fieldset_errors = [];
-        foreach ($fieldsets as $fieldset_key => $fieldset) :
-            foreach ($fieldset as $slug => $field) :
-                if (!isset($field['required'])) :
+        foreach ($fieldsets as $fieldset_key => $fieldset) {
+            foreach ($fieldset as $slug => $field) {
+                if (!isset($field['required'])) {
                     continue;
-                endif;
-                if ($field['required'] !== true) :
+                } elseif ($field['required'] !== true) {
                     continue;
-                endif;
+                }
 
                 $field_label = isset($field['label']) ? strtolower($field['label']) : $slug;
-                switch ($fieldset_key) :
+                switch ($fieldset_key) {
                     case 'billing' :
                         $field_label = sprintf(__('Adresse de facturation : le champ %s', 'tify'), $field_label);
                         break;
                     case 'shipping' :
                         $field_label = sprintf(__('Adresse de livraison : le champ %s', 'tify'), $field_label);
                         break;
-                endswitch;
+                }
 
-                if ($field['required'] && '' === $data[$fieldset_key . '_'. $slug]) :
+                if ($field['required'] && '' === $data[$fieldset_key . '_' . $slug]) {
                     $fieldset_errors[] = sprintf(
                         __('%1$s est requis pour pouvoir procèder à la commande.', 'woocommerce'),
                         esc_html($field_label)
                     );
-                endif;
-            endforeach;
-        endforeach;
+                }
+            }
+        }
 
-        if ($fieldset_errors) :
-            foreach($fieldset_errors as $error) :
-                $this->notices()->add($error, 'error');
-            endforeach;
+        if ($fieldset_errors) {
+            foreach ($fieldset_errors as $error) {
+                $this->shop()->notices()->add($error, 'error');
+            }
 
-            \wp_redirect($redirect);
-            exit;
-        endif;
+            return Redirect::to($redirect);
+        }
 
-        // @todo vérifier les données de panier : status du produit | disponibilité en stock
+        // @todo EVOLUTION : Vérifier les données de panier : status du produit | disponibilité en stock
 
         // Conditions générales validées
-        if (empty($data['terms'])) :
-            $this->notices()->add(__('Veuillez prendre connaissance et accepter les conditions générales de vente.',
-                'tify'), 'error');
+        if (empty($data['terms'])) {
+            $this->shop()->notices()->add(
+                __('Veuillez prendre connaissance et accepter les conditions générales de vente.', 'tify'), 'error'
+            );
 
-            \wp_redirect($redirect);
-            exit;
-        endif;
+            return Redirect::to($redirect);
+        }
 
         // Adresse de livraison
-        if ($this->cart()->needShipping()) :
-            $this->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
+        if ($this->shop()->cart()->needShipping()) {
+            $this->shop()->notices()->add(__('Aucune méthode de livraison n\a été choisie.', 'tify'), 'error');
 
-            \wp_redirect($redirect);
-            exit;
-        endif;
+            return Redirect::to($redirect);
+        }
 
-        if ($this->cart()->needPayment()) :
-            if (empty($data['payment_method'])) :
-                $this->notices()->add(__('Merci de bien vouloir sélectionner votre mode de paiement.',
-                    'tify'), 'error');
+        if ($this->shop()->cart()->needPayment()) {
+            if (empty($data['payment_method'])) {
+                $this->shop()->notices()->add(
+                    __('Merci de bien vouloir sélectionner votre mode de paiement.', 'tify'), 'error'
+                );
 
-                \wp_redirect($redirect);
-                exit;
-            elseif (!$gateway = $this->gateways()->get($data['payment_method'])) :
-                $this->notices()->add(__('Désolé, le mode de paiement choisie n\'est pas valide dans cette boutique.',
-                    'tify'), 'error');
+                return Redirect::to($redirect);
+            } elseif (!$gateway = $this->shop()->gateways()->get($data['payment_method'])) {
+                $this->shop()->notices()->add(
+                    __('Désolé, le mode de paiement choisi n\'est pas valide dans cette boutique.', 'tify'), 'error'
+                );
 
-                \wp_redirect($redirect);
-                exit;
-            endif;
-        endif;
+                return Redirect::to($redirect);
+            }
+        } else {
+            $gateway = null;
+        }
 
-        /** @var OrderInterface $order */
-        $order = ($order_id = $this->session()->get('order_awaiting_payment', 0))
-            ? $this->orders()->get($order_id)
-            : $this->orders()->create();
+        $order = ($order_id = $this->shop()->session()->get('order_awaiting_payment', 0))
+            ? $this->shop()->order($order_id)
+            : $this->shop()->orders()->create();
 
-        if (!$this->orders()->is($order)) :
-            $this->notices()->add(__('Désolé, impossible de procéder à votre commande, veuillez réessayer.',
-                'tify'), 'error');
+        if (!$this->shop()->orders()->is($order)) {
+            $this->shop()->notices()->add(
+                __('Désolé, impossible de procéder à votre commande, veuillez réessayer.', 'tify'), 'error'
+            );
 
-            \wp_redirect($redirect);
-            exit;
-        endif;
+            return Redirect::to($redirect);
+        }
+
+        if ($order->getId() === $this->shop()->session()->get('order_awaiting_payment', 0)){
+            $order->set('status', $this->shop()->orders()->getDefaultStatus());
+        }
+
+        if ($order->has('cart_hash') && $order->hasStatus(['order-pending', 'order-failed'])) {
+            $order->removeOrderItems();
+        }
 
         $created_via = 'checkout';
-        $cart_hash = md5(json_encode($this->cart()->getList()) . $this->cart()->getTotals());
-        $customer_id = $this->users()->get()->getId();
-        $currency = $this->settings()->currency();
-        $prices_include_tax = $this->settings()->isPricesIncludeTax();
-        $customer_ip_address = $request->getClientIp();
-        $customer_user_agent = $request->headers->get('User-Agent');
+        $cart_hash = md5(json_encode($this->shop()->cart()->all()) . $this->shop()->cart()->total());
+        $customer_id = $this->shop()->users()->get()->getId();
+        $currency = $this->shop()->settings()->currency();
+        $prices_include_tax = $this->shop()->settings()->isPricesIncludeTax();
+        $customer_ip_address = Request::ip();
+        $customer_user_agent = Request::header('User-Agent');
         $customer_note = isset($data['order_comments']) ? $data['order_comments'] : '';
-        $payment_method_title = $gateway->getTitle();
-        $shipping_total = $this->cart()->getTotals()->getShippingTotal();
-        $shipping_tax = $this->cart()->getTotals()->getShippingTax();
-        $discount_total = $this->cart()->getTotals()->getDiscountTotal();
-        $discount_tax = $this->cart()->getTotals()->getDiscountTax();
-        $cart_tax = $this->cart()->getTotals()->getGlobalTax() + $this->cart()->getTotals()->getFeeTax();
-        $total = $this->cart()->getTotals()->getGlobal();
+        $payment_method = $data['payment_method'];
+        $payment_method_title = $gateway ? $gateway->getTitle() : '';
+        $shipping_total = $this->shop()->cart()->total()->getShippingTotal();
+        $shipping_tax = $this->shop()->cart()->total()->getShippingTax();
+        $discount_total = $this->shop()->cart()->total()->getDiscountTotal();
+        $discount_tax = $this->shop()->cart()->total()->getDiscountTax();
+        $cart_tax = $this->shop()->cart()->total()->getGlobalTax() + $this->shop()->cart()->total()->getFeeTax();
+        $total = $this->shop()->cart()->total()->getGlobal();
 
-        // Liste des articles du panier associés à la commande
         $this->createOrderItemsProduct($order);
-
-        // Liste des promotions associées à la commande
         $this->createOrderItemsFee($order);
-
-        // Liste des livraisons associées à la commande
         $this->createOrderItemsShipping($order);
-
-        // Liste des taxes associées à la commandes
         $this->createOrderItemsTax($order);
-
-        // Liste des coupons de réduction associé à la commande
         $this->createOrderItemsCoupon($order);
 
         $order_datas = compact(
@@ -378,114 +313,42 @@ class Checkout extends AppController implements CheckoutInterface, ProvideTraits
             'shipping_tax',
             'discount_total', 'discount_tax', 'cart_tax', 'total'
         );
-        foreach ($data as $key => $value) :
-            if (preg_match('#^billing_(.*)#', $key, $match)) :
-                $order->setBillingAttr($match[1], $value);
-            elseif (preg_match('#^shipping_(.*)#', $key, $match)) :
-                $order->setShippingAttr($match[1], $value);
-            else :
+
+        foreach ($data as $key => $value) {
+            if (preg_match('#^billing_(.*)#', $key, $match)) {
+                $order->setBilling($match[1], $value);
+            } elseif (preg_match('#^shipping_(.*)#', $key, $match)) {
+                $order->setShipping($match[1], $value);
+            } else {
                 $order->set($key, $value);
-            endif;
-        endforeach;
+            }
+        }
 
-        foreach ($order_datas as $key => $value) :
+        foreach ($order_datas as $key => $value) {
             $order->set($key, $value);
-        endforeach;
+        }
 
-        $this->appEventTrigger('tify.plugins.shop.checkout.create_order', $this);
+        events()->trigger('shop.checkout.create_order', [&$this, $order]);
 
-        $order->create();
+        $order->update();
 
-        $order->save();
-
-        if ($this->cart()->needPayment()) :
-            $this->session()
-                ->put('order_awaiting_payment', $order->getId())
-                ->save();
+        if ($this->shop()->cart()->needPayment()) {
+            $this->shop()->session()->put('order_awaiting_payment', $order->getId())->save();
 
             $result = $gateway->processPayment($order);
-        endif;
+            $redirect = $result['redirect'] ?? $redirect;
+        }
 
-        \wp_redirect(Arr::get($result, 'redirect', $redirect));
-        exit;
+        events()->trigger('shop.checkout.proceeded', [&$this, $order]);
+
+        return Redirect::to($redirect);
     }
 
     /**
-     * Ajout des élements du panier à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
+     * @inheritDoc
      */
-    public function createOrderItemsProduct(OrderInterface $order)
+    public function processUrl(): string
     {
-        if ($lines = $this->cart()->lines()) :
-            foreach($lines as $line) :
-                $product = $line->getProduct();
-                $item = $order->createItemProduct();
-                $item
-                    ->set('name', $product->getTitle())
-                    ->set('quantity', $line->getQuantity())
-                    ->set('variation', '')
-                    ->set('subtotal', $line->getSubtotal())
-                    ->set('subtotal_tax', $line->getSubtotalTax())
-                    ->set('total', $line->getTotal())
-                    ->set('total_tax', $line->getTax())
-                    ->set('taxes', [])
-                    ->set('tax_class', '')
-                    ->set('product_id', $product->getId())
-                    ->set('variation_id', 0);
-
-                $order->addItem($item);
-            endforeach;
-        endif;
-    }
-
-    /**
-     * Ajout des élements de promotion à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsFee(OrderInterface $order)
-    {
-
-    }
-
-    /**
-     * Ajout des élements de livraison à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsShipping(OrderInterface $order)
-    {
-
-    }
-
-    /**
-     * Ajout des élements de taxe à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsTax(OrderInterface $order)
-    {
-
-    }
-
-    /**
-     * Ajout des élements de bon de réduction à la commande
-     *
-     * @param OrderInterface $order Classe de rappel de la commande relative au paiement.
-     *
-     * @return void
-     */
-    public function createOrderItemsCoupon(OrderInterface $order)
-    {
-
+        return $this->shop()->action('checkout.process');
     }
 }

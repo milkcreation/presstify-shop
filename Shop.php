@@ -1,201 +1,315 @@
-<?php
-
-/**
- * @name Shop
- * @desc Extension PresstiFy de gestion de boutique en ligne.
- * @author Jordy Manner <jordy@milkcreation.fr>
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop
- * @version 2.0.0
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop;
 
-use League\Container\Exception\NotFoundException;
-use tiFy\Apps\AppController;
-use tiFy\User\Session\StoreInterface as tiFySession;
-use tiFy\Plugins\Shop\Addresses\Addresses;
-use tiFy\Plugins\Shop\Cart\Cart;
-use tiFy\Plugins\Shop\Checkout\Checkout;
-use tiFy\Plugins\Shop\Functions\Functions;
-use tiFy\Plugins\Shop\Gateways\Gateways;
-use tiFy\Plugins\Shop\Notices\Notices;
-use tiFy\Plugins\Shop\Orders\Orders;
-use tiFy\Plugins\Shop\Products\Products;
-use tiFy\Plugins\Shop\ServiceProvider\ServiceProvider;
-use tiFy\Plugins\Shop\Settings\Settings;
-use tiFy\Plugins\Shop\Users\Users;
+use Exception;
+use tiFy\Contracts\Container\Container;
+use tiFy\Contracts\View\ViewController;
+use tiFy\Contracts\View\ViewEngine;
+use tiFy\Plugins\Shop\Contracts\{
+    Actions,
+    Addresses,
+    Cart,
+    Checkout,
+    Functions,
+    Gateways,
+    Notices,
+    Order,
+    Orders,
+    Product,
+    Products,
+    Session,
+    Settings,
+    Shop as ShopContract,
+    ShopEntity as ShopEntityContract,
+    User,
+    Users
+};
 
-final class Shop extends AppController
+/**
+ * @desc Extension PresstiFy de gestion de boutique en ligne.
+ * @author Jordy Manner <jordy@milkcreation.fr>
+ * @package tiFy\Plugins\Shop
+ * @version 2.0.47
+ *
+ * Activation :
+ * ----------------------------------------------------------------------------------------------------
+ * Dans config/app.php ajouter \tiFy\Plugins\Shop\ShopServiceProvider à la liste des fournisseurs de services
+ *     chargés automatiquement par l'application.
+ * ex.
+ * <?php
+ * ...
+ * use tiFy\Plugins\Shop\ShopServiceProvider;
+ * ...
+ *
+ * return [
+ *      ...
+ *      'providers' => [
+ *          ...
+ *          ShopServiceProvider::class
+ *          ...
+ *      ]
+ * ];
+ *
+ * Configuration :
+ * ----------------------------------------------------------------------------------------------------
+ * Dans le dossier de config, créer le fichier shop.php
+ * @see /vendor/presstify-plugins/shop/Resources/config/shop.php Exemple de configuration
+ */
+class Shop implements ShopContract
 {
     /**
-     * Fournisseur de service
-     * @var ServiceProvider
+     * Instance du gestionnaire de boutique.
+     * @var ShopContract
      */
-    protected $provider;
+    protected static $instance;
 
     /**
-     * CONSTRUCTEUR
+     * Conteneur d'injection de dépendances.
+     * @var Container
+     */
+    protected $container;
+
+    /**
+     * CONSTRUCTEUR.
+     *
+     * @param Container $container Conteneur d'injection de dépendances.
      *
      * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        // Déclaration du fournisseur de services.
-        $this->provider = new ServiceProvider($this->appConfig('service_provider', []), $this);
-        $this->appServiceProvider($this->provider);
-    }
-
-    /**
-     * Récupération de l'instance de la classe.
      *
-     * @return object|self
+     * @throws Exception
      */
-    public static function get()
+    public function __construct(Container $container)
     {
-        try {
-            return self::appInstance();
-        } catch(NotFoundException $e) {
-            wp_die($e->getMessage(), '', $e->getCode());
-            exit;
+        if (!static::$instance) {
+            static::$instance = $this;
+        } else {
+            throw new Exception(__('Une instance de la boutique existe déjà.', 'tify'));
         }
+
+        $this->container = $container;
     }
 
     /**
-     * Récupération du fournisseur de service.
+     * Récupération de l'instance de la boutique.
      *
-     * @return ServiceProvider
+     * @return static|null
+     */
+    public static function instance(): ?ShopContract
+    {
+        return static::$instance;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function action(string $alias, array $parameters = [], bool $absolute = false): string
+    {
+        /** @var Actions $actions */
+        return ($actions = $this->resolve('actions')) ? $actions->url($alias, $parameters, $absolute) : '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addresses(): Addresses
+    {
+        return $this->resolve('addresses');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cart(): Cart
+    {
+        return $this->resolve('cart');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function checkout(): Checkout
+    {
+        return $this->resolve('checkout');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function config($key = null, $default = null)
+    {
+        return config($key ? "shop.{$key}" : 'shop', $default);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function entity(): ShopEntityContract
+    {
+        return $this->resolve('entity');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function functions(): Functions
+    {
+        return $this->resolve('functions');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function gateways(): Gateways
+    {
+        return $this->resolve('gateways');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContainer(): Container
+    {
+        return $this->container;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function order($id = null): ?Order
+    {
+        return $this->resolve('order', [$id]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orders(?array $args = null)
+    {
+        /** @var Orders $orders */
+        $orders = $this->resolve('orders');
+
+        return is_null($args) ? $orders : $orders->query($args);
+    }
+
+    /**
+     * @inheritDoc
      */
     public function provider()
     {
-        return $this->provider;
+        return app(ShopServiceProvider::class);
     }
 
     /**
-     * Récupération d'un service fournit par la boutique.
-     *
-     * @param string $name Identifiant de qualification du service
-     * @param array $args Liste des variables passées en argument au service
-     *
-     * @return object
+     * @inheritDoc
      */
-    public function provide($name, $args = [])
+    public function product($id = null): ?Product
     {
-        return $this->provider()->get($name, $args);
+        return $this->resolve('product', [$id]);
     }
 
     /**
-     * Récupération de la classe de rappel de gestion des adresses : livraison|facturation
-     *
-     * @return object|Addresses
+     * @inheritDoc
      */
-    public function addresses()
+    public function products(?array $args = null)
     {
-        return $this->provide('addresses.controller');
+        /** @var Products $products */
+        $products = $this->resolve('products');
+
+        return is_null($args) ? $products : $products->query($args);
     }
 
     /**
-     * Récupération de la dépendance panier
-     *
-     * @return object|Cart
+     * @inheritDoc
      */
-    public function cart()
+    public function notices(): Notices
     {
-        return $this->provide('cart.controller');
+        return $this->resolve('notices');
     }
 
     /**
-     * Récupération de la dépendance commande
-     *
-     * @return object|Checkout
+     * @inheritDoc
      */
-    public function checkout()
+    public function resolve(string $alias, ...$args)
     {
-        return $this->provide('checkout.controller');
+        return $this->getContainer()->get("shop.{$alias}", ...$args);
     }
 
     /**
-     * Récupération de la dépendance des fournisseurs de service
-     *
-     * @return object|Functions
+     * @inheritDoc
      */
-    public function functions()
+    public function resolvable(string $alias): bool
     {
-        return $this->provide('functions.controller');
+        return $this->getContainer()->has("shop.{$alias}");
     }
 
     /**
-     * Récupération de la dépendance commande
-     *
-     * @return object|Gateways
+     * @inheritDoc
      */
-    public function gateways()
+    public function resourcesDir(string $path = ''): string
     {
-        return $this->provide('gateways.controller');
+        $path = '/Resources/' . ltrim($path, '/');
+
+        return file_exists(__DIR__ . $path) ? __DIR__ . $path : '';
     }
 
     /**
-     * Récupération de la classe de rappel de gestion des commandes
-     *
-     * @return object|Orders
+     * @inheritDoc
      */
-    public function orders()
+    public function resourcesUrl(string $path = ''): string
     {
-        return $this->provide('orders.controller');
+        $cinfo = class_info($this);
+        $path = '/Resources/' . ltrim($path, '/');
+
+        return file_exists($cinfo->getDirname() . $path) ? class_info($this)->getUrl() . $path : '';
     }
 
     /**
-     * Récupération de la classe de rappel de gestion des produits
-     *
-     * @return object|Products
+     * @inheritDoc
      */
-    public function products()
+    public function session(): Session
     {
-        return $this->provide('products.controller');
+        return $this->resolve('session');
     }
 
     /**
-     * Récupération de la dépendance des notices
-     *
-     * @return object|Notices
+     * @inheritDoc
      */
-    public function notices()
+    public function settings(): Settings
     {
-        return $this->provide('notices.controller');
+        return $this->resolve('settings');
     }
 
     /**
-     * Récupération de la classe de rappel de récupération de données de session
-     *
-     * @return object|tiFySession
+     * @inheritDoc
      */
-    public function session()
+    public function user(int $id = null): ?User
     {
-        /** @var tiFySession $session */
-        $session = $this->provide('session.controller');
-
-        return $session;
+        return $this->users()->get($id);
     }
 
     /**
-     * Récupération de la dépendance des réglages de la boutique
-     *
-     * @return object|Settings
+     * @inheritDoc
      */
-    public function settings()
+    public function users(): Users
     {
-        return $this->provide('settings.controller');
+        return $this->resolve('users');
     }
 
     /**
-     * Récupération de la dépendance des utilisateurs de la boutique
+     * {@inheritDoc}
      *
-     * @return object|Users
+     * @return ViewController|ViewEngine
      */
-    public function users()
+    public function viewer(?string $view = null, $data = [])
     {
-        return $this->provide('users.controller');
+        /** @var ViewEngine $viewer */
+        $viewer = $this->resolve('viewer');
+
+        if (func_num_args() === 0) {
+            return $viewer;
+        }
+
+        return $viewer->make("_override::{$view}", $data);
     }
 }

@@ -1,41 +1,14 @@
-<?php
-
-/**
- * @name Notices
- * @desc Gestion des messages de notification
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Notices
- * @version 1.1
- * @since 1.2.600
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Notices;
 
 use LogicException;
-use tiFy\Apps\AppController;
-use tiFy\Partial\Partial;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Contracts\{Notices as NoticesContract, Shop};
+use tiFy\Plugins\Shop\ShopAwareTrait;
 
-final class Notices extends AppController implements NoticesInterface, ProvideTraitsInterface
+class Notices implements NoticesContract
 {
-    use ProvideTraits;
-
-    /**
-     * Instance de la classe
-     * @var Notices
-     */
-    private static $instance;
-
-    /**
-     * Classe de rappel de la boutique
-     * @var Shop
-     */
-    protected $shop;
+    use ShopAwareTrait;
 
     /**
      * Liste des messages de notification à afficher
@@ -44,142 +17,102 @@ final class Notices extends AppController implements NoticesInterface, ProvideTr
     protected $notices = [];
 
     /**
-     * CONSTRUCTEUR
-     *
-     * @param Shop $shop Classe de rappel de la boutique
-     *
-     * @return void
-     */
-    protected function __construct(Shop $shop)
-    {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
-
-        // Déclaration des événements
-        $this->appAddAction('wp_loaded');
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-
-    }
-
-    /**
-     * Court-circuitage de l'implémentation.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-
-    }
-
-    /**
-     * Instanciation de la classe
+     * CONSTRUCTEUR.
      *
      * @param Shop $shop
      *
-     * @return Notices
-     */
-    public static function make(Shop $shop)
-    {
-        if (self::$instance) :
-            return self::$instance;
-        endif;
-
-        return self::$instance = new self($shop);
-    }
-
-    /**
-     * A l'issue du chargement de Wordpress
-     *
      * @return void
      */
-    final public function wp_loaded()
+    public function __construct(Shop $shop)
     {
-        $this->notices = $this->session()->get('notices', []);
+        $this->setShop($shop);
+
+        $this->boot();
+
+        add_action('wp_loaded', function () {
+            $this->notices = $this->shop()->session()->get('notices', []);
+        });
     }
 
     /**
-     * Ajout d'un message de notification
-     *
-     * @param string $message Intitulé du message de notification
-     * @param string $type Type de message de notification success (default)|warning|info|error
-     *
-     * @return void
-     *
-     * @throws LogicException
+     * @inheritDoc
      */
-    public function add($message, $type = 'success')
-    {
-        if (!did_action('wp_loaded')) :
-            throw new LogicException(
-                __('L\'ajout de message de notification ne devrait pas être fait à ce moment de l\'exécution de votre code', 'tify'),
-                500
-            );
-        endif;
-
-        if (!isset($this->notices[$type])) :
-            $this->notices[$type] = [];
-        endif;
-        $this->notices[$type][] = $message;
-
-        $this->session()->put('notices', $this->notices);
-    }
-
-    /**
-     * Suppression de la liste des messages de notification
-     *
-     * @return void
-     */
-    public function clear()
-    {
-        $this->notices = [];
-        $this->session()->put('notices', []);
-    }
-
-    /**
-     * Affichage des messages de notification
-     *
-     * @return string
-     */
-    public function display()
-    {
-        if (!did_action('template_redirect')) :
-            throw new \LogicException(
-                __('L\'affichage des messages de notifications ne devrait pas être fait à ce moment de l\'execution de votre code', 'tify'),
-                500
-            );
-        endif;
-
-        if (!$this->notices) :
-            return '';
-        endif;
-
-        $output = "";
-        foreach ($this->notices as $type => $messages) :
-            foreach($messages as $content) :
-                $output .= (string)Partial::Notice(compact('type', 'content'));
-            endforeach;
-        endforeach;
-
-        $this->clear();
-
-        return $output;
-    }
+    public function boot(): void { }
 
     /**
      * Affichage des message de notification
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->display();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function add($message, $type = 'success'): void
+    {
+        if (!did_action('wp_loaded')) {
+            throw new LogicException(
+                __(
+                    'L\'ajout de message de notification ne devrait pas être fait ' . '
+                    à ce moment de l\'exécution de votre code',
+                    'tify'
+                ),
+                500
+            );
+        }
+        $type = strtolower($type);
+        $type = ($type === 'notice') ? 'success' : $type;
+
+        if (!isset($this->notices[$type])) {
+            $this->notices[$type] = [];
+        }
+        $this->notices[$type][] = $message;
+
+        $this->shop()->session()->put('notices', $this->notices);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clear(): void
+    {
+        $this->notices = [];
+        $this->shop()->session()->put('notices', []);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function display(): string
+    {
+        if (!did_action('template_redirect')) {
+            throw new LogicException(
+                __(
+                    'L\'affichage des messages de notifications ne devrait pas être fait ' . '
+                    à ce moment de l\'execution de votre code',
+                    'tify'
+                ),
+                500
+            );
+        }
+
+        if (!$this->notices) {
+            return '';
+        }
+
+        $output = "";
+        foreach ($this->notices as $type => $messages) {
+            foreach ($messages as $content) {
+                $output .= (string)partial('notice', compact('type', 'content'));
+            }
+        }
+
+        $this->clear();
+
+        return $output;
     }
 }

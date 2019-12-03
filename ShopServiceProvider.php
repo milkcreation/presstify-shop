@@ -218,8 +218,6 @@ class ShopServiceProvider extends ServiceProvider
                     $shop->cart()->destroy();
                 }
             });
-
-            events()->trigger('tify.shop.init', [$this->shop]);
         });
     }
 

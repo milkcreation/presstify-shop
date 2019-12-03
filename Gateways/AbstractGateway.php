@@ -60,7 +60,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayContract
             'description'          => '',
             'has_fields'           => false,
             'icon'                 => '',
-            'logger'               => [],
+            'logger'               => true,
             'max_amount'           => 0,
             'method_description'   => '',
             'method_title'         => '',

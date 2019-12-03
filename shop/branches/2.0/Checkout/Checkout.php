@@ -276,6 +276,10 @@ class Checkout implements CheckoutContract
             return Redirect::to($redirect);
         }
 
+        if ($order->getId() === $this->shop()->session()->get('order_awaiting_payment', 0)){
+            $order->set('status', $this->shop()->orders()->getDefaultStatus());
+        }
+
         if ($order->has('cart_hash') && $order->hasStatus(['order-pending', 'order-failed'])) {
             $order->removeOrderItems();
         }

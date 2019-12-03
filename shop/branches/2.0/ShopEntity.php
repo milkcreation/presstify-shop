@@ -39,6 +39,8 @@ class ShopEntity implements ShopEntityContract
 
         add_action('init', function () {
             $this->register();
+
+            events()->trigger('tify.shop.init', [$this->shop]);
         });
     }
 

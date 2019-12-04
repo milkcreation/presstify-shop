@@ -46,10 +46,11 @@ class FormHandler extends AddonFactory implements AddressFormHandlerContract
         $userdata = [];
         $session_data = [];
 
-        foreach ($request->all() as $key => $value) {
+        foreach ($request->keys() as $key) {
             $slug = preg_replace('#^' . $ctrl->getId() . '_#', '', $key);
 
             if (($field = $request->field($slug)) && $field->supports('transport')) {
+                $value = $request->field($slug)->getValue();
                 $session_data[$slug] = $value;
                 $userdata[$key] = $value;
             }
@@ -57,7 +58,6 @@ class FormHandler extends AddonFactory implements AddressFormHandlerContract
 
         // Sauvegarde des données en session.
         $this->shop()->session()->put($ctrl->getId(), $session_data);
-        $this->shop()->session()->save();
 
         // Sauvegarde des données de compte utilisateur.
         $user = $this->shop()->users()->get();

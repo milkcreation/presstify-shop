@@ -1,45 +1,33 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Users;
 
-use tiFy\Plugins\Shop\Orders\OrderListInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Contracts\{UserCustomer as CustomerContract};
 
-class Customer extends AbstractUser implements CustomerInterface
+class Customer extends User implements CustomerContract
 {
     /**
-     * Vérifie si un utilisateur est considéré en tant que client
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function isCustomer()
+    public function getOrders(array $args = []): array
     {
-        return true;
-    }
+        $args = array_merge(['order' => 'ASC'], $args);
 
-    /**
-     * Récupération de la liste des commandes du client
-     *
-     * @param array $query_args Liste des arguments de requête personnalisée.
-     * 
-     * @return OrderListInterface
-     */
-    public function getOrderList($query_args = [])
-    {
-        $query_args = array_merge(
-            [
-                'order' => 'ASC'
-            ],
-            $query_args
-        );
-
-        $query_args['meta_query'] = [
+        $args['meta_query'] = [
             [
                 'key'   => '_customer_user',
                 'value' => $this->getId()
             ]
         ];
-        
-        return $this->orders()->getList($query_args);
+
+        return $this->shop()->orders($args);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isCustomer(): bool
+    {
+        return true;
     }
 }

@@ -1,15 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Users;
 
-class ShopManager extends AbstractUser implements ShopManagerInterface
+use tiFy\Plugins\Shop\Contracts\UserShopManager;
+
+class ShopManager extends User implements UserShopManager
 {
     /**
-     * Vérifie si un utilisateur est considéré en tant que client
-     *
-     * @return bool
+     * @inheritDoc
      */
-    public function isShopManager()
+    public function isShopManager(): bool
     {
         return true;
     }

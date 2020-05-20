@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\View\ViewController;
+use tiFy\View\Factory\PlatesFactory;
 
-class ShopViewController extends ViewController
+class ShopViewController extends PlatesFactory
 {
     /**
      * Liste des méthodes héritées.

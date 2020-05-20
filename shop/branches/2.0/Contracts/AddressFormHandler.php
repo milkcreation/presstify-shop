@@ -13,5 +13,5 @@ interface AddressFormHandler extends AddonFactory, ShopAwareTrait
      *
      * @return void
      */
-    public function onRequestSubmit(FactoryRequest $request);
+    public function onRequestProceed(FactoryRequest $request);
 }

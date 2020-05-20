@@ -77,11 +77,12 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
             $this->args = new ParamsBag();
         }
 
-        if (is_null($key)) {
-        } elseif (is_string($key)) {
-            return $this->args->get($key, $default);
-        } elseif (is_array($key)) {
-            return $this->args->set($key);
+        if (!is_null($key)) {
+            if (is_string($key)) {
+                return $this->args->get($key, $default);
+            } elseif (is_array($key)) {
+                return $this->args->set($key);
+            }
         }
 
         return $this->args;
@@ -307,9 +308,8 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
     {
         if (is_null($this->query)) {
             $queryPost = new QueryPost();
-            $queryPost::queryFromArgs($this->args()->all());
 
-            $this->query = $queryPost::query();
+            $this->query = $queryPost::fetchFromArgs($this->args()->all());
         }
 
         return $this->query->get($key, $default);

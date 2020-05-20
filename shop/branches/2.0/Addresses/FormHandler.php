@@ -28,13 +28,13 @@ class FormHandler extends AddonFactory implements AddressFormHandlerContract
      */
     public function boot(): void
     {
-        $this->form()->events()->listen('request.submit', [$this, 'onRequestSubmit']);
+        $this->form()->events()->listen('request.proceed', [$this, 'onRequestProceed']);
     }
 
     /**
      * @inheritdoc
      */
-    public function onRequestSubmit(FactoryRequest $request)
+    public function onRequestProceed(FactoryRequest $request)
     {
         // Récupération du contrôleur valide
         $ctrl = $this->params('controller', '');

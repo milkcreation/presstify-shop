@@ -225,7 +225,7 @@ class Price implements FunctionsPriceContract
                         break;
                 }
             }
-        };
+        }
 
         return sprintf(
             $format,

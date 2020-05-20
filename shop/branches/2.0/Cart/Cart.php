@@ -204,9 +204,7 @@ class Cart implements CartContract
             );
 
             // Définition de l'url de redirection
-            if ($redirect = Request::input('_wp_http_referer', '')) {
-            } elseif ($redirect = $product->getPermalink()) {
-            } else {
+            if (!$redirect = Request::input('_wp_http_referer', '') ?: $product->getPermalink()) {
                 $redirect = Request::header('referer', get_home_url());
             }
         }
@@ -241,10 +239,8 @@ class Cart implements CartContract
             }
         }
 
-        if ($redirect = Request::input('_wp_http_referer', '')) {
-        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
-        } else {
-            $redirect = wp_get_referer();
+        if (!$redirect = Request::input('_wp_http_referer', '') ?: $this->shop()->functions()->url()->cartPage()) {
+            $redirect = Request::header('referer', get_home_url());
         }
 
         wp_redirect(($redirect ?: get_home_url()));
@@ -264,10 +260,8 @@ class Cart implements CartContract
             }
         }
 
-        if ($redirect = Request::input('_wp_http_referer', '')) {
-        } elseif ($redirect = $this->shop()->functions()->url()->cartPage()) {
-        } else {
-            $redirect = wp_get_referer();
+        if (!$redirect = Request::input('_wp_http_referer', '') ?: $this->shop()->functions()->url()->cartPage()) {
+            $redirect = Request::header('referer', get_home_url());
         }
 
         wp_redirect(($redirect ?: get_home_url()));

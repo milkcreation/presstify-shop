@@ -4,8 +4,7 @@ namespace tiFy\Plugins\Shop;
 
 use Exception;
 use tiFy\Contracts\Container\Container;
-use tiFy\Contracts\View\ViewController;
-use tiFy\Contracts\View\ViewEngine;
+use tiFy\Contracts\View\Engine as ViewEngine;
 use tiFy\Plugins\Shop\Contracts\{
     Actions,
     Addresses,
@@ -30,7 +29,7 @@ use tiFy\Plugins\Shop\Contracts\{
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.48
+ * @version 2.0.49
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------
@@ -297,9 +296,9 @@ class Shop implements ShopContract
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
-     * @return ViewController|ViewEngine
+     * @return ViewEngine|string
      */
     public function viewer(?string $view = null, $data = [])
     {
@@ -310,6 +309,6 @@ class Shop implements ShopContract
             return $viewer;
         }
 
-        return $viewer->make("_override::{$view}", $data);
+        return $viewer->render("_override::{$view}", $data);
     }
 }

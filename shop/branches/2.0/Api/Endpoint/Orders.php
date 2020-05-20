@@ -162,9 +162,9 @@ class Orders extends BaseWpPost implements OrdersContract
     {
         if (is_null($this->query)) {
             $order = $this->shop()->order();
-            $order::queryFromArgs($this->args()->all());
 
-            $this->query = $order::query();
+
+            $this->query = $order::fetchFromArgs($this->args()->all());
         }
 
         return $this->query->get($key, $default);

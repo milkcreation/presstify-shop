@@ -18,21 +18,21 @@ interface CartSession extends ParamsBag, ShopAwareTrait
      *
      * @param bool $persistent Active la suppression des données de panier relatives aux options utilisateur
      *
-     * @return void
+     * @return static
      */
     public function destroy($persistent = true): CartSession;
 
     /**
      * Retrouve les articles du panier portés par la session.
      *
-     * @return void
+     * @return static
      */
     public function fetchCart(): CartSession;
 
     /**
      * Mise à jour des données de session.
      *
-     * @return void
+     * @return static
      */
     public function update(): CartSession;
 }

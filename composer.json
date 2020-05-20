@@ -10,7 +10,7 @@
     "woocommerce"
   ],
   "homepage": "https://svn.milkcreation.fr/presstify-plugins/shop",
-  "time": "2018-06-26",
+  "time": "2020-05-20",
   "license": "proprietary",
   "authors": [
     {
@@ -27,11 +27,12 @@
   ],
   "require": {
     "composer/installers": "~1.0",
-    "presstify/framework": "^2.0"
+    "presstify/framework": "2.0.*",
+    "presstify-plugins/parser": "^2.0"
   },
   "autoload": {
     "files": [
-      "Helpers.php"
+      "helpers.php"
     ],
     "psr-4": {
       "tiFy\\Plugins\\Shop\\": ""
@@ -42,6 +43,7 @@
   "config" : {
     "optimize-autoloader": true,
     "preferred-install": "dist",
+    "secure-http": false,
     "sort-packages": true
   }
 }

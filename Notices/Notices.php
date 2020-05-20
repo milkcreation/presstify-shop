@@ -5,6 +5,7 @@ namespace tiFy\Plugins\Shop\Notices;
 use LogicException;
 use tiFy\Plugins\Shop\Contracts\{Notices as NoticesContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\Partial;
 
 class Notices implements NoticesContract
 {
@@ -107,7 +108,7 @@ class Notices implements NoticesContract
         $output = "";
         foreach ($this->notices as $type => $messages) {
             foreach ($messages as $content) {
-                $output .= (string)partial('notice', compact('type', 'content'));
+                $output .= Partial::get('notice', compact('type', 'content'));
             }
         }
 

@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Functions;
 
-use League\Uri;
 use tiFy\Plugins\Shop\Contracts\{FunctionsUrl as FunctionsUrlContract, Shop};
 use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\Proxy\Url as UrlProxy;
 
 class Url implements FunctionsUrlContract
 {
@@ -59,9 +59,7 @@ class Url implements FunctionsUrlContract
      */
     public function checkoutOrderPayPage(array $args = []): string
     {
-        $base_uri = Uri\create($this->checkoutPage());
-
-        return (string)Uri\append_query($base_uri, http_build_query($args));
+        return UrlProxy::set($this->checkoutPage())->with($args)->render();
     }
 
     /**
@@ -69,9 +67,7 @@ class Url implements FunctionsUrlContract
      */
     public function checkoutOrderReceivedPage(array $args = []): string
     {
-        $base_uri = Uri\create($this->checkoutPage());
-
-        return (string)Uri\append_query($base_uri, http_build_query($args));
+        return UrlProxy::set($this->checkoutPage())->with($args)->render();
     }
 
     /**

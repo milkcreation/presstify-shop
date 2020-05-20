@@ -89,7 +89,7 @@ use tiFy\Plugins\Shop\Contracts\{Actions as ActionsContract,
     UserCustomer as UserCustomerContract,
     Users as UsersContract,
     UserShopManager as UserShopManagerContract,};
-use tiFy\Support\Proxy\Request;
+use tiFy\Support\Proxy\{Request, View};
 
 class ShopServiceProvider extends ServiceProvider
 {
@@ -374,9 +374,7 @@ class ShopServiceProvider extends ServiceProvider
         $this->getContainer()->add('shop.api.endpoint.orders', function () {
             $concrete = $this->getConcrete('shop.api.endpoint.orders');
 
-            $instance = is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
-
-            return $instance;
+            return is_object($concrete) ? $concrete : new $concrete($this->getContainer()->get('shop'));
         });
     }
 
@@ -825,17 +823,11 @@ class ShopServiceProvider extends ServiceProvider
         $this->getContainer()->share('shop.viewer', function () {
             $default_dir = __DIR__ . '/Resources/views';
 
-            $view = view()
-                ->setDirectory($default_dir)
-                ->setController(config('shop.viewer.controller') ?: ShopViewController::class)
-                ->setOverrideDir(($dir = config('shop.viewer.override_dir')) && is_dir($dir)
-                    ? $dir
-                    : $default_dir
-                );
-
-            $view->params(['shop' => $this->shop]);
-
-            return $view;
+            return View::getPlatesEngine(array_merge([
+                'directory'    => $default_dir,
+                'factory'      => ShopViewController::class,
+                'override_dir' => ($dir = config('shop.viewer.override_dir')) && is_dir($dir) ?$dir : $default_dir
+            ]))->setParams(['shop' => $this->shop]);
         });
     }
 }

@@ -98,13 +98,9 @@ class Session extends ParamsBag implements CartSessionContract
 
                 if (!$product || ($quantity < 0)) {
                     continue;
-                } else {
-                    if (!$product->isPurchasable()) {
-                        // do_action( 'woocommerce_remove_cart_item_from_session', $key, $values );
-                    } else {
-                        $line['product'] = $product;
-                        $this->cart()->add($key, $line);
-                    }
+                } elseif ($product->isPurchasable()) {
+                    $line['product'] = $product;
+                    $this->cart()->add($key, $line);
                 }
             }
         }

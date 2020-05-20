@@ -2,11 +2,8 @@
 
 namespace tiFy\Plugins\Shop;
 
-use tiFy\Plugins\Shop\Contracts\{ShopAwareTrait as ShopAwareTraitContract, Shop};
+use tiFy\Plugins\Shop\Contracts\Shop;
 
-/**
- * @mixin ShopAwareTraitContract
- */
 trait ShopAwareTrait
 {
     /**
@@ -26,7 +23,7 @@ trait ShopAwareTrait
     /**
      * @inheritDoc
      */
-    public function setShop(Shop $shop): ShopAwareTraitContract
+    public function setShop(Shop $shop): self
     {
         $this->shop = $shop;
 

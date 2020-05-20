@@ -188,8 +188,7 @@ class Orders implements OrdersContract
                 $order->paymentComplete();
             }
 
-            $location = Request::input('_wp_http_referer')
-                ?: (Request::instance()->headers->get('referer') ?: site_url('/'));
+            $location = Request::input('_wp_http_referer') ?: (Request::header('referer') ?: site_url('/'));
 
             return Redirect::to($location);
         } else {
@@ -198,7 +197,6 @@ class Orders implements OrdersContract
                 __('Mise à jour de la commande impossible', 'tify'),
                 500
             );
-            return '';
         }
     }
 
@@ -221,6 +219,6 @@ class Orders implements OrdersContract
 
         $order = $this->shop()->order();
 
-        return $order::queryFromArgs($args);
+        return $order::fetchFromArgs($args);
     }
 }

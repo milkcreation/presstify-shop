@@ -103,10 +103,8 @@ class Checkout implements CheckoutContract
     public function handleProcess()
     {
         // Définition de l'url de redirection
-        if ($redirect = Request::input('_wp_http_referer', '')) {
-        } elseif ($redirect = $this->shop()->functions()->url()->checkoutPage()) {
-        } elseif (!$redirect = wp_get_referer()) {
-            $redirect = get_home_url();
+        if (!$redirect = Request::input('_wp_http_referer', '') ?: $this->shop()->functions()->url()->checkoutPage()) {
+            $redirect = Request::header('referer', get_home_url());
         }
 
         if (!wp_verify_nonce(Request::input('_wpnonce', ''), 'tify_shop-process_checkout')) {
@@ -276,7 +274,7 @@ class Checkout implements CheckoutContract
             return Redirect::to($redirect);
         }
 
-        if ($order->getId() === $this->shop()->session()->get('order_awaiting_payment', 0)){
+        if ($order->getId() === $this->shop()->session()->get('order_awaiting_payment', 0)) {
             $order->set('status', $this->shop()->orders()->getDefaultStatus());
         }
 

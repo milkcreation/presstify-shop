@@ -2,11 +2,11 @@
 
 namespace tiFy\Plugins\Shop\Routing;
 
+use Laminas\Diactoros\ResponseFactory;
 use tiFy\Plugins\Shop\Contracts\{Routes as RoutesContract, Shop};
 use tiFy\Plugins\Shop\{Api\Middleware as ApiMiddleware, Api\Strategy as ApiStrategy, ShopAwareTrait};
 use tiFy\Contracts\Routing\RouteGroup;
 use tiFy\Support\Proxy\Router;
-use Zend\Diactoros\ResponseFactory;
 
 class Routes implements RoutesContract
 {

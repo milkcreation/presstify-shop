@@ -2,9 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Settings;
 
-use tiFy\Plugins\Shop\Contracts\{Settings as SettingsContract, Shop};
+use tiFy\Plugins\Shop\Contracts\Settings as SettingsContract;
 use tiFy\Plugins\Shop\ShopAwareTrait;
-use tiFy\Support\{ParamsBag, Str};
+use tiFy\Support\ParamsBag;
 
 class Settings extends ParamsBag implements SettingsContract
 {
@@ -14,7 +14,7 @@ class Settings extends ParamsBag implements SettingsContract
      * Liste des réglages disponibles.
      * @var array
      */
-    protected $settings = [
+    protected $settingKeys = [
         // Général > Adresse de la boutique
         'store_address', 'store_address_additionnal', 'store_city', 'store_postcode', 'store_country',
 
@@ -75,42 +75,6 @@ class Settings extends ParamsBag implements SettingsContract
     ];
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop Instance de la boutique.
-     *
-     * @return void
-     */
-    public function __construct(Shop $shop)
-    {
-        $this->setShop($shop);
-
-        $attrs = $this->shop()->config('settings', []);
-
-        $this->boot();
-
-        foreach($this->settings as $setting) {
-            if (!isset($attrs[$setting])) {
-                if ($value = get_option($setting)) {
-                    $attrs[$setting] = $value;
-                } else {
-                    $method = Str::camel($setting);
-                    if (method_exists($this, $method)) {
-                        $attrs[$setting] = call_user_func([$this, $method]);
-                    }
-                }
-            }
-        }
-
-        $this->set($attrs)->parse();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function boot(): void { }
-
-    /**
      * @inheritDoc
      */
     public function allowedCountries()
@@ -123,7 +87,7 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function cartEnableListAdd(): bool
     {
-        return $this->get('cart_enabled_list_add', false);
+        return filter_var($this->get('cart_enabled_list_add', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -139,7 +103,7 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function cartRedirectAfterAdd(): bool
     {
-        return $this->get('cart_redirect_after_add', false);
+        return filter_var($this->get('cart_redirect_after_add', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -204,7 +168,7 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function isCalcTaxes(): bool
     {
-        return (bool)$this->get('is_calc_taxes', false);
+        return filter_var($this->get('is_calc_taxes', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -212,7 +176,7 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function isManageStock(): bool
     {
-        return (bool)$this->get('is_manage_stock', false);
+        return filter_var($this->get('is_manage_stock', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -220,7 +184,15 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function isPricesIncludeTax(): bool
     {
-        return (bool)$this->get('prices_include_tax', false);
+        return filter_var($this->get('prices_include_tax', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isShippingEnabled(): bool
+    {
+        return filter_var($this->get('enable_shipping', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -228,7 +200,7 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function isShippingCalcEnabled(): bool
     {
-        return (bool)$this->get('enable_shipping_calc', false);
+        return filter_var($this->get('enable_shipping_calc', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -236,7 +208,7 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function isShippingCostRequiresAddress(): bool
     {
-        return (bool)$this->get('shipping_cost_requires_address', false);
+        return filter_var($this->get('shipping_cost_requires_address', false), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -244,7 +216,17 @@ class Settings extends ParamsBag implements SettingsContract
      */
     public function isShippingDebugMode(): bool
     {
-        return (bool)$this->get('shipping_debug_mode', false);
+        return filter_var($this->get('shipping_debug_mode', false), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function parse(): SettingsContract
+    {
+        $this->set($this->shop()->config('settings', []));
+
+        return parent::parse();
     }
 
     /**

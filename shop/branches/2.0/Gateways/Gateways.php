@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Gateways;
 
-use tiFy\Plugins\Shop\Contracts\{Gateway as GatewayContract, Gateways as GatewaysContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Gateway as GatewayContract, Gateways as GatewaysContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Collection;
 
@@ -11,27 +11,10 @@ class Gateways extends Collection implements GatewaysContract
     use ShopAwareTrait;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop
-     *
-     * @return void
+     * Indicateur d'initialisation.
+     * @var bool
      */
-    public function __construct(Shop $shop)
-    {
-        $this->setShop($shop);
-
-        events()->trigger('tify.plugins.shop.gateways.register', [&$this]);
-
-        $this->set($this->shop()->config("gateways", []));
-
-        $this->boot();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function boot(): void { }
+    protected $booted = false;
 
     /**
      * {@inheritDoc}
@@ -55,6 +38,22 @@ class Gateways extends Collection implements GatewaysContract
         });
 
         return $filtered->all();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function boot(): GatewaysContract
+    {
+        if (!$this->booted) {
+            events()->trigger('shop.gateways.register', [$this]);
+
+            $this->set($this->shop->config('gateways', []));
+
+            $this->booted = true;
+        }
+
+        return $this;
     }
 
     /**
@@ -97,14 +96,13 @@ class Gateways extends Collection implements GatewaysContract
         }
 
         if (is_string($gateway)) {
-            $gateway = $this->shop()->resolve("gateway.{$gateway}");
+            $gateway = $this->shop->resolve("gateway.{$gateway}");
         }
 
         if ($gateway instanceof GatewayContract) {
-            $gateway->setShop($this->shop())
+            $gateway->setShop($this->shop)
                 ->set($attrs)->parse()
-                ->setEnabled($enabled)
-                ->boot();
+                ->setEnabled($enabled);
 
             return $this->items[$alias] = $gateway;
         } else {

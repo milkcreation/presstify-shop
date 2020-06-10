@@ -3,6 +3,7 @@
 namespace tiFy\Plugins\Shop\Contracts;
 
 use tiFy\Contracts\Container\Container;
+use tiFy\Support\ParamsBag;
 use WP_Post;
 
 interface Shop
@@ -15,22 +16,11 @@ interface Shop
     public static function instance(): ?Shop;
 
     /**
-     * Récupération de l'url d'une action de traitement.
+     * Initialisation.
      *
-     * @param string $alias Alias de qualification de l'action.
-     * @param array $parameters Liste des variables passées en argument dans l'url.
-     * @param boolean $absolute Format de sortie de l'url. Url relative par défaut.
-     *
-     * @return string
+     * @return static
      */
-    public function action(string $alias, array $parameters = [], bool $absolute = false): string;
-
-    /**
-     * Récupération de la classe de rappel de gestion des adresses : livraison|facturation.
-     *
-     * @return Addresses
-     */
-    public function addresses(): Addresses;
+    public function boot(): Shop;
 
     /**
      * Récupération de la dépendance panier.
@@ -47,14 +37,12 @@ interface Shop
     public function checkout(): Checkout;
 
     /**
-     * Récupération des données de configuration de la boutique.
+     * Récupération de paramètre|Définition de paramètres|Instance du gestionnaire de paramètre.
      *
-     * @param null|string $key Attribut de configuration. Syntaxe à point autorisée pour accéder
-     *                          aux sous niveau d'un tableau.
-     *                          Renvoie la liste complète des attributs de configuration si null.
-     * @param mixed $default Valeur de retour par défaut.
+     * @param string|array|null $key Clé d'indice du paramètre à récupérer|Liste des paramètre à définir.
+     * @param mixed $default Valeur de retour par défaut lorsque la clé d'indice est une chaine de caractère.
      *
-     * @return mixed
+     * @return mixed|ParamsBag
      */
     public function config($key = null, $default = null);
 
@@ -64,6 +52,13 @@ interface Shop
      * @return ShopEntity
      */
     public function entity(): ShopEntity;
+
+    /**
+     * Récupération du gestionnaire de formulaires.
+     *
+     * @return Form
+     */
+    public function form(): Form;
 
     /**
      * Récupération de la dépendance des fournisseurs de service.
@@ -137,11 +132,64 @@ interface Shop
     public function notices(): Notices;
 
     /**
+     * Résolution de service fournis.
+     *
+     * @param string $alias
+     * @param array ...$args Liste d'arguments dynamiques complémentaires.
+     *
+     * @return mixed
+     */
+    public function resolve(string $alias, ...$args);
+
+    /**
+     * Vérifie si un service est fourni.
+     *
+     * @param string $alias Nom de qualification du service.
+     *
+     * @return boolean
+     */
+    public function resolvable(string $alias): bool;
+
+    /**
+     * Récupération du chemin absolu vers le répertoire des ressources.
+     *
+     * @param string|null $path Chemin relatif d'une resource (répertoire|fichier).
+     *
+     * @return string
+     */
+    public function resources(string $path = null): string;
+
+    /**
+     * Récupération du gestionnaire de routage.
+     *
+     * @return Route
+     */
+    public function route(): Route;
+
+    /**
      * Récupération de la classe de rappel de récupération de données de session.
      *
      * @return Session
      */
     public function session(): Session;
+
+    /**
+     * Définition des paramètres de configuration.
+     *
+     * @param array $attrs Liste des attributs de configuration.
+     *
+     * @return static
+     */
+    public function setConfig(array $attrs): Shop;
+
+    /**
+     * Définition du conteneur d'injection de dépendances.
+     *
+     * @param Container $container
+     *
+     * @return static
+     */
+    public function setContainer(Container $container): Shop;
 
     /**
      * Récupération de la dépendance des réglages de la boutique.
@@ -167,39 +215,12 @@ interface Shop
     public function users(): Users;
 
     /**
-     * Résolution de service fournis.
+     * Récupération d'un gabarit d'affichage.
      *
-     * @param string $alias
-     * @param array ...$args Liste d'arguments dynamiques complémentaires.
-     *
-     * @return mixed
-     */
-    public function resolve(string $alias, ...$args);
-
-    /**
-     * Vérifie si un service est fourni.
-     *
-     * @param string $alias Nom de qualification du service.
-     *
-     * @return boolean
-     */
-    public function resolvable(string $alias): bool;
-
-    /**
-     * Récupération du chemin absolu vers une ressource.
-     *
-     * @param string $path Chemin relatif vers un sous élément.
+     * @param string $name
+     * @param array $data
      *
      * @return string
      */
-    public function resourcesDir(string $path = ''): string;
-
-    /**
-     * Récupération de l'url absolue vers une ressource.
-     *
-     * @param string $path Chemin relatif vers un sous élément.
-     *
-     * @return string
-     */
-    public function resourcesUrl(string $path = ''): string;
+    public function view(string $name, array $data = []);
 }

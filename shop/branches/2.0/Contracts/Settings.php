@@ -16,7 +16,7 @@ interface Settings extends ParamsBag, ShopAwareTrait
     /**
      * Activation du bouton d'ajout au panier depuis les pages listes.
      *
-     * @return boolean
+     * @return bool
      */
     public function cartEnableListAdd(): bool;
 
@@ -30,7 +30,7 @@ interface Settings extends ParamsBag, ShopAwareTrait
     /**
      * Redirection vers le panier après l'ajout d'un article.
      *
-     * @return boolean
+     * @return bool
      */
     public function cartRedirectAfterAdd(): bool;
 
@@ -86,42 +86,49 @@ interface Settings extends ParamsBag, ShopAwareTrait
     /**
      * Activation et calcul de la TVA.
      *
-     * @return boolean
+     * @return bool
      */
     public function isCalcTaxes(): bool;
 
     /**
      * Activation de la gestion des stocks.
      *
-     * @return boolean
+     * @return bool
      */
     public function isManageStock(): bool;
 
     /**
      * Vérifie si les tarifs des produits saisie inclus la TVA (prix TTC ou HT).
      *
-     * @return boolean
+     * @return bool
      */
     public function isPricesIncludeTax(): bool;
 
     /**
+     * Vérification d'activation de la livraison.
+     * 
+     * @return bool
+     */
+    public function isShippingEnabled(): bool;
+    
+    /**
      * Vérifie si le calculateur de frais du panier est actif.
      *
-     * @return boolean
+     * @return bool
      */
     public function isShippingCalcEnabled(): bool;
 
     /**
      * Vérifie s'il faut masquer les frais de livraison tant qu'aucune adresse de livraison n'est renseignée.
      *
-     * @return boolean
+     * @return bool
      */
     public function isShippingCostRequiresAddress(): bool;
 
     /**
      * Activation du mode de débogage de la livraison.
      *
-     * @return boolean
+     * @return bool
      */
     public function isShippingDebugMode(): bool;
 

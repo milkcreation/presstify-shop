@@ -5,41 +5,27 @@ namespace tiFy\Plugins\Shop\Contracts;
 interface Functions extends ShopAwareTrait
 {
     /**
-     * Instanciation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
-
-    /**
      * Récupération d'une instance du controleur de date.
      *
      * @param string $time Date à traité. now par défaut.
      * @param boolean $timezone
      *
-     * @return FunctionsDate
+     * @return DateFunctions
      * @see http://php.net/manual/fr/class.datetime.php
      */
-    public function date($time = 'now', $timezone = true): FunctionsDate;
+    public function date($time = 'now', $timezone = true): DateFunctions;
 
     /**
      * Récupération d'une instance du controleur de page.
      *
-     * @return FunctionsPage
+     * @return PageFunctions
      */
-    public function page(): FunctionsPage;
+    public function page(): PageFunctions;
 
     /**
      * Récupération d'une instance du controleur des tarifs.
      *
-     * @return FunctionsPrice
+     * @return PriceFunctions
      */
-    public function price(): FunctionsPrice;
-
-    /**
-     * Récupération d'une instance du controleur des url de la boutique.
-     *
-     * @return FunctionsUrl
-     */
-    public function url(): FunctionsUrl;
+    public function price(): PriceFunctions;
 }

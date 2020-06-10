@@ -8,13 +8,6 @@ use tiFy\Contracts\Support\ParamsBag;
 interface Gateway extends ParamsBag, ShopAwareTrait
 {
     /**
-     * Initialisation de la plateforme.
-     *
-     * @return void
-     */
-    public function boot(): void;
-
-    /**
      * Formulaire de paiement de la commande.
      *
      * @return void

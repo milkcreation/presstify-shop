@@ -31,41 +31,6 @@ return [
         ],
     ],
 
-    // @var array $login Déclarations attributs de configuration de l'interface d'authentification à la boutique
-    'signin'           => [
-        'form'         => [
-            'class'  => 'tiFyForm-Container--login',
-            'fields' => [
-                'username' => [
-                    'label' => false,
-                    'attrs' => [
-                        'class'        => 'input tiFySignIn-Input tiFySignIn-Input--text tiFySignIn-UsernameInput',
-                        'placeholder'  => __('Entrez ici votre identifiant', 'theme'),
-                        'size'         => 20,
-                        'autocomplete' => 'username',
-                    ],
-                ],
-                'password' => [
-                    'label' => false,
-                    'attrs' => [
-                        'class'        => 'input tiFySignIn-Input tiFySignIn-Input--text tiFySignIn-PasswordInput',
-                        'placeholder'  => __('Entrez ici votre mot de passe', 'theme'),
-                        'size'         => 20,
-                        'autocomplete' => 'current-password',
-                    ],
-                ],
-                'submit'   => [
-                    'content' => __('Connexion', 'theme'),
-                    'attrs'   => [
-                        'class' => 'input tiFySignIn-Input tiFySignIn-Input--submit tiFySignIn-SubmitInput Button Button--1',
-                    ],
-                ],
-            ],
-        ],
-        'roles'        => ['customer', 'shop_manager'],
-        'redirect_url' => site_url('/'),
-    ],
-
     // @var array $products Déclaration des gammes de produits
     'products'         => [
         // @var string $post_type Identifiant de qualification du type de post de la gamme de produit
@@ -73,9 +38,9 @@ return [
             // @var bool|string Liste des attributs de configuration du type de post
 
             // @var string $singular Intitulé d'un élément de la gamme
-            'singular'        => __('Produit', 'theme'),
+            'singular'        => __('Produit', 'tify'),
             // @var string $plural Intitulé de plusieurs éléments de la gamme
-            'plural'          => __('Produits', 'theme'),
+            'plural'          => __('Produits', 'tify'),
 
             'publicly_queryable' => false,
             'supports'           => ['title', 'editor'],
@@ -105,7 +70,7 @@ return [
                 ],
                 'attributes' => false,
                 'features'   => [
-                    'title'    => __('Caracteristiques', 'theme'),
+                    'title'    => __('Caracteristiques', 'tify'),
                     'position' => 3,
                     'content'  => [Admin::get('Product'), 'metaboxFeatures'],
                 ],
@@ -123,21 +88,21 @@ return [
             // @var bool|string Liste des attributs de configuration du rôle
 
             // @var string $display_name Nom d'affichage
-            'display_name' => __('Gestionnaire boutique', 'theme'),
+            'display_name' => __('Gestionnaire boutique', 'tify'),
 
             // @var bool|array $admin_ui Interface d'administration dédiée
             // @var see \tiFy\Ui\Ui\README.md
             'admin_ui'     => [
                 'global' => [
                     'admin_menu' => [
-                        'menu_title' => __('Gestionnaires', 'theme'),
+                        'menu_title' => __('Gestionnaires', 'tify'),
                         'icon_url'   => 'dashicons-businessman',
                         'position'   => 71,
                     ],
                 ],
                 'list'   => [
                     'admin_menu' => [
-                        'menu_title' => __('Tous les gestionnaires', 'theme'),
+                        'menu_title' => __('Tous les gestionnaires', 'tify'),
                     ],
                 ],
             ],
@@ -148,21 +113,21 @@ return [
             // @var bool|string Liste des attributs de configuration du rôle
 
             // @var string $display_name Nom d'affichage
-            'display_name' => __('Client', 'theme'),
+            'display_name' => __('Client', 'tify'),
 
             // @var bool|array $admin_ui Interface d'administration dédiée
             // @var see \tiFy\Ui\Ui\README.md
             'admin_ui'     => [
                 'global' => [
                     'admin_menu' => [
-                        'menu_title' => __('Clients', 'theme'),
+                        'menu_title' => __('Clients', 'tify'),
                         'icon_url'   => 'dashicons-cart',
                         'position'   => 72,
                     ],
                 ],
                 'list'   => [
                     'admin_menu' => [
-                        'menu_title' => __('Tous les clients', 'theme'),
+                        'menu_title' => __('Tous les clients', 'tify'),
                     ],
                 ],
             ],

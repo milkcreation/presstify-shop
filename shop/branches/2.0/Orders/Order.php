@@ -6,10 +6,12 @@ use Exception;
 use Illuminate\Support\Collection;
 use tiFy\Contracts\PostType\PostTypeStatus;
 use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
-use tiFy\Plugins\Shop\Contracts\{Gateway,
+use tiFy\Plugins\Shop\Contracts\{
+    Gateway,
     Order as OrderContract,
     OrderItem,
     OrderItemCoupon,
+    OrderItemDiscount,
     OrderItemFee,
     OrderItemProduct,
     OrderItemShipping,
@@ -19,8 +21,7 @@ use tiFy\Support\DateTime;
 use tiFy\Support\Proxy\{Database, PostType};
 use tiFy\Wordpress\Contracts\Query\QueryPost as QueryPostContract;
 use tiFy\Wordpress\Query\QueryPost;
-use WP_Post;
-use WP_Query;
+use WP_Post, WP_Query;
 
 class Order extends QueryPost implements OrderContract
 {
@@ -183,56 +184,78 @@ class Order extends QueryPost implements OrderContract
     /**
      * @inheritDoc
      */
-    public function createItemCoupon(): OrderItemCoupon
+    public function createItem(array $args = []): OrderItem
     {
         /** @var OrderItemCoupon $instance */
-        $instance = $this->shop()->resolve('order.item.coupon', [$this]);
+        $instance = $this->shop()->resolve('order.item.common');
 
-        return $instance->set(['type' => 'coupon'])->parse();
+        return $instance->setOrder($this)->set($args)->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemFee(): OrderItemFee
+    public function createItemCoupon(array $args = []): OrderItemCoupon
+    {
+        /** @var OrderItemCoupon $instance */
+        $instance = $this->shop()->resolve('order.item.coupon');
+
+        return $instance->setOrder($this)->set(array_merge($args, ['type' => 'coupon']))->parse();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createItemDiscount(array $args = []): OrderItemDiscount
+    {
+        /** @var OrderItemDiscount $instance */
+        $instance = $this->shop()->resolve('order.item.discount');
+
+        return $instance->setOrder($this)->set(array_merge($args, ['type' => 'discount']))->parse();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createItemFee(array $args = []): OrderItemFee
     {
         /** @var OrderItemFee $instance */
-        $instance = $this->shop()->resolve('order.item.fee', [$this]);
+        $instance = $this->shop()->resolve('order.item.fee');
 
-        return $instance->set(['type' => 'fee'])->parse();
+        return $instance->setOrder($this)->set(array_merge($args, ['type' => 'fee']))->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemProduct(): OrderItemProduct
+    public function createItemProduct(array $args = []): OrderItemProduct
     {
         /** @var OrderItemProduct $instance */
-        $instance = $this->shop()->resolve('order.item.product', [$this]);
+        $instance = $this->shop()->resolve('order.item.product');
 
-        return $instance->set(['type' => 'line_item'])->parse();
+        return $instance->setOrder($this)->set(array_merge($args, ['type' => 'line_item']))->parse();
     }
 
     /**
      * @inheritdoc
      */
-    public function createItemShipping(): OrderItemShipping
+    public function createItemShipping(array $args = []): OrderItemShipping
     {
         /** @var OrderItemShipping $instance */
-        $instance = $this->shop()->resolve('order.item.shipping', [$this]);
+        $instance = $this->shop()->resolve('order.item.shipping');
 
-        return $instance->set(['type' => 'shipping'])->parse();
+        return $instance->setOrder($this)->set(array_merge($args, ['type' => 'shipping']))->parse();
     }
 
     /**
      * @inheritDoc
      */
-    public function createItemTax(): OrderItemTax
+    public function createItemTax(array $args = []): OrderItemTax
     {
         /** @var OrderItemTax $instance */
-        $instance = $this->shop()->resolve('order.item.tax', [$this]);
+        $instance = $this->shop()->resolve('order.item.tax');
 
-        return $instance->set(['type' => 'tax'])->parse();
+        return $instance->setOrder($this)->set(array_merge($args, ['type' => 'tax']))->parse();
     }
 
     /**
@@ -307,7 +330,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function getCheckoutOrderReceivedUrl(): string
     {
-        return $this->shop()->functions()->url()->checkoutOrderReceivedPage([
+        return $this->shop()->functions()->page()->orderReceivedPageUrl([
             'order-received' => $this->getId(),
             'key'            => $this->getOrderKey(),
         ]);
@@ -318,7 +341,7 @@ class Order extends QueryPost implements OrderContract
      */
     public function getCheckoutPaymentUrl(): string
     {
-        return $this->shop()->functions()->url()->checkoutOrderPayPage([
+        return $this->shop()->functions()->page()->orderPayPageUrl([
             'order-pay' => $this->getId(),
             'key'       => $this->getOrderKey(),
         ]);
@@ -356,23 +379,19 @@ class Order extends QueryPost implements OrderContract
 
             if ($queryItems->count()) {
                 foreach ($queryItems as $queryItem) {
+                    $args = get_object_vars($queryItem);
 
                     /** @var OrderItem $orderItem */
-                    switch ($queryItem->order_item_type) {
+                    switch ($item_type = $args['order_item_type']) {
                         default :
-                            if ($this->shop()->resolvable("order.item.{$queryItem->order_item_type}")) {
-                                $orderItem = $this->shop()->resolve("order.item.{$queryItem->order_item_type}",
-                                    [$this]);
-                            } else {
-                                $orderItem = $this->shop()->resolve("order.item", [$this]);
-                            }
+                            $method = 'createItem' . ucfirst($item_type);
+                            $orderItem = method_exists($this, $method)
+                                ? $this->{$method}($args) : $this->createItem($args);
                             break;
                         case 'line_item' :
-                            $orderItem = $this->shop()->resolve("order.item.product", [$this]);
+                            $orderItem = $this->createItemProduct($args);
                             break;
                     }
-
-                    $orderItem->set(get_object_vars($queryItem))->parse();
 
                     if (!isset($this->orderItems[$orderItem->getType()])) {
                         $this->orderItems[$orderItem->getType()] = [];
@@ -587,6 +606,7 @@ class Order extends QueryPost implements OrderContract
             if (!$this->getId()) {
                 return false;
             }
+
             $this->shop()->session()->forget('order_awaiting_payment');
 
             if ($this->hasStatus($this->shop()->orders()->getPaymentValidStatuses())) {
@@ -645,7 +665,7 @@ class Order extends QueryPost implements OrderContract
                 }
                 unset($this->orderItems[$type]);
             }
-        } elseif ($types = array_keys($this->getOrderItems())) {
+        } elseif($types = array_keys($this->getOrderItems())) {
             foreach($types as $type) {
                 $this->removeOrderItems($type);
             }

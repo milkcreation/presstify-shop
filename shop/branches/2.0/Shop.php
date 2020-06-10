@@ -6,10 +6,9 @@ use Exception;
 use tiFy\Contracts\Container\Container;
 use tiFy\Contracts\View\Engine as ViewEngine;
 use tiFy\Plugins\Shop\Contracts\{
-    Actions,
-    Addresses,
     Cart,
     Checkout,
+    Form,
     Functions,
     Gateways,
     Notices,
@@ -17,6 +16,7 @@ use tiFy\Plugins\Shop\Contracts\{
     Orders,
     Product,
     Products,
+    Route,
     Session,
     Settings,
     Shop as ShopContract,
@@ -24,12 +24,13 @@ use tiFy\Plugins\Shop\Contracts\{
     User,
     Users
 };
+use tiFy\Support\ParamsBag;
 
 /**
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.51
+ * @version 2.0.52
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------
@@ -64,6 +65,18 @@ class Shop implements ShopContract
     protected static $instance;
 
     /**
+     * Indicateur d'initialisation.
+     * @var bool
+     */
+    protected $booted = false;
+
+    /**
+     * Instance du gestionnaire de configuration.
+     * @var ParamsBag
+     */
+    protected $config;
+
+    /**
      * Conteneur d'injection de dépendances.
      * @var Container
      */
@@ -72,48 +85,73 @@ class Shop implements ShopContract
     /**
      * CONSTRUCTEUR.
      *
-     * @param Container $container Conteneur d'injection de dépendances.
+     * @param array $config
+     * @param Container $container
      *
      * @return void
+     */
+    public function __construct(array $config = [], Container $container = null)
+    {
+        $this->setConfig($config);
+
+        if (!is_null($container)) {
+            $this->setContainer($container);
+        }
+
+        if (!self::$instance instanceof static) {
+            self::$instance = $this;
+        }
+    }
+
+    /**
+     * Récupération de l'instance courante.
+     *
+     * @return static
      *
      * @throws Exception
      */
-    public function __construct(Container $container)
+    public static function instance(): ShopContract
     {
-        if (!static::$instance) {
-            static::$instance = $this;
-        } else {
-            throw new Exception(__('Une instance de la boutique existe déjà.', 'tify'));
+        if (self::$instance instanceof static) {
+            return self::$instance;
         }
 
-        $this->container = $container;
-    }
-
-    /**
-     * Récupération de l'instance de la boutique.
-     *
-     * @return static|null
-     */
-    public static function instance(): ?ShopContract
-    {
-        return static::$instance;
+        throw new Exception(__('Impossible de récupérer l\'instance du gestionnaire de boutique.', 'tify'));
     }
 
     /**
      * @inheritDoc
      */
-    public function action(string $alias, array $parameters = [], bool $absolute = false): string
+    public function boot(): ShopContract
     {
-        /** @var Actions $actions */
-        return ($actions = $this->resolve('actions')) ? $actions->url($alias, $parameters, $absolute) : '';
-    }
+        if (!$this->booted) {
+            $booting = [
+                //'admin',
+                //'api',
+                'cart',
+                //'checkout',
+                'entity',
+                //'functions',
+                'gateways',
+                'notices',
+                //'orders',
+                'products',
+                'route',
+                'session',
+                //'settings',
+                'users',
+            ];
 
-    /**
-     * @inheritDoc
-     */
-    public function addresses(): Addresses
-    {
-        return $this->resolve('addresses');
+            foreach($booting as $alias) {
+                $this->resolve($alias);
+            }
+
+            $this->booted = true;
+
+            events()->trigger('shop.booted', [$this]);
+        }
+
+        return $this;
     }
 
     /**
@@ -133,11 +171,26 @@ class Shop implements ShopContract
     }
 
     /**
-     * @inheritDoc
+     * Récupération de paramètre|Définition de paramètres|Instance du gestionnaire de paramètre.
+     *
+     * @param string|array|null $key Clé d'indice du paramètre à récupérer|Liste des paramètre à définir.
+     * @param mixed $default Valeur de retour par défaut lorsque la clé d'indice est une chaine de caractère.
+     *
+     * @return mixed|ParamsBag
      */
     public function config($key = null, $default = null)
     {
-        return config($key ? "shop.{$key}" : 'shop', $default);
+        if (!$this->config instanceof ParamsBag) {
+            $this->config = new ParamsBag();
+        }
+
+        if (is_string($key)) {
+            return $this->config->get($key, $default);
+        } elseif (is_array($key)) {
+            return $this->config->set($key);
+        } else {
+            return $this->config;
+        }
     }
 
     /**
@@ -146,6 +199,15 @@ class Shop implements ShopContract
     public function entity(): ShopEntityContract
     {
         return $this->resolve('entity');
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+    public function form(): Form
+    {
+        return $this->resolve('form');
     }
 
     /**
@@ -243,24 +305,25 @@ class Shop implements ShopContract
     }
 
     /**
-     * @inheritDoc
+     * Récupération du chemin absolu vers le répertoire des ressources.
+     *
+     * @param string|null $path Chemin relatif d'une resource (répertoire|fichier).
+     *
+     * @return string
      */
-    public function resourcesDir(string $path = ''): string
+    public function resources(string $path = null): string
     {
-        $path = '/Resources/' . ltrim($path, '/');
+        $path = $path ? '/' . ltrim($path, '/') : '';
 
-        return file_exists(__DIR__ . $path) ? __DIR__ . $path : '';
+        return (file_exists(__DIR__ . "/Resources{$path}")) ? __DIR__ . "/Resources{$path}" : '';
     }
 
     /**
      * @inheritDoc
      */
-    public function resourcesUrl(string $path = ''): string
+    public function route(): Route
     {
-        $cinfo = class_info($this);
-        $path = '/Resources/' . ltrim($path, '/');
-
-        return file_exists($cinfo->getDirname() . $path) ? class_info($this)->getUrl() . $path : '';
+        return $this->resolve('route');
     }
 
     /**
@@ -269,6 +332,34 @@ class Shop implements ShopContract
     public function session(): Session
     {
         return $this->resolve('session');
+    }
+
+    /**
+     * Définition des paramètres de configuration.
+     *
+     * @param array $attrs Liste des attributs de configuration.
+     *
+     * @return static
+     */
+    public function setConfig(array $attrs): ShopContract
+    {
+        $this->config($attrs);
+
+        return $this;
+    }
+
+    /**
+     * Définition du conteneur d'injection de dépendances.
+     *
+     * @param Container $container
+     *
+     * @return static
+     */
+    public function setContainer(Container $container): ShopContract
+    {
+        $this->container = $container;
+
+        return $this;
     }
 
     /**
@@ -298,17 +389,13 @@ class Shop implements ShopContract
     /**
      * @inheritDoc
      *
-     * @return ViewEngine|string
+     * @return string
      */
-    public function viewer(?string $view = null, $data = [])
+    public function view(string $name, array $data = [])
     {
-        /** @var ViewEngine $viewer */
-        $viewer = $this->resolve('viewer');
+        /** @var ViewEngine $view */
+        $view = $this->resolve('view');
 
-        if (func_num_args() === 0) {
-            return $viewer;
-        }
-
-        return $viewer->render("_override::{$view}", $data);
+        return $view->render("_override::{$name}", $data);
     }
 }

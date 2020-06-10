@@ -4,9 +4,7 @@ namespace tiFy\Plugins\Shop\Admin\ListTable;
 
 use tiFy\Contracts\Column\Column;
 use tiFy\Plugins\Shop\Contracts\{ProductObjectType, Shop};
-use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\ShopAwareTrait;
-use WP_Screen;
 
 class ListTable
 {
@@ -20,7 +18,7 @@ class ListTable
 
     /**
      * Instance du type de produit.
-     * @var Uncategorized
+     * @var ProductObjectType
      */
     private $objectType;
 
@@ -87,23 +85,6 @@ class ListTable
                     'content'  => [$this, 'columnFeatured'],
                 ]
             );
-
-        add_action('current_screen', function (WP_Screen $wp_screen) {
-            if ($wp_screen->id === "edit-{$this->objectName}") {
-                add_action('admin_enqueue_scripts', function () {
-                    partial('holder')->enqueue();
-
-                    wp_enqueue_style(
-                        'ShopAdminProductList',
-                        $this->shop()->resourcesUrl() . '/assets/css/admin-list.css',
-                        [],
-                        181103
-                    );
-                }
-                );
-            }
-        }
-        );
     }
 
     /**

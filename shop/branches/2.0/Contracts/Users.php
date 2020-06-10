@@ -23,18 +23,4 @@ interface Users extends ShopAwareTrait
      * @return UserCustomer|UserShopManager|User.
      */
     public function get($user = null);
-
-    /**
-     * Instance du formulaire d'authentification.
-     *
-     * @return Signin|null
-     */
-    public function signin(): ?Signin;
-
-    /**
-     * Instance du formulaire d'inscription.
-     *
-     * @return Signup|null
-     */
-    public function signup(): ?Signup;
 }

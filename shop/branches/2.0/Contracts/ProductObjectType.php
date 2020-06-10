@@ -15,13 +15,6 @@ interface ProductObjectType extends ParamsBag, ShopAwareTrait
     public function __toString(): string;
 
     /**
-     * Initialisation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
-
-    /**
      * Récupération du type de produit par défaut
      *
      * @return string

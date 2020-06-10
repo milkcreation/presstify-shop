@@ -9,9 +9,9 @@ interface CartLine extends ParamsBag, ShopAwareTrait
     /**
      * Récupération de l'instance du panier associé.
      *
-     * @return Cart
+     * @return Cart|null
      */
-    public function cart(): Cart;
+    public function cart(): ?Cart;
 
     /**
      * Nom du champ de modification d'un attribut dans le panier.
@@ -131,4 +131,13 @@ interface CartLine extends ParamsBag, ShopAwareTrait
      * @return string
      */
     public function removeUrl(): string;
+
+    /**
+     * Définition du panier associé.
+     *
+     * @param Cart $cart
+     *
+     * @return static
+     */
+    public function setCart(Cart $cart): CartLine;
 }

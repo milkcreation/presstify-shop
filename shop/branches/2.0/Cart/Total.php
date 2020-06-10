@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{Cart, CartTotal as CartTotalContract};
+use tiFy\Plugins\Shop\Contracts\{Cart as CartContract, CartTotal as CartTotalContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
 
@@ -12,53 +12,9 @@ class Total extends ParamsBag implements CartTotalContract
 
     /**
      * Instance du panier de commande associé.
-     * @var Cart
+     * @var CartContract|null|false
      */
     protected $cart;
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param Cart $cart
-     *
-     * @return void
-     */
-    public function __construct(Cart $cart)
-    {
-        $this->cart = $cart;
-
-        $this->setShop($this->cart->shop());
-
-        $this->parse();
-
-        if ($lines = $this->cart()->all()) {
-            foreach ($lines as $line) {
-                // Sous-totaux
-                $line['line_tax_data'] = ['subtotal' => []];
-                $line['line_subtotal'] = $line->getPrice();
-                $line['line_subtotal_tax'] = 0;
-
-                // Totaux
-                $line['line_tax_data'] = array_merge($line['line_tax_data'], ['total' => []]);
-                $line['line_total'] = $line->getPrice();
-                $line['line_tax'] = 0;
-            }
-
-            //array_map( 'round', array_values( wp_list_pluck( $this->items, 'subtotal' ) ) ) ) );
-
-            // Calcul des sous-totaux
-            $this['lines_subtotal'] = $this->cart()->collect()->sum('line_subtotal');
-            $this['lines_subtotal_tax'] = $this->cart()->collect()->sum('line_subtotal_tax');
-
-            // Calcul des totaux
-            $this['lines_total'] = $this->cart()->collect()->sum('line_total');
-            $this['lines_total_tax'] = $this->cart()->collect()->sum('line_tax');
-
-            $this['total'] = $this['lines_total'] + $this['fee_total'] + $this['shipping_total'];
-        }
-
-        $this->boot();
-    }
 
     /**
      * @inheritDoc
@@ -71,14 +27,13 @@ class Total extends ParamsBag implements CartTotalContract
     /**
      * @inheritDoc
      */
-    public function boot(): void { }
-
-    /**
-     * @inheritDoc
-     */
-    public function cart(): Cart
+    public function cart(): ?CartContract
     {
-        return $this->cart;
+        if (is_null($this->cart)) {
+            $this->cart = $this->shop()->cart() ?? false;
+        }
+
+        return $this->cart ?? null;
     }
 
     /**
@@ -229,5 +184,69 @@ class Total extends ParamsBag implements CartTotalContract
     public function getShippingTotal(): float
     {
         return (float)$this->get('shipping_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function parse(): CartTotalContract
+    {
+        parent::parse();
+
+        if ($lines = $this->cart()->all()) {
+            foreach ($lines as $line) {
+                // Sous-totaux
+                $line['line_tax_data'] = ['subtotal' => []];
+                $line['line_subtotal'] = $line->getPrice();
+                $line['line_subtotal_tax'] = 0;
+
+                // Totaux
+                $line['line_tax_data'] = array_merge($line['line_tax_data'], ['total' => []]);
+                $line['line_total'] = $line->getPrice();
+                $line['line_tax'] = 0;
+            }
+
+            // Calcul des sous-totaux
+            $this['lines_subtotal'] = $this->cart()->collect()->sum('line_subtotal');
+            $this['lines_subtotal_tax'] = $this->cart()->collect()->sum('line_subtotal_tax');
+
+            // Calcul des totaux
+            $this['lines_total'] = $this->cart()->collect()->sum('line_total');
+            $this['lines_total_tax'] = $this->cart()->collect()->sum('line_tax');
+
+            $this['total'] = $this['lines_total'] + $this['fee_total'] + $this['shipping_total'];
+        }
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCart(CartContract $cart): CartTotalContract
+    {
+        $this->cart = $cart;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setDiscountTotal(float $discount): CartTotalContract
+    {
+        $this->set('discount_total', $discount);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setFeeTotal(float $fee): CartTotalContract
+    {
+        $this->set('fee_total', $fee);
+
+        return $this;
     }
 }

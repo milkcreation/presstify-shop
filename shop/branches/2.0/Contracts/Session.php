@@ -9,10 +9,4 @@ use tiFy\Session\Store;
  */
 interface Session extends ShopAwareTrait
 {
-    /**
-     * Instanciation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
 }

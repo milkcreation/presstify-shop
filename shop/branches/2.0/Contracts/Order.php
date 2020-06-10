@@ -37,39 +37,58 @@ interface Order extends QueryPost, ShopAwareTrait
     public function addOrderItem(OrderItem $item): Order;
 
     /**
+     * Création d'une ligne non typée.
+     *
+     * @param array $args
+     *
+     * @return OrderItem|object|null
+     */
+    public function createItem(array $args = []): ?OrderItem;
+
+    /**
      * Création d'une ligne de coupon de réduction.
+     *
+     * @param array $args
      *
      * @return OrderItemCoupon|object|null
      */
-    public function createItemCoupon(): ?OrderItemCoupon;
+    public function createItemCoupon(array $args = []): ?OrderItemCoupon;
 
     /**
      * Création d'une ligne de promotion.
      *
+     * @param array $args
+     *
      * @return OrderItemFee|object|null
      */
-    public function createItemFee(): ?OrderItemFee;
+    public function createItemFee(array $args = []): ?OrderItemFee;
 
     /**
      * Création d'une ligne de produit.
      *
+     * @param array $args
+     *
      * @return OrderItemProduct|object|null
      */
-    public function createItemProduct(): ?OrderItemProduct;
+    public function createItemProduct(array $args = []): ?OrderItemProduct;
 
     /**
      * Création d'une ligne de livraison.
      *
+     * @param array $args
+     *
      * @return OrderItemShipping|object|null
      */
-    public function createItemShipping(): ?OrderItemShipping;
+    public function createItemShipping(array $args = []): ?OrderItemShipping;
 
     /**
      * Création d'une ligne de taxe.
      *
+     * @param array $args
+     *
      * @return OrderItemTax|object|null
      */
-    public function createItemTax(): ?OrderItemTax;
+    public function createItemTax(array $args = []): ?OrderItemTax;
 
     /**
      * Récupération de la liste des attributs de l'addresse de facturation|Un attribut particulier.

@@ -5,7 +5,7 @@ namespace tiFy\Plugins\Shop\Session;
 use BadMethodCallException;
 use Exception;
 use tiFy\Contracts\Session\Store;
-use tiFy\Plugins\Shop\Contracts\{Session as SessionContract, Shop};
+use tiFy\Plugins\Shop\Contracts\Session as SessionContract;
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Proxy\Session as ProxySession;
 
@@ -22,23 +22,12 @@ class Session implements SessionContract
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop
-     *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct()
     {
-        $this->setShop($shop);
-
         $this->store = ProxySession::registerStore('tify_shop');
-
-        $this->boot();
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function boot(): void { }
 
     /**
      * Délégation d'appel des méthodes du controleur de données de session associé.

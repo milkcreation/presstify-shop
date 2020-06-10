@@ -5,11 +5,12 @@ namespace tiFy\Plugins\Shop\Api\Endpoint;
 use League\Fractal\{Manager as FractalManager, Resource\Collection as FractalCollect};
 use Psr\Http\Message\ServerRequestInterface as ServerRequest;
 use tiFy\Plugins\Shop\Api\FractalArraySerializer as DataSerializer;
-use tiFy\Plugins\Shop\Contracts\{ApiEndpointBaseWpPost as BaseWpPostContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{ApiEndpointBaseWpPost as BaseWpPostContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{DateTime, ParamsBag};
 use tiFy\Support\Proxy\Request;
 use tiFy\Wordpress\Query\QueryPost;
+use tiFy\Wordpress\Contracts\Query\PaginationQuery;
 
 class BaseWpPost extends ParamsBag implements BaseWpPostContract
 {
@@ -35,9 +36,9 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
 
     /**
      * Instance du gestionnaire de récupération des éléments.
-     * @var object|null
+     * @var PaginationQuery
      */
-    protected $query;
+    protected $paginationQuery;
 
     /**
      * Liste des statuts disponibles.
@@ -57,14 +58,10 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop
-     *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct()
     {
-        $this->setShop($shop);
-
         $this->manager = (new FractalManager())->setSerializer(new DataSerializer());
     }
 
@@ -232,7 +229,7 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
      */
     public function handleRequest(...$args): array
     {
-        $this->query = null;
+        $this->paginationQuery = null;
         $this->id = $args[0] instanceof ServerRequest ? 0 : (int)$args[0];
         $this->set(Request::all())->parse();
 
@@ -257,12 +254,12 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
         $this->fetch();
 
         $headers = $this->id ? [] : [
-            'total'        => $this->query('total', 0),
-            'total-founds' => $this->query('count', 0),
-            'total-pages'  => $this->query('pages', 0)
+            'total'        => $this->paginationQuery()->getTotal(),
+            'total-founds' => $this->paginationQuery()->getCount(),
+            'total-pages'  => $this->paginationQuery()->getLastPage(),
         ];
 
-        $datas = $this->query('data', []);
+        $datas = $this->paginationQuery()->get('results', []);
 
         if (Request::input('raw')) {
             $body = $datas;
@@ -304,14 +301,15 @@ class BaseWpPost extends ParamsBag implements BaseWpPostContract
     /**
      * @inheritDoc
      */
-    public function query(string $key, $default = null)
+    public function paginationQuery(): PaginationQuery
     {
-        if (is_null($this->query)) {
+        if (is_null($this->paginationQuery)) {
             $queryPost = new QueryPost();
+            $queryPost::fetchFromArgs($this->args()->all());
 
-            $this->query = $queryPost::fetchFromArgs($this->args()->all());
+            $this->paginationQuery = $queryPost::pagination();
         }
 
-        return $this->query->get($key, $default);
+        return $this->paginationQuery;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Products;
 
-use tiFy\Plugins\Shop\Contracts\{Product, ProductsCollection as ProductsCollectionContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Product, ProductsCollection as ProductsCollectionContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Collection;
 
@@ -15,18 +15,6 @@ class ProductsCollection extends Collection implements ProductsCollectionContrac
      * @var Product[]|array
      */
     protected $items = [];
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop
-     *
-     * @return void
-     */
-    public function __construct(Shop $shop)
-    {
-        $this->setShop($shop);
-    }
 
     /**
      * @inheritDoc

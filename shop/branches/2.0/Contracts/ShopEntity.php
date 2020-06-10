@@ -8,11 +8,11 @@ use tiFy\Contracts\PostType\PostTypeStatus;
 interface ShopEntity extends ShopAwareTrait
 {
     /**
-     * Instanciation de la classe.
+     * Initialisation.
      *
-     * @return void
+     * @return static
      */
-    public function boot(): void;
+    public function boot(): ShopEntity;
 
     /**
      * Récupération des instances de statuts de commandes.
@@ -34,4 +34,14 @@ interface ShopEntity extends ShopAwareTrait
      * @return Builder
      */
     public function orderItemMetaTable(): Builder;
+
+    /**
+     * Définition d'un type de statut de commande.
+     *
+     * @param string $alias
+     * @param PostTypeStatus $status
+     *
+     * @return static
+     */
+    public function setOrderStatus(string $alias, PostTypeStatus $status): ShopEntity;
 }

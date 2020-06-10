@@ -21,6 +21,13 @@ interface Gateways extends Collection, ShopAwareTrait
     public function available(): array;
 
     /**
+     * Initialisation.
+     *
+     * @return static
+     */
+    public function boot(): Gateways;
+
+    /**
      * {@inheritDoc}
      *
      * @param string $id

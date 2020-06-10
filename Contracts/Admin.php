@@ -4,10 +4,5 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 interface Admin extends ShopAwareTrait
 {
-    /**
-     * Initialisation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
+
 }

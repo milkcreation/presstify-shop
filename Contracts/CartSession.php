@@ -7,11 +7,11 @@ use tiFy\Contracts\Support\ParamsBag;
 interface CartSession extends ParamsBag, ShopAwareTrait
 {
     /**
-     * Récupération de l'instance du panier.
+     * Récupération de l'instance du panier associé.
      *
-     * @return Cart
+     * @return Cart|null
      */
-    public function cart(): Cart;
+    public function cart(): ?Cart;
 
     /**
      * Détruit les données de session associées au panier.
@@ -35,4 +35,13 @@ interface CartSession extends ParamsBag, ShopAwareTrait
      * @return static
      */
     public function update(): CartSession;
+
+    /**
+     * Définition du panier associé.
+     *
+     * @param Cart $cart
+     *
+     * @return static
+     */
+    public function setCart(Cart $cart): CartSession;
 }

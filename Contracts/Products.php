@@ -7,6 +7,13 @@ use WP_Post;
 interface Products extends ShopAwareTrait
 {
     /**
+     * Initialisation.
+     *
+     * @return static
+     */
+    public function boot(): Products;
+
+    /**
      * Récupération d'une collection de produits.
      *
      * @param Product[]|array $products
@@ -27,25 +34,18 @@ interface Products extends ShopAwareTrait
     /**
      * Récupération d'une classe de rappel des types d'objet
      *
-     * @param string $object_type Identifiant de qualification du type d'object (custom_post_type)
+     * @param string $name
      *
      * @return ProductObjectType
      */
-    public function getObjectType(string $object_type): ?ProductObjectType;
+    public function getObjectType(string $name): ?ProductObjectType;
 
     /**
-     * Récupération de la liste des classe de rappel des types d'objet
-     *
-     * @return ProductObjectType[]
-     */
-    public function getObjectTypeList(): array;
-
-    /**
-     * Récupération de la liste des identifiant de qualification des gamme de produits déclarés
+     * Récupération de la liste des noms de qualification des gammes de produits déclarées
      *
      * @return string[]
      */
-    public function getObjectTypes(): array;
+    public function getObjectTypeNames(): array;
 
     /**
      * Récupération du nom d'affichage d'un type de produit
@@ -92,4 +92,14 @@ interface Products extends ShopAwareTrait
      * @return WP_Post|array|null
      */
     public function saveWpPost(int $post_id, WP_Post $post);
+
+    /**
+     * Définition d'une gamme de produit.
+     *
+     * @param string $alias
+     * @param ProductObjectType $objectType
+     *
+     * @return static
+     */
+    public function setObjectType(string $alias, ProductObjectType $objectType): Products;
 }

@@ -12,7 +12,7 @@
     <tr>
         <th>
             <?php echo field('label', [
-                'content' => __('Mettre en avant', 'theme'),
+                'content' => __('Mettre en avant', 'tify'),
             ]); ?>
         </th>
         <td>

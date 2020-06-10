@@ -40,11 +40,6 @@ abstract class AbstractGateway extends ParamsBag implements GatewayContract
     /**
      * @inheritDoc
      */
-    public function boot(): void {}
-
-    /**
-     * @inheritDoc
-     */
     public function checkoutPaymentForm(): void {}
 
     /**
@@ -128,7 +123,7 @@ abstract class AbstractGateway extends ParamsBag implements GatewayContract
         if ($order) {
             return $order->getCheckoutOrderReceivedUrl();
         } else {
-            return $this->shop->functions()->url()->checkoutOrderReceivedPage(['order-received' => '']);
+            return $this->shop->functions()->page()->orderReceivedPageUrl(['order-received' => '']);
         }
     }
 

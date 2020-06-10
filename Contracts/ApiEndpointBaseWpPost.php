@@ -4,6 +4,7 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use League\Fractal\Manager;
 use tiFy\Contracts\Support\ParamsBag;
+use tiFy\Wordpress\Contracts\Query\PaginationQuery;
 
 interface ApiEndpointBaseWpPost extends ParamsBag, ShopAwareTrait
 {
@@ -113,11 +114,7 @@ interface ApiEndpointBaseWpPost extends ParamsBag, ShopAwareTrait
     public function mapData($data): array;
 
     /**
-     *
-     * @param string $key
-     * @param mixed $default
-     *
-     * @return mixed
+     * @return PaginationQuery
      */
-    public function query(string $key, $default = '');
+    public function paginationQuery(): PaginationQuery;
 }

@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Orders;
 
-use tiFy\Plugins\Shop\Contracts\{Order, OrdersCollection as OrdersCollectionContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Order, OrdersCollection as OrdersCollectionContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Collection;
 
@@ -15,18 +15,6 @@ class OrdersCollection extends Collection implements OrdersCollectionContract
      * @var Order[]
      */
     protected $items = [];
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop
-     *
-     * @return void
-     */
-    public function __construct(Shop $shop)
-    {
-        $this->setShop($shop);
-    }
 
     /**
      * {@inheritDoc}

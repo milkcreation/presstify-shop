@@ -14,18 +14,11 @@ interface CartTotal extends ParamsBag, ShopAwareTrait
     public function __toString(): string;
 
     /**
-     * Initialisation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
-
-    /**
      * Récupération de l'instance du panier associé.
      *
-     * @return Cart
+     * @return Cart|null
      */
-    public function cart(): Cart;
+    public function cart(): ?Cart;
 
     /**
      * Récupération de la taxe appliquée au montant de la remise.
@@ -138,4 +131,13 @@ interface CartTotal extends ParamsBag, ShopAwareTrait
      * @return float
      */
     public function getShippingTotal(): float;
+
+    /**
+     * Définition du panier associé.
+     *
+     * @param Cart $cart
+     *
+     * @return static
+     */
+    public function setCart(Cart $cart): CartTotal;
 }

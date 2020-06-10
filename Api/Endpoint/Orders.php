@@ -11,6 +11,7 @@ use tiFy\Plugins\Shop\Contracts\{
 };
 use tiFy\Support\DateTime;
 use tiFy\Support\Proxy\Request;
+use tiFy\Wordpress\Contracts\Query\PaginationQuery;
 
 class Orders extends BaseWpPost implements OrdersContract
 {
@@ -158,15 +159,15 @@ class Orders extends BaseWpPost implements OrdersContract
     /**
      * @inheritDoc
      */
-    public function query(string $key, $default = null)
+    public function paginationQuery(): PaginationQuery
     {
-        if (is_null($this->query)) {
-            $order = $this->shop()->order();
+        if (is_null($this->paginationQuery)) {
+            $queryOrder = $this->shop->order();
+            $queryOrder::fetchFromArgs($this->args()->all());
 
-
-            $this->query = $order::fetchFromArgs($this->args()->all());
+            $this->paginationQuery = $queryOrder::pagination();
         }
 
-        return $this->query->get($key, $default);
+        return $this->paginationQuery;
     }
 }

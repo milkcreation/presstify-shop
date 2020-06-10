@@ -2,7 +2,7 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{Cart, CartSession as CartSessionContract};
+use tiFy\Plugins\Shop\Contracts\{Cart as CartContract, CartSession as CartSessionContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{Arr, ParamsBag};
 
@@ -12,30 +12,20 @@ class Session extends ParamsBag implements CartSessionContract
 
     /**
      * Instance du panier de commande associé.
-     * @var Cart
+     * @var CartContract|null|false
      */
     protected $cart;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param Cart $cart
-     *
-     * @return void
-     */
-    public function __construct(Cart $cart)
-    {
-        $this->cart = $cart;
-
-        $this->setShop($this->cart->shop());
-    }
-
-    /**
      * @inheritDoc
      */
-    public function cart(): Cart
+    public function cart(): ?CartContract
     {
-        return $this->cart;
+        if (is_null($this->cart)) {
+            $this->cart = $this->shop()->cart() ?? false;
+        }
+
+        return $this->cart ?? null;
     }
 
     /**
@@ -61,6 +51,7 @@ class Session extends ParamsBag implements CartSessionContract
         foreach ($this->all() as $key => $default) {
             $this->shop()->session()->put($key, $default);
         }
+
         $this->shop()->session()->forget('order_awaiting_payment');
         $this->shop()->session()->save();
 
@@ -89,8 +80,9 @@ class Session extends ParamsBag implements CartSessionContract
         }
 
         if ($stored_cart = get_user_option('_tify_shop_cart') ?: ['cart' => []]) {
-            $cart = array_merge($cart, Arr::get($stored_cart, 'cart', []));
+            $cart = array_merge($cart ?? [], Arr::get($stored_cart, 'cart', []));
         }
+
         if (!empty($cart)) {
             foreach ($cart as $key => $line) {
                 $product = $this->shop()->product($line['product_id']);
@@ -138,6 +130,16 @@ class Session extends ParamsBag implements CartSessionContract
         if ($user_id = get_current_user_id()) {
             update_user_option($user_id, '_tify_shop_cart', ['cart' => $cart]);
         }
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCart(CartContract $cart): CartSessionContract
+    {
+        $this->cart = $cart;
 
         return $this;
     }

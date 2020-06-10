@@ -7,13 +7,6 @@ use LogicException;
 interface Notices extends ShopAwareTrait
 {
     /**
-     * Instanciation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
-
-    /**
      * Résolution de sortie de la classe sous forme d'une chaîne de caractères.
      *
      * @return string

@@ -6,10 +6,8 @@ use tiFy\Plugins\Shop\Contracts\{
     ProductObjectType,
     Shop
 };
-use tiFy\Plugins\Shop\Products\ObjectType\Uncategorized;
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use WP_Post;
-use WP_Screen;
 
 class Edit
 {
@@ -23,7 +21,7 @@ class Edit
 
     /**
      * Instance du type de produit.
-     * @var Uncategorized
+     * @var ProductObjectType
      */
     private $objectType;
 
@@ -41,32 +39,6 @@ class Edit
 
         $this->objectType = $object_type;
         $this->objectName = $this->objectType->getName();
-
-        add_action('current_screen', function (WP_Screen $wp_screen) {
-            if ($wp_screen->id !== (string)$this->objectName) {
-                return;
-            }
-
-            add_action('admin_enqueue_scripts', function () {
-                field('select-js')->enqueue();
-                field('toggle-switch')->enqueue();
-
-                wp_enqueue_script(
-                    'ShopAdminProductEdit',
-                    $this->shop()->resourcesUrl() . '/assets/js/admin-edit.js',
-                    ['jquery'],
-                    171219,
-                    true
-                );
-
-                wp_enqueue_style(
-                    'ShopAdminProductEdit',
-                    $this->shop()->resourcesUrl() . '/assets/css/admin-edit.css',
-                    [],
-                    171219
-                );
-            });
-        });
 
         /** @todo COMPATIBILITE tiFY 2.0
          * $metabox = app('metabox');
@@ -194,7 +166,7 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/general', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/general', compact('post', 'product'));
     }
 
     /**
@@ -208,7 +180,7 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/inventory', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/inventory', compact('post', 'product'));
     }
 
     /**
@@ -222,7 +194,7 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/shipping', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/shipping', compact('post', 'product'));
     }
 
     /**
@@ -236,7 +208,7 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/linked', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/linked', compact('post', 'product'));
     }
 
     /**
@@ -250,7 +222,7 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/attributes', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/attributes', compact('post', 'product'));
     }
 
     /**
@@ -264,7 +236,7 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/variations', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/variations', compact('post', 'product'));
     }
 
     /**
@@ -278,6 +250,6 @@ class Edit
     {
         $product = $this->shop()->product($post);
 
-        return $this->shop()->viewer('admin/edit/advanced', compact('post', 'product'));
+        return $this->shop()->view('admin/edit/advanced', compact('post', 'product'));
     }
 }

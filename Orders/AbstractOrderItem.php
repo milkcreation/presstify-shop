@@ -5,7 +5,7 @@ namespace tiFy\Plugins\Shop\Orders;
 use BadMethodCallException;
 use Exception;
 use Illuminate\Database\Query\Builder;
-use tiFy\Plugins\Shop\Contracts\{Order, OrderItem as OrderItemContract};
+use tiFy\Plugins\Shop\Contracts\{Order as OrderContract, OrderItem as OrderItemContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{Arr, ParamsBag, Str};
 
@@ -46,28 +46,12 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
     protected $order;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param Order $order
-     *
-     * @return void
-     */
-    public function __construct(Order $order)
-    {
-        $this->order = $order;
-
-        $this->set('order_id', $this->order()->getId());
-
-        $this->setShop($order->shop());
-    }
-
-    /**
      * @inheritDoc
      */
     public function __call(string $name, array $arguments)
     {
         try {
-            return $this->shop()->resolve('order.item', [$this->order])->$name(...$arguments);
+            return $this->order->createItem()->$name(...$arguments);
         } catch (Exception $e) {
             throw new BadMethodCallException(sprintf(__('La méthode %s n\'est pas disponible.', 'tify'), $name));
         }
@@ -174,7 +158,7 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
     /**
      * @inheritDoc
      */
-    public function order(): Order
+    public function order(): OrderContract
     {
         return $this->order;
     }
@@ -244,6 +228,18 @@ abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
                 'meta_value'    => Arr::serialize($value),
             ]);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setOrder(OrderContract $order): OrderItemContract
+    {
+        $this->order = $order;
+
+        $this->set('order_id', $this->order->getId());
+
+        return $this;
     }
 
     /**

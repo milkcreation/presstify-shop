@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Orders;
 
 use tiFy\Contracts\PostType\PostTypeStatus;
-use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, OrdersCollection, Shop};
+use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, OrdersCollection};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Proxy\{Redirect, Request};
 
@@ -22,23 +22,6 @@ class Orders implements OrdersContract
      * @var int
      */
     protected $total = 0;
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop
-     *
-     * @return void
-     */
-    public function __construct(Shop $shop)
-    {
-        $this->setShop($shop);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function boot(): void { }
 
     /**
      * @inheritDoc

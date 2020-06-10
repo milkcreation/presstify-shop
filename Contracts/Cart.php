@@ -37,13 +37,6 @@ interface Cart extends ShopAwareTrait
     public function addUrl($product): string;
 
     /**
-     * Initialisation de la classe.
-     *
-     * @return void
-     */
-    public function boot(): void;
-
-    /**
      * Calcul des totaux basés sur le contenu du panier
      *
      * @return CartTotal
@@ -97,31 +90,6 @@ interface Cart extends ShopAwareTrait
      * @return string
      */
     public function getNotice(string $name, string $default = ''): string;
-
-    /**
-     * Traitement de l'ajout d'un produit au panier
-     *
-     * @param string $product_name Identifiant de qualification d'url (Slug) du produit
-     *
-     * @return mixed
-     */
-    public function handleAdd(string $product_name);
-
-    /**
-     * Traitement de la mise à jour des produits du panier
-     *
-     * @return void
-     */
-    public function handleUpdate();
-
-    /**
-     * Traitement de la suppression d'un produit du panier
-     *
-     * @param string $key Identifiant de qualification de la ligne du panier à supprimer
-     *
-     * @return mixed
-     */
-    public function handleRemove(string $key);
 
     /**
      * Vérifie si le panier est vide

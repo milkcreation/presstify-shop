@@ -120,7 +120,7 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      */
     public function renderCartLine(): string
     {
-        return (string) $this->shop()->viewer('shop/cart/line/purchasing-option', ['option' => $this]);
+        return (string) $this->shop()->view('shop/cart/line/purchasing-option', ['option' => $this]);
     }
 
     /**
@@ -128,7 +128,7 @@ class ProductPurchasingOption extends ParamsBag implements ProductPurchasingOpti
      */
     public function renderProduct(): string
     {
-        return (string)$this->shop()->viewer('shop/product/purchasing-option', [
+        return (string)$this->shop()->view('shop/product/purchasing-option', [
             'option' => $this,
             'field'  => $this->get('field'),
         ]);

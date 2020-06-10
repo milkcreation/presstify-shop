@@ -3,7 +3,7 @@
 namespace tiFy\Plugins\Shop\Notices;
 
 use LogicException;
-use tiFy\Plugins\Shop\Contracts\{Notices as NoticesContract, Shop};
+use tiFy\Plugins\Shop\Contracts\{Notices as NoticesContract};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\Proxy\Partial;
 
@@ -20,25 +20,14 @@ class Notices implements NoticesContract
     /**
      * CONSTRUCTEUR.
      *
-     * @param Shop $shop
-     *
      * @return void
      */
-    public function __construct(Shop $shop)
+    public function __construct()
     {
-        $this->setShop($shop);
-
-        $this->boot();
-
         add_action('wp_loaded', function () {
             $this->notices = $this->shop()->session()->get('notices', []);
         });
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function boot(): void { }
 
     /**
      * Affichage des message de notification

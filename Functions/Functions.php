@@ -4,11 +4,9 @@ namespace tiFy\Plugins\Shop\Functions;
 
 use tiFy\Plugins\Shop\Contracts\{
     Functions as FunctionsContract,
-    FunctionsDate,
-    FunctionsPage,
-    FunctionsPrice,
-    FunctionsUrl,
-    Shop
+    DateFunctions,
+    PageFunctions,
+    PriceFunctions
 };
 use tiFy\Plugins\Shop\ShopAwareTrait;
 
@@ -17,30 +15,11 @@ class Functions implements FunctionsContract
     use ShopAwareTrait;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param Shop $shop
-     *
-     * @return void
-     */
-    public function __construct(Shop $shop)
-    {
-        $this->setShop($shop);
-
-        $this->boot();
-    }
-
-    /**
      * @inheritDoc
      */
-    public function boot(): void { }
-
-    /**
-     * @inheritDoc
-     */
-    public function date($time = 'now', $timezone = true): FunctionsDate
+    public function date($time = 'now', $timezone = true): DateFunctions
     {
-        /** @var Date $date */
+        /** @var DateFunctions $date */
         $date = $this->shop()->resolve('functions.date');
 
         return $date;
@@ -49,7 +28,7 @@ class Functions implements FunctionsContract
     /**
      * @inheritDoc
      */
-    public function page(): FunctionsPage
+    public function page(): PageFunctions
     {
         return $this->shop()->resolve('functions.page');
     }
@@ -57,16 +36,8 @@ class Functions implements FunctionsContract
     /**
      * @inheritDoc
      */
-    public function price(): FunctionsPrice
+    public function price(): PriceFunctions
     {
         return $this->shop()->resolve('functions.price');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function url(): FunctionsUrl
-    {
-        return $this->shop()->resolve('functions.url');
     }
 }

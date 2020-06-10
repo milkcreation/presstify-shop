@@ -4,10 +4,10 @@ namespace tiFy\Plugins\Shop\Contracts;
 
 use Illuminate\Database\Query\Builder;
 use tiFy\Contracts\Support\ParamsBag;
-use tiFy\Plugins\Shop\Orders\OrderItem as DelegateOrderItem;
+use tiFy\Plugins\Shop\Orders\OrderItemCommon;
 
 /**
- * @mixin DelegateOrderItem
+ * @mixin OrderItemCommon
  */
 interface OrderItem extends ParamsBag, ShopAwareTrait
 {
@@ -110,6 +110,15 @@ interface OrderItem extends ParamsBag, ShopAwareTrait
      * @return int Identifiant de qualification de la métadonnée en base.
      */
     public function saveMeta(string $key, $value): int;
+
+    /**
+     * Définition de la commande associée.
+     *
+     * @param Order $order
+     *
+     * @return static
+     */
+    public function setOrder(Order $order): OrderItem;
 
     /**
      * Récupération d'une instance du gestionnaire de requête des éléments associés à une commande.

@@ -2,10 +2,9 @@
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use tiFy\Plugins\Shop\Contracts\{Cart, CartLine as CartLineContract, Product};
+use tiFy\Plugins\Shop\Contracts\{Cart as CartContract, CartLine as CartLineContract, Product};
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\ParamsBag;
-use tiFy\Support\Proxy\Router;
 
 class Line extends ParamsBag implements CartLineContract
 {
@@ -13,30 +12,20 @@ class Line extends ParamsBag implements CartLineContract
 
     /**
      * Instance du panier de commande associé.
-     * @var Cart
+     * @var CartContract|null|false
      */
     protected $cart;
 
     /**
-     * CONSTRUCTEUR.
-     *
-     * @param Cart $cart
-     *
-     * @return void
-     */
-    public function __construct(Cart $cart)
-    {
-        $this->cart = $cart;
-
-        $this->setShop($this->cart->shop());
-    }
-
-    /**
      * @inheritDoc
      */
-    public function cart(): Cart
+    public function cart(): ?CartContract
     {
-        return $this->cart;
+        if (is_null($this->cart)) {
+            $this->cart = $this->shop()->cart() ?? false;
+        }
+
+        return $this->cart ?? null;
     }
 
     /**
@@ -216,6 +205,16 @@ class Line extends ParamsBag implements CartLineContract
      */
     public function removeUrl(): string
     {
-        return Router::url('shop.cart.remove', [$this->getKey()]);
+        return $this->shop()->route()->cartDeleteUrl($this->getKey());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setCart(CartContract $cart): CartLineContract
+    {
+        $this->cart = $cart;
+
+        return $this;
     }
 }

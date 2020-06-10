@@ -1,79 +1,200 @@
-<?php
-
-/**
- * @name Total
- * @desc Gestion du calcul des totaux du panier d'achat.
- * @package presstiFy
- * @namespace \tiFy\Plugins\Shop\Cart
- * @version 1.1
- * @since 1.2.535
- *
- * @author Jordy Manner <jordy@tigreblanc.fr>
- * @copyright Milkcreation
- */
+<?php declare(strict_types=1);
 
 namespace tiFy\Plugins\Shop\Cart;
 
-use Illuminate\Support\Fluent;
-use tiFy\Apps\AppTrait;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraits;
-use tiFy\Plugins\Shop\ServiceProvider\ProvideTraitsInterface;
-use tiFy\Plugins\Shop\Shop;
+use tiFy\Plugins\Shop\Contracts\{Cart as CartContract, CartTotal as CartTotalContract};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use tiFy\Support\ParamsBag;
 
-class Total extends Fluent implements TotalInterface, ProvideTraitsInterface
+class Total extends ParamsBag implements CartTotalContract
 {
-    use AppTrait, ProvideTraits;
+    use ShopAwareTrait;
 
     /**
-     * Classe de rappel de la boutique.
-     * @var Shop
+     * Instance du panier de commande associé.
+     * @var CartContract|null|false
      */
-    protected $shop;
+    protected $cart;
 
     /**
-     * Classe de rappel de gestion des données des élements contenu dans le panier.
-     * @var Cart
+     * @inheritDoc
      */
-    private $cart;
-
-    /**
-     * Stockage des totaux.
-     *
-     * @var array
-     */
-    protected $defaults = [
-        'lines_subtotal'     => 0,
-        'lines_subtotal_tax' => 0,
-        'lines_total'        => 0,
-        'lines_total_tax'    => 0,
-        'lines_taxes'        => [],
-        'total'              => 0,
-        'shipping_total'     => 0,
-        'shipping_tax_total' => 0,
-        'shipping_taxes'     => [],
-        'discount_total'     => 0,
-        'fee_total'          => 0,
-        'fee_total_tax'      => 0,
-        'fee_taxes'          => []
-    ];
-
-    /**
-     * CONSTRUCTEUR.
-     *
-     * @return void
-     */
-    public function __construct(Shop $shop, Cart $cart)
+    public function __toString(): string
     {
-        parent::__construct($this->defaults);
+        return (string)$this->getGlobal();
+    }
 
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
+    /**
+     * @inheritDoc
+     */
+    public function cart(): ?CartContract
+    {
+        if (is_null($this->cart)) {
+            $this->cart = $this->shop()->cart() ?? false;
+        }
 
-        // Définition du panier
-        $this->cart = $cart;
+        return $this->cart ?? null;
+    }
 
-        if ($lines = $cart->lines()) :
-            foreach ($lines as $line) :
+    /**
+     * @inheritDoc
+     */
+    public function defaults(): array
+    {
+        return [
+            'lines_subtotal'     => 0,
+            'lines_subtotal_tax' => 0,
+            'lines_total'        => 0,
+            'lines_total_tax'    => 0,
+            'lines_taxes'        => [],
+            'total'              => 0,
+            'shipping_total'     => 0,
+            'shipping_tax_total' => 0,
+            'shipping_taxes'     => [],
+            'discount_total'     => 0,
+            'fee_total'          => 0,
+            'fee_total_tax'      => 0,
+            'fee_taxes'          => [],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDiscountTax(): float
+    {
+        return (float)$this->get('discount_tax', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getDiscountTotal(): float
+    {
+        return (float)$this->get('discount_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFeeTax(): float
+    {
+        return (float)$this->get('fee_total_tax', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFeeTaxes(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFeeTotal(): float
+    {
+        return (float)$this->get('fee_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getGlobal(): float
+    {
+        return (float)$this->get('total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getGlobalTax(): float
+    {
+        return (float)$this->get('total_tax', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLinesSubtotal(): float
+    {
+        return (float)$this->get('lines_subtotal', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLinesSubtotalTax(): float
+    {
+        return (float)$this->get('lines_subtotal_tax', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLinesTaxes(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLinesTotal(): float
+    {
+        return (float)$this->get('lines_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLinesTotalHtml(): string
+    {
+        return (string)$this->shop()->functions()->price()->html($this->getLinesTotal());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLinesTotalTax(): float
+    {
+        return (float)$this->get('lines_total_tax', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getShippingTax(): float
+    {
+        return (float)$this->get('shipping_tax_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getShippingTaxes(): array
+    {
+        return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getShippingTotal(): float
+    {
+        return (float)$this->get('shipping_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function parse(): CartTotalContract
+    {
+        parent::parse();
+
+        if ($lines = $this->cart()->all()) {
+            foreach ($lines as $line) {
                 // Sous-totaux
                 $line['line_tax_data'] = ['subtotal' => []];
                 $line['line_subtotal'] = $line->getPrice();
@@ -83,189 +204,49 @@ class Total extends Fluent implements TotalInterface, ProvideTraitsInterface
                 $line['line_tax_data'] = array_merge($line['line_tax_data'], ['total' => []]);
                 $line['line_total'] = $line->getPrice();
                 $line['line_tax'] = 0;
-            endforeach;
-
-            //array_map( 'round', array_values( wp_list_pluck( $this->items, 'subtotal' ) ) ) ) );
+            }
 
             // Calcul des sous-totaux
-            $this['lines_subtotal'] = $lines->sum('line_subtotal');
-            $this['lines_subtotal_tax'] = $lines->sum('line_subtotal_tax');
+            $this['lines_subtotal'] = $this->cart()->collect()->sum('line_subtotal');
+            $this['lines_subtotal_tax'] = $this->cart()->collect()->sum('line_subtotal_tax');
 
             // Calcul des totaux
-            $this['lines_total'] = $lines->sum('line_total');
-            $this['lines_total_tax'] = $lines->sum('line_tax');
+            $this['lines_total'] = $this->cart()->collect()->sum('line_total');
+            $this['lines_total_tax'] = $this->cart()->collect()->sum('line_tax');
 
-            $this['total'] = $this['lines_total'] + $this['fees_total'] + $this['shipping_total'];
-        endif;
+            $this['total'] = $this['lines_total'] + $this['fee_total'] + $this['shipping_total'];
+        }
+
+        return $this;
     }
 
     /**
-     * Récupération du prix du sous-total cumulé des lignes du panier.
-     *
-     * @return float
+     * @inheritDoc
      */
-    public function getLinesSubtotal()
+    public function setCart(CartContract $cart): CartTotalContract
     {
-        return (float)$this->get('lines_subtotal', 0);
+        $this->cart = $cart;
+
+        return $this;
     }
 
     /**
-     * Récupération de la taxe du sous-total cumulé des lignes du panier.
-     *
-     * @return float
+     * @inheritDoc
      */
-    public function getLinesSubtotalTax()
+    public function setDiscountTotal(float $discount): CartTotalContract
     {
-        return (float)$this->get('lines_subtotal_tax', 0);
+        $this->set('discount_total', $discount);
+
+        return $this;
     }
 
     /**
-     * Récupération du prix total cumulé des lignes du panier.
-     *
-     * @return float
+     * @inheritDoc
      */
-    public function getLinesTotal()
+    public function setFeeTotal(float $fee): CartTotalContract
     {
-        return (float)$this->get('lines_total', 0);
-    }
+        $this->set('fee_total', $fee);
 
-    /**
-     * Récupération du prix total cumulé des lignes du panier au format HTML.
-     *
-     * @return string
-     */
-    public function getLinesTotalHtml()
-    {
-        return (string)$this->functions()->price()->html($this->getLinesTotal());
-    }
-
-    /**
-     * Récupération de la taxe totale cumulée des lignes du panier.
-     *
-     * @return float
-     */
-    public function getLinesTotalTax()
-    {
-        return (float)$this->get('lines_total_tax', 0);
-    }
-
-    /**
-     * Récupération de la liste des taxes appliquées aux lignes du panier.
-     *
-     * @return array
-     */
-    public function getLinesTaxes()
-    {
-        return [];
-    }
-
-    /**
-     * Récupération du montant total global.
-     *
-     * @return float
-     */
-    public function getGlobal()
-    {
-        return (float)$this->get('total', 0);
-    }
-
-    /**
-     * Récupération de la taxe globale.
-     *
-     * @return float
-     */
-    public function getGlobalTax()
-    {
-        return (float)$this->get('total_tax', 0);
-    }
-
-    /**
-     * Récupération du montant total de la livraison.
-     *
-     * @return float
-     */
-    public function getShippingTotal()
-    {
-        return (float)$this->get('shipping_total', 0);
-    }
-
-    /**
-     * Récupération de la taxe appliquée au montant de la livraison.
-     *
-     * @return float
-     */
-    public function getShippingTax()
-    {
-        return (float)$this->get('shipping_tax_total', 0);
-    }
-
-    /**
-     * Récupération de la liste des taxes appliquées à la livraison.
-     *
-     * @return array
-     */
-    public function getShippingTaxes()
-    {
-        return [];
-    }
-
-    /**
-     * Récupération du montant total de la remise.
-     *
-     * @return float
-     */
-    public function getDiscountTotal()
-    {
-        return (float)$this->get('discount_total', 0);
-    }
-
-    /**
-     * Récupération de la taxe appliquée au montant de la remise.
-     *
-     * @return float
-     */
-    public function getDiscountTax()
-    {
-        return (float)$this->get('discount_tax', 0);
-    }
-
-    /**
-     * Récupération du montant total des frais.
-     *
-     * @return float
-     */
-    public function getFeeTotal()
-    {
-        return (float)$this->get('fee_total', 0);
-    }
-
-    /**
-     * Récupération de la taxe appliquée au montant des frais.
-     *
-     * @return float
-     */
-    public function getFeeTax()
-    {
-        return (float)$this->get('fee_total_tax', 0);
-    }
-
-    /**
-     * Récupération de la liste des taxes appliquées aux frais.
-     *
-     * @return array
-     */
-    public function getFeeTaxes()
-    {
-        return [];
-    }
-
-    /**
-     * Récupération du montant total global.
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return (string) $this->getGlobal();
+        return $this;
     }
 }

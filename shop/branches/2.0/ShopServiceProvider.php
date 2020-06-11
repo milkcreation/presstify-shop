@@ -163,9 +163,9 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @param string $alias Alias de qualification.
      *
-     * @return string
+     * @return object|string
      */
-    public function getConcrete($alias)
+    public function getConcrete(string $alias)
     {
         return $this->customs[$alias] ?? ($this->aliases[$alias] ?? $alias);
     }
@@ -226,7 +226,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerAdmin(): void
     {
         $this->getContainer()->share('shop.admin', function (): AdminContract {
-            return $this->resolveConcrete('admin');
+            return $this->resolveShared('admin');
         });
     }
 
@@ -238,11 +238,11 @@ class ShopServiceProvider extends ServiceProvider
     public function registerApi(): void
     {
         $this->getContainer()->share('shop.api', function (): ApiContract {
-            return $this->resolveConcrete('api');
+            return $this->resolveShared('api');
         });
 
         $this->getContainer()->add('shop.api.endpoint.orders', function () {
-            return $this->resolveConcrete('api.endpoint.orders');
+            return $this->resolveAdded('api.endpoint.orders');
         });
     }
 
@@ -254,23 +254,23 @@ class ShopServiceProvider extends ServiceProvider
     public function registerCart(): void
     {
         $this->getContainer()->share('shop.cart', function (): CartContract {
-            return $this->resolveConcrete('cart');
+            return $this->resolveShared('cart');
         });
 
         $this->getContainer()->add('shop.cart.discount', function (): CartDiscountContact {
-            return $this->resolveConcrete('cart.discount');
+            return $this->resolveAdded('cart.discount');
         });
 
         $this->getContainer()->add('shop.cart.line', function (): CartLineContact {
-            return $this->resolveConcrete('cart.line');
+            return $this->resolveAdded('cart.line')->parse();
         });
 
         $this->getContainer()->share('shop.cart.session', function (): CartSessionContact {
-            return $this->resolveConcrete('cart.session');
+            return $this->resolveShared('cart.session')->parse();
         });
 
         $this->getContainer()->add('shop.cart.total', function (): CartTotalContract {
-            return $this->resolveConcrete('cart.total')->parse();
+            return $this->resolveAdded('cart.total')->parse();
         });
     }
 
@@ -282,7 +282,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerCheckout(): void
     {
         $this->getContainer()->share('shop.checkout', function (): CheckoutContract {
-            return $this->resolveConcrete('checkout');
+            return $this->resolveShared('checkout');
         });
     }
 
@@ -294,15 +294,15 @@ class ShopServiceProvider extends ServiceProvider
     public function registerController(): void
     {
         $this->getContainer()->share('shop.controller.api', function (): ApiControllerContract {
-            return $this->resolveConcrete('controller.api');
+            return $this->resolveShared('controller.api');
         });
 
         $this->getContainer()->share('shop.controller.cart', function (): CartControllerContract {
-            return $this->resolveConcrete('controller.cart');
+            return $this->resolveShared('controller.cart');
         });
 
         $this->getContainer()->share('shop.controller.checkout', function (): CheckoutControllerContract {
-            return $this->resolveConcrete('controller.checkout');
+            return $this->resolveShared('controller.checkout');
         });
     }
 
@@ -314,7 +314,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerEntity(): void
     {
         $this->getContainer()->share('shop.entity', function (): EntityContract {
-            return $this->resolveConcrete('entity')->boot();
+            return $this->resolveShared('entity')->boot();
         });
     }
 
@@ -326,11 +326,11 @@ class ShopServiceProvider extends ServiceProvider
     public function registerForm(): void
     {
         $this->getContainer()->share('shop.form', function (): FormContract {
-            return $this->resolveConcrete('form');
+            return $this->resolveShared('form');
         });
 
         $this->getContainer()->share('shop.form.addresses', function (): AddressesFormContract {
-            return $this->resolveConcrete('form.addresses');
+            return $this->resolveShared('form.addresses');
         });
     }
 
@@ -342,19 +342,19 @@ class ShopServiceProvider extends ServiceProvider
     public function registerFunctions(): void
     {
         $this->getContainer()->share('shop.functions', function (): FunctionsContract {
-            return $this->resolveConcrete('functions');
+            return $this->resolveShared('functions');
         });
 
         $this->getContainer()->add('shop.functions.date', function (...$args): FunctionsDateContract {
-            return $this->resolveConcrete('functions.date', ...$args);
+            return $this->resolveAdded('functions.date', ...$args);
         });
 
         $this->getContainer()->share('shop.functions.page', function (): FunctionsPageContract {
-            return $this->resolveConcrete('functions.page');
+            return $this->resolveShared('functions.page');
         });
 
         $this->getContainer()->share('shop.functions.price', function (): FunctionsPriceContract {
-            return $this->resolveConcrete('functions.price');
+            return $this->resolveShared('functions.price');
         });
     }
 
@@ -366,15 +366,15 @@ class ShopServiceProvider extends ServiceProvider
     public function registerGateways(): void
     {
         $this->getContainer()->share('shop.gateways', function (): GatewaysContract {
-            return $this->resolveConcrete('gateways')->boot();
+            return $this->resolveShared('gateways')->boot();
         });
 
         $this->getContainer()->add('shop.gateway.cash_on_delivery', function (): GatewayContract {
-            return $this->resolveConcrete('gateway.cash_on_delivery');
+            return $this->resolveAdded('gateway.cash_on_delivery');
         });
 
         $this->getContainer()->add('shop.gateway.cheque', function (): GatewayContract {
-            return $this->resolveConcrete('gateway.cheque');
+            return $this->resolveAdded('gateway.cheque');
         });
     }
 
@@ -386,7 +386,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerMiddleware(): void
     {
         $this->getContainer()->share('shop.middleware.api', function (): ApiMiddlewareContract {
-            return $this->resolveConcrete('middleware.api');
+            return $this->resolveShared('middleware.api');
         });
     }
 
@@ -398,7 +398,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerNotices(): void
     {
         $this->getContainer()->share('shop.notices', function (): NoticeContract {
-            return $this->resolveConcrete('notices');
+            return $this->resolveShared('notices');
         });
     }
 
@@ -419,39 +419,39 @@ class ShopServiceProvider extends ServiceProvider
         });
 
         $this->getContainer()->add('shop.order.item.common', function (): OrderItemContract {
-            return $this->resolveConcrete('order.item.common');
+            return $this->resolveAdded('order.item.common');
         });
 
         $this->getContainer()->add('shop.order.item.coupon', function (): OrderItemCouponContract {
-            return $this->resolveConcrete('order.item.coupon');
+            return $this->resolveAdded('order.item.coupon');
         });
 
         $this->getContainer()->add('shop.order.item.discount', function (): OrderItemDiscountContract {
-            return $this->resolveConcrete('order.item.discount');
+            return $this->resolveAdded('order.item.discount');
         });
 
         $this->getContainer()->add('shop.order.item.fee', function (): OrderItemFeeContract {
-            return $this->resolveConcrete('order.item.fee');
+            return $this->resolveAdded('order.item.fee');
         });
 
         $this->getContainer()->add('shop.order.item.product', function (): OrderItemProductContract {
-            return $this->resolveConcrete('order.item.product');
+            return $this->resolveAdded('order.item.product');
         });
 
         $this->getContainer()->add('shop.order.item.shipping', function (): OrderItemShippingContract {
-            return $this->resolveConcrete('order.item.shipping');
+            return $this->resolveAdded('order.item.shipping');
         });
 
         $this->getContainer()->add('shop.order.item.tax', function (): OrderItemTaxContract {
-            return $this->resolveConcrete('order.item.tax');
+            return $this->resolveAdded('order.item.tax');
         });
 
         $this->getContainer()->share('shop.orders', function (): OrdersContract {
-            return $this->resolveConcrete('orders');
+            return $this->resolveShared('orders');
         });
 
         $this->getContainer()->add('shop.orders.collection', function (): OrdersCollectionContract {
-            return $this->resolveConcrete('orders.collection');
+            return $this->resolveAdded('orders.collection');
         });
     }
 
@@ -486,11 +486,11 @@ class ShopServiceProvider extends ServiceProvider
         );
 
         $this->getContainer()->share('shop.products', function (): ProductsContract {
-            return $this->resolveConcrete('products')->boot();
+            return $this->resolveShared('products')->boot();
         });
 
         $this->getContainer()->add('shop.products.collection', function (): ProductsCollectionContract {
-            return $this->resolveConcrete('products.collection');
+            return $this->resolveAdded('products.collection');
         });
 
         $this->getContainer()->add('shop.products.object-type',
@@ -511,7 +511,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerRoute(): void
     {
         $this->getContainer()->share('shop.route', function (): RouteContract {
-            return $this->resolveConcrete('route')->boot();
+            return $this->resolveShared('route')->boot();
         });
     }
 
@@ -523,7 +523,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerSession(): void
     {
         $this->getContainer()->share('shop.session', function (): SessionContract {
-            return $this->resolveConcrete('session');
+            return $this->resolveShared('session');
         });
     }
 
@@ -535,7 +535,7 @@ class ShopServiceProvider extends ServiceProvider
     public function registerSettings(): void
     {
         $this->getContainer()->share('shop.settings', function (): SettingsContract {
-            return $this->resolveConcrete('settings')->parse();
+            return $this->resolveShared('settings')->parse();
         });
     }
 
@@ -617,11 +617,30 @@ class ShopServiceProvider extends ServiceProvider
      *
      * @return object|mixed
      */
-    public function resolveConcrete(string $alias, array ...$args): object
+    public function resolveAdded(string $alias, array ...$args): object
     {
         $concrete = $this->getConcrete("shop.{$alias}");
 
-        return (is_object($concrete) ? $concrete : new $concrete(...$args))
-            ->setShop($this->getContainer()->get('shop'));
+        if(is_object($concrete)) {
+            $instance = clone $concrete;
+        } else {
+            $instance = new $concrete(...$args);
+        }
+
+        return $instance->setShop($this->getContainer()->get('shop'));
+    }
+
+    /**
+     * Récupération de la classe de rappel d'un service.
+     *
+     * @param string $alias
+     *
+     * @return object|mixed
+     */
+    public function resolveShared(string $alias): object
+    {
+        $concrete = $this->getConcrete("shop.{$alias}");
+
+        return (is_object($concrete) ? $concrete : new $concrete())->setShop($this->getContainer()->get('shop'));
     }
 }

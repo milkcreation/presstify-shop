@@ -8,7 +8,7 @@ use tiFy\Plugins\Shop\{
     ShopAwareTrait
 };
 use tiFy\Contracts\Http\Response;
-use tiFy\Support\MessagesBag;
+use tiFy\Support\{Arr, MessagesBag};
 use tiFy\Support\Proxy\{Redirect, Request, Url};
 
 class CartController extends BaseController implements CartControllerContract
@@ -37,7 +37,7 @@ class CartController extends BaseController implements CartControllerContract
             $purchasing_options = Request::input('purchasing_options', []);
 
             // Identification de la ligne du panier (doit contenir toutes les options d'unicité).
-            $key = md5(implode('_', [$product->getid(), maybe_serialize($purchasing_options)]));
+            $key = md5(implode('_', [$product->getId(), Arr::serialize($purchasing_options)]));
             if ($exists = $this->shop->cart()->get($key)) {
                 $quantity += $exists->getQuantity();
             }

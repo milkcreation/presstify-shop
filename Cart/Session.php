@@ -117,7 +117,6 @@ class Session extends ParamsBag implements CartSessionContract
             $cart[$key] = $line->all();
         }
 
-        // Mise à jour des données de session
         $attributes = array_merge($this->all(), [
             'cart'        => $cart,
             'cart_totals' => $cart_totals,

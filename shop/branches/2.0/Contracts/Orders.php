@@ -93,15 +93,6 @@ interface Orders extends ShopAwareTrait
     public function getStatusLabel(string $name, string $default = ''): string;
 
     /**
-     * Controleur de traitement à l'issue du paiement.
-     *
-     * @param int $order_id
-     *
-     * @return mixed
-     */
-    public function handlePaymentComplete(int $order_id);
-
-    /**
      * Vérifie si un statut correspond aux statuts de commandes.
      *
      * @param string $status Identifiant de qualification du statut à contrôler.

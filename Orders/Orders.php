@@ -5,7 +5,6 @@ namespace tiFy\Plugins\Shop\Orders;
 use tiFy\Contracts\PostType\PostTypeStatus;
 use tiFy\Plugins\Shop\Contracts\{Order, Orders as OrdersContract, OrdersCollection};
 use tiFy\Plugins\Shop\ShopAwareTrait;
-use tiFy\Support\Proxy\{Redirect, Request};
 
 class Orders implements OrdersContract
 {
@@ -159,28 +158,6 @@ class Orders implements OrdersContract
         $this->total = $total;
 
         return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function handlePaymentComplete($order_id)
-    {
-        if (is_user_logged_in() && ($user = $this->shop()->users()->get())) {
-            if ($user->isShopManager() && ($order = $this->get($order_id))) {
-                $order->paymentComplete();
-            }
-
-            $location = Request::input('_wp_http_referer') ?: (Request::header('referer') ?: site_url('/'));
-
-            return Redirect::to($location);
-        } else {
-            wp_die(
-                __('Votre utilisateur n\'est pas habilité à effectuer cette action', 'tify'),
-                __('Mise à jour de la commande impossible', 'tify'),
-                500
-            );
-        }
     }
 
     /**

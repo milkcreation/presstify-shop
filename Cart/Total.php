@@ -149,14 +149,6 @@ class Total extends ParamsBag implements CartTotalContract
     /**
      * @inheritDoc
      */
-    public function getLinesTotalHtml(): string
-    {
-        return (string)$this->shop()->functions()->price()->html($this->getLinesTotal());
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getLinesTotalTax(): float
     {
         return (float)$this->get('lines_total_tax', 0);
@@ -214,7 +206,7 @@ class Total extends ParamsBag implements CartTotalContract
             $this['lines_total'] = $this->cart()->collect()->sum('line_total');
             $this['lines_total_tax'] = $this->cart()->collect()->sum('line_tax');
 
-            $this['total'] = $this['lines_total'] + $this['fee_total'] + $this['shipping_total'];
+            $this['total'] = $this->getLinesTotal() + $this->getFeeTotal() + $this->getShippingTotal() - $this->getDiscountTotal();
         }
 
         return $this;
@@ -246,6 +238,16 @@ class Total extends ParamsBag implements CartTotalContract
     public function setFeeTotal(float $fee): CartTotalContract
     {
         $this->set('fee_total', $fee);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setShippingTotal(float $shipping): CartTotalContract
+    {
+        $this->set('shipping_total', $shipping);
 
         return $this;
     }

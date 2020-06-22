@@ -48,47 +48,8 @@ class CheckoutController extends BaseController implements CheckoutControllerCon
             'woocommerce_checkout_update_totals' => Request::input('checkout_update_totals', false),
         ];
 
-        // Données de champ
-        $fieldsets = [
-            'billing'  => [],//$this->shop->addresses()->billing()->fields(),
-            'shipping' => [],//$this->shop->addresses()->shipping()->fields(),
-            'order'    => [
-                'comments' => [
-                    'type'        => 'textarea',
-                    'label'       => 'note de commande',
-                    'placeholder' => __('Commentaires concernant votre commande, ex.: consignes de livraison', 'tify'),
-                ],
-            ],
-        ];
-
-        // Données de champs ignorés
-        $skipped_fieldsets = [];
-        if (!$data['ship_to_different_address']) {
-            array_push($skipped_fieldsets, 'shipping');
-        }
-
-        // Hydratation des données de champs déclarés (hors ignorés)
-        foreach ($fieldsets as $key => $fields) {
-            if (in_array($key, $skipped_fieldsets)) {
-                continue;
-            }
-            foreach ($fields as $slug => $attrs) {
-                $data["{$key}_{$slug}"] = Request::input(
-                    "{$key}_{$slug}",
-                    $this->shop->session()->get("{$key}.{$slug}", '')
-                );
-            }
-        }
-
-        // Hydratation des données de champs ignorés
-        if (in_array('shipping', $skipped_fieldsets)) {
-            foreach ($fieldsets['shipping'] as $slug => $attrs) {
-                $data["shipping_{$slug}"] = isset($data["billing_{$slug}"]) ? $data["billing_{$slug}"] : '';
-            }
-        }
-
-        // Mise à jour des données de session
-        // @todo EVOLUTION : Enregistrer les données de session + utilisateur billing & shipping
+        $data['billing'] = $this->shop->session()->get('billing', []);
+        $data['shipping'] = $this->shop->session()->get('shipping', []);
 
         // Livraison
         $chosen_shipping_methods = $this->shop->session()->get('chosen_shipping_methods', []);
@@ -101,46 +62,6 @@ class CheckoutController extends BaseController implements CheckoutControllerCon
 
         // Méthode de paiement
         $this->shop->session()->put('chosen_payment_method', $data['payment_method']);
-
-        // Vérification de l'intégrité des données soumises par le formulaire de paiement
-        // Données de facturation
-        $fieldset_errors = [];
-        foreach ($fieldsets as $fieldset_key => $fieldset) {
-            foreach ($fieldset as $slug => $field) {
-                if (!isset($field['required'])) {
-                    continue;
-                } elseif ($field['required'] !== true) {
-                    continue;
-                }
-
-                $field_label = isset($field['label']) ? strtolower($field['label']) : $slug;
-                switch ($fieldset_key) {
-                    case 'billing' :
-                        $field_label = sprintf(__('Adresse de facturation : le champ %s', 'tify'), $field_label);
-                        break;
-                    case 'shipping' :
-                        $field_label = sprintf(__('Adresse de livraison : le champ %s', 'tify'), $field_label);
-                        break;
-                }
-
-                if ($field['required'] && '' === $data[$fieldset_key . '_' . $slug]) {
-                    $fieldset_errors[] = sprintf(
-                        __('%1$s est requis pour pouvoir procèder à la commande.', 'woocommerce'),
-                        esc_html($field_label)
-                    );
-                }
-            }
-        }
-
-        if ($fieldset_errors) {
-            foreach ($fieldset_errors as $error) {
-                $this->shop->notices()->add($error, 'error');
-            }
-
-            return Redirect::to($redirect);
-        }
-
-        // @todo EVOLUTION : Vérifier les données de panier : status du produit | disponibilité en stock
 
         // Conditions générales validées
         if (empty($data['terms'])) {

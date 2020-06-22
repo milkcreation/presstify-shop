@@ -1,101 +1,88 @@
-<?php
+<?php declare(strict_types=1);
+
 namespace tiFy\Plugins\Shop\Admin\Edit;
 
-use tiFy\Apps\AppController;
-use tiFy\Field\Field;
-use tiFy\TabMetabox\TabMetabox;
-use tiFy\Plugins\Shop\Shop;
-use tiFy\Plugins\Shop\Products\ObjectTypes\Factory;
+use tiFy\Plugins\Shop\Contracts\{
+    ProductObjectType,
+    Shop
+};
+use tiFy\Plugins\Shop\ShopAwareTrait;
+use WP_Post;
 
-class Edit extends AppController
+class Edit
 {
+    use ShopAwareTrait;
+
     /**
-     * Classe de rappel de la boutique
-     * @var Shop
+     * Nom de qualification du type de post associé.
+     * @var string
      */
-    protected $shop;
-    
+    private $objectName = '';
+
     /**
-     * Classe de rappel d'un produit
-     * @var \tiFy\Plugins\Shop\Products\ObjectTypes\Categorized|\tiFy\Plugins\Shop\Products\ObjectTypes\Uncategorized
+     * Instance du type de produit.
+     * @var ProductObjectType
      */
     private $objectType;
 
     /**
      * CONSTRUCTEUR
      *
-     * @param string $id Identifiant de qualification du type de post du produit
-     * @param array $attrs Attributs de configuration
+     * @param ProductObjectType $object_type Instance du type de produit.
+     * @param Shop $shop Attributs de configuration.
      *
      * @return void
      */
-    public function __construct(Shop $shop, Factory $ObjectType)
+    public function __construct(ProductObjectType $object_type, Shop $shop)
     {
-        // Définition de la classe de rappel de la boutique
-        $this->shop = $shop;
+        $this->setShop($shop);
 
-        $this->objectType = $ObjectType;
+        $this->objectType = $object_type;
+        $this->objectName = $this->objectType->getName();
 
-        // Déclaration des événements de déclenchement
-        $this->appAddAction('tify_tabmetabox_register');
-        $this->appAddAction('current_screen');
-    }
+        /** @todo COMPATIBILITE tiFY 2.0
+         * $metabox = app('metabox');
+         *
+         * $metabox->tab([
+         * 'title' => function (WP_Post $post) {
+         * return $this->panelHeader($post);
+         * },
+         * ], "{$this->objectType}@post_type");
+         */
 
-    /**
-     * Déclaration de la liste des organes de saisie.
-     *
-     * @param TabMetabox $tabMetabox Controleur des boites à onglet de saisie.
-     *
-     * @return void
-     */
-    final public function tify_tabmetabox_register($tabMetabox)
-    {
-        $tabMetabox->registerBox(
-            "{$this->objectType}@post_type",
-            [
-                'title' => [$this, 'panelHeader'],
-            ]
-        );
         // Définition des onglets de saisie par défaut
         $default_tabs = [
             'general'    => [
-                'name'     => "tFyShopProduct-generalOptions--{$this->objectType}",
                 'title'    => __('Général', 'tify'),
                 'content'  => [$this, 'generalPanel'],
                 'position' => 1,
             ],
             'inventory'  => [
-                'name'     => "tFyShopProduct-inventoryOptions--{$this->objectType}",
                 'title'    => __('Inventaire', 'tify'),
                 'content'  => [$this, 'inventoryPanel'],
                 'position' => 2,
             ],
             'shipping'   => [
-                'name'     => "tFyShopProduct-shippingOptions--{$this->objectType}",
                 'title'    => __('Expédition', 'tify'),
                 'content'  => [$this, 'shippingPanel'],
                 'position' => 3,
             ],
             'linked'     => [
-                'name'     => "tFyShopProduct-linkedOptions--{$this->objectType}",
                 'title'    => __('Produits liés', 'tify'),
                 'content'  => [$this, 'linkedPanel'],
                 'position' => 4,
             ],
             'attributes' => [
-                'name'     => "tFyShopProduct-attributesOptions--{$this->objectType}",
                 'title'    => __('Attributs', 'tify'),
                 'content'  => [$this, 'attributesPanel'],
                 'position' => 5,
             ],
             'variations' => [
-                'name'     => "tFyShopProduct-variationsOptions--{$this->objectType}",
                 'title'    => __('Variations', 'tify'),
                 'content'  => [$this, 'variationsPanel'],
                 'position' => 6,
             ],
             'advanced'   => [
-                'name'     => "tFyShopProduct-advancedOptions--{$this->objectType}",
                 'title'    => __('Avancé', 'tify'),
                 'content'  => [$this, 'advancedPanel'],
                 'position' => 7,
@@ -105,7 +92,7 @@ class Edit extends AppController
         // Récupération des onglets personalisés
         $custom_tabs = $this->objectType->get('tabs', []);
 
-        foreach ($default_tabs as $id => $default_tab) :
+        foreach ($default_tabs as $id => $default_tab) {
             if (!isset($custom_tabs[$id])) :
                 $custom_tabs[$id] = $default_tab;
             elseif ($custom_tabs[$id] !== false) :
@@ -113,84 +100,54 @@ class Edit extends AppController
             else :
                 unset($custom_tabs[$id]);
             endif;
-        endforeach;
+        }
 
-        foreach ($custom_tabs as $attrs) :
-            $tabMetabox->registerNode(
-                "{$this->objectType}@post_type",
-                $attrs
-            );
-        endforeach;
-    }
-
-    /**
-     * Affichage de l'écran courant
-     *
-     * @return void
-     */
-    final public function current_screen($current_screen)
-    {
-        if ($current_screen->id !== (string)$this->objectType) :
-            return;
-        endif;
-
-        // Déclenchement de la mise en file des scripts de l'interface d'administration
-        $this->appAddAction('admin_enqueue_scripts');
-    }
-
-    /**
-     * Mise en file des scripts de l'interface d'administration
-     *
-     * @return void
-     */
-    final public function admin_enqueue_scripts()
-    {
-        $this->appServiceGet(Field::class)->enqueue('SelectJs');
-
-        \wp_enqueue_script(
-            'tiFyPluginShopAdminEdit',
-            $this->appUrl(get_class()) . '/Edit.js',
-            ['jquery'],
-            171219,
-            true
-        );
-        \wp_enqueue_style(
-            'tiFyPluginShopAdminEdit',
-            $this->appUrl(get_class()) . '/Edit.css',
-            [],
-            171219
-        );
+        /** @todo COMPATIBILITE tiFY 2.0
+         * foreach ($custom_tabs as $id => $attrs) {
+         *
+         * $metabox->add(
+         * "ShopProduct-{$id}--{$this->objectType}",
+         * "{$this->objectType}@post_type",
+         * $attrs
+         * );
+         * }*/
     }
 
     /**
      * Titre du panneau de saisie
      *
+     * @param WP_Post $post
+     *
      * @return string
      */
-    final public function panelHeader($post)
+    public function panelHeader($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
         $product_type_selector = '';
         if ($product_types = $product->getProductTypes()) :
             $product_type_options = [];
             foreach ($product_types as $product_type) :
-                $product_type_options[$product_type] = $this->shop->products()->getProductTypeDisplayName($product_type);
+                $product_type_options[$product_type] = $this->shop()
+                    ->products()
+                    ->getProductTypeDisplayName($product_type);
             endforeach;
 
             $product_type_selector .= '<b> — </b>';
-            $product_type_selector .= Field::Select(
+            $product_type_selector .= field(
+                'select',
                 [
-                    'name'     => 'product-type',
-                    'value'    => $product->getProductType(),
-                    'options'  => $product_type_options
+                    'name'    => 'product-type',
+                    'value'   => $product->getProductType(),
+                    'choices' => $product_type_options,
                 ]
             );
         else :
-            $product_type_selector .= Field::Hidden(
+            $product_type_selector .= field(
+                'hidden',
                 [
                     'name'    => 'product-type',
-                    'options' => 'simple'
+                    'choices' => 'simple',
                 ]
             );
         endif;
@@ -201,119 +158,98 @@ class Edit extends AppController
     /**
      * Saisie des options générales
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function generalPanel($post)
+    public function generalPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'general',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/general', compact('post', 'product'));
     }
 
     /**
      * Saisie des données d'inventaire
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function inventoryPanel($post)
+    public function inventoryPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'inventory',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/inventory', compact('post', 'product'));
     }
 
     /**
      * Saisie des données de livraison
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function shippingPanel($post)
+    public function shippingPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'shipping',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/shipping', compact('post', 'product'));
     }
 
     /**
      * Saisie des données de produits liés
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function linkedPanel($post)
+    public function linkedPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'linked',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/linked', compact('post', 'product'));
     }
 
     /**
      * Saisie des données d'attributs
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function attributesPanel($post)
+    public function attributesPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'attributes',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/attributes', compact('post', 'product'));
     }
 
     /**
      * Saisie des données de variations
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function variationsPanel($post)
+    public function variationsPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'variations',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/variations', compact('post', 'product'));
     }
 
     /**
      * Saisie des données de advanced
      *
-     * @param \WP_Post $post Object Post Wordpress
+     * @param WP_Post $post Object Post Wordpress
      *
      * @return string
      */
-    final public function advancedPanel($post)
+    public function advancedPanel($post)
     {
-        $product = $this->shop->products()->get($post);
+        $product = $this->shop()->product($post);
 
-        return $this->appTemplateRender(
-            'advanced',
-            compact('post', 'product')
-        );
+        return $this->shop()->view('admin/edit/advanced', compact('post', 'product'));
     }
 }

@@ -10,7 +10,7 @@ use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{Arr, ParamsBag, Str};
 
 /**
- * @mixin OrderItem
+ * @mixin OrderItemCommon
  */
 abstract class AbstractOrderItem extends ParamsBag implements OrderItemContract
 {

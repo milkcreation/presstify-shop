@@ -16,7 +16,8 @@ use tiFy\Plugins\Shop\Contracts\{
     OrderItemProduct,
     OrderItemShipping,
     OrderItemTax,
-    UserCustomer};
+    UserCustomer
+};
 use tiFy\Support\DateTime;
 use tiFy\Support\Proxy\{Database, PostType};
 use tiFy\Wordpress\Contracts\Query\QueryPost as QueryPostContract;
@@ -100,7 +101,7 @@ class Order extends QueryPost implements OrderContract
         } elseif ($id instanceof WP_Post) {
             return (new static($id));
         } elseif (is_null($id) && ($instance = static::createFromGlobal())) {
-            if (($postType = static::$postType) && ($postType!== 'any')) {
+            if (($postType = static::$postType) && ($postType !== 'any')) {
                 return $instance->typeIn($postType) ? $instance : null;
             } else {
                 return $instance;
@@ -116,9 +117,9 @@ class Order extends QueryPost implements OrderContract
     public static function createFromOrderKey(string $orderKey): ?QueryPostContract
     {
         $wpQuery = new WP_Query(static::parseQueryArgs([
-            'meta_key' => '_order_key',
-            'meta_value' => $orderKey,
-            'post_status' => 'any'
+            'meta_key'    => '_order_key',
+            'meta_value'  => $orderKey,
+            'post_status' => 'any',
         ]));
 
         return ($wpQuery->found_posts == 1) ? new static(current($wpQuery->posts)) : null;
@@ -364,6 +365,14 @@ class Order extends QueryPost implements OrderContract
     }
 
     /**
+     * @inheritDoc
+     */
+    public function getDiscountTotal(): float
+    {
+        return (float)$this->get('discount_total', 0);
+    }
+
+    /**
      * Récupération des l'instance d'éléments associés à la commande.
      *
      * @param string|null $type Type d'éléments à retourner. coupon|fee|line_item|shipping|tax.
@@ -403,17 +412,17 @@ class Order extends QueryPost implements OrderContract
         }
 
         if (is_null($type)) {
-            return $this->orderItems ? : [];
+            return $this->orderItems ?: [];
         } elseif ($this->orderItems) {
             $orderItems = [];
-            foreach($this->orderItems as $items) {
+            foreach ($this->orderItems as $items) {
                 foreach ($items as $item) {
                     $orderItems[] = $item;
                 }
             }
 
             return (new Collection($orderItems))->filter(function (OrderItem $item) use ($type) {
-                 return $item->getType() === $type;
+                return $item->getType() === $type;
             })->all();
         } else {
             return [];
@@ -463,6 +472,22 @@ class Order extends QueryPost implements OrderContract
     public function getShipping(?string $key = null, $default = null): string
     {
         return is_null($key) ? $this->get('shipping', []) : $this->get("shipping.{$key}", $default);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getShippingTotal(): float
+    {
+        return (float)$this->get('shipping_total', 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSubtotal(): float
+    {
+        return (float)($this->getDiscountTotal() + $this->getTotal());
     }
 
     /**
@@ -588,9 +613,9 @@ class Order extends QueryPost implements OrderContract
             'customer_note' => $this->getExcerpt(true),
             'date_created'  => $this->getDate(true),
             'date_modified' => $this->getModified(true),
-            'order_key'     => $this->get('order_key') ? : uniqid('order_'),
+            'order_key'     => $this->get('order_key') ?: uniqid('order_'),
             'parent_id'     => $this->getParentId(),
-            'status' => $this->shop()->orders()->hasStatus($this->get('post_status'))
+            'status'        => $this->shop()->orders()->hasStatus($this->get('post_status'))
                 ? $this->get('post_status') : $this->shop()->orders()->getDefaultStatus(),
         ]);
 
@@ -610,16 +635,17 @@ class Order extends QueryPost implements OrderContract
             $this->shop()->session()->forget('order_awaiting_payment');
 
             if ($this->hasStatus($this->shop()->orders()->getPaymentValidStatuses())) {
-                if (!empty($transaction_id)) {
-                    $this->transactionId = $transaction_id;
-                }
+                $this->set('transaction_id', $transaction_id);
+
                 if (!$this->get('date_paid')) {
                     $this->set('date_paid', $this->shop()->functions()->date()->utc('U'));
                 }
+
                 $this->set('status', $this->needProcessing() ? 'order-processing' : 'order-completed');
 
                 $this->update();
             }
+
             events()->trigger('shop.order.payment.completed', [$this]);
         } catch (Exception $e) {
             return false;
@@ -649,24 +675,24 @@ class Order extends QueryPost implements OrderContract
     public function removeOrderItems(?string $type = null): void
     {
         if (!is_null($type)) {
-            if ($items =  $this->getOrderItems($type)) {
+            if ($items = $this->getOrderItems($type)) {
                 $ids = (new Collection($items))->pluck('id')->unique()->all();
 
-                foreach($ids as $id) {
+                foreach ($ids as $id) {
                     $this->shop()->entity()->orderItemsTable()->where([
-                        'order_item_id'     => $id,
-                        'order_item_type'   => $type,
-                        'order_id'          => $this->getId()
+                        'order_item_id'   => $id,
+                        'order_item_type' => $type,
+                        'order_id'        => $this->getId(),
                     ])->delete();
 
                     $this->shop()->entity()->orderItemMetaTable()->where([
-                        'order_item_id'     => $id,
+                        'order_item_id' => $id,
                     ])->delete();
                 }
                 unset($this->orderItems[$type]);
             }
-        } elseif($types = array_keys($this->getOrderItems())) {
-            foreach($types as $type) {
+        } elseif ($types = array_keys($this->getOrderItems())) {
+            foreach ($types as $type) {
                 $this->removeOrderItems($type);
             }
         }
@@ -677,8 +703,8 @@ class Order extends QueryPost implements OrderContract
      */
     public function saveItems(): void
     {
-        foreach($this->getOrderItems() as $group => $grouped) {
-            foreach($grouped as $key => $item) {
+        foreach ($this->getOrderItems() as $group => $grouped) {
+            foreach ($grouped as $key => $item) {
                 /** @var OrderItem $item */
                 if ($id = $item->save()) {
                     $item->saveMetas();

@@ -98,13 +98,6 @@ interface CartTotal extends ParamsBag, ShopAwareTrait
     public function getLinesTotal(): float;
 
     /**
-     * Récupération du prix total cumulé des lignes du panier au format HTML.
-     *
-     * @return string
-     */
-    public function getLinesTotalHtml(): string;
-
-    /**
      * Récupération de la taxe totale cumulée des lignes du panier.
      *
      * @return float

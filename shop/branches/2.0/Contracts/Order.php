@@ -130,6 +130,13 @@ interface Order extends QueryPost, ShopAwareTrait
     public function getCustomerId(): int;
 
     /**
+     * Récupération du montant total de la remise.
+     *
+     * @return float
+     */
+    public function getDiscountTotal(): float;
+
+    /**
      * Récupération des l'instance d'éléments associés à la commande.
      *
      * @param string|null $type Type d'éléments à retourner. coupon|fee|line_item|shipping|tax.
@@ -175,6 +182,20 @@ interface Order extends QueryPost, ShopAwareTrait
      * @return mixed
      */
     public function getShipping(?string $key = null, $default = null);
+
+    /**
+     * Récupération du montant total de la livraison.
+     *
+     * @return float
+     */
+    public function getShippingTotal(): float;
+
+    /**
+     * Récupération du prix total cumulé.
+     *
+     * @return float
+     */
+    public function getSubtotal(): float;
 
     /**
      * Récupération du nom de qualification court du statut.

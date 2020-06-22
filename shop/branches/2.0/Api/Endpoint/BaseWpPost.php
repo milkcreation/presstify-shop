@@ -5,7 +5,7 @@ namespace tiFy\Plugins\Shop\Api\Endpoint;
 use League\Fractal\{Manager as FractalManager, Resource\Collection as FractalCollect};
 use Psr\Http\Message\ServerRequestInterface as ServerRequest;
 use tiFy\Plugins\Shop\Api\FractalArraySerializer as DataSerializer;
-use tiFy\Plugins\Shop\Contracts\{ApiEndpointBaseWpPost as BaseWpPostContract};
+use tiFy\Plugins\Shop\Contracts\ApiEndpointBaseWpPost as BaseWpPostContract;
 use tiFy\Plugins\Shop\ShopAwareTrait;
 use tiFy\Support\{DateTime, ParamsBag};
 use tiFy\Support\Proxy\Request;

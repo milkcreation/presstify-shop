@@ -18,5 +18,5 @@ interface ShopAwareTrait
      *
      * @return static
      */
-    public function setShop(Shop $shop): ShopAwareTrait;
+    public function setShop(Shop $shop);
 }

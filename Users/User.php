@@ -36,7 +36,7 @@ class User extends QueryUser implements UserContract
      */
     public function getBillingAddress1(): ?string
     {
-        return $this->getBilling('address_1');
+        return $this->getBilling('address1');
     }
 
     /**
@@ -44,7 +44,7 @@ class User extends QueryUser implements UserContract
      */
     public function getBillingAddress2(): ?string
     {
-        return $this->getBilling('address_2');
+        return $this->getBilling('address2');
     }
 
     /**
@@ -126,7 +126,7 @@ class User extends QueryUser implements UserContract
      */
     public function getShippingAddress1(): ?string
     {
-        return $this->getShipping('address_1');
+        return $this->getShipping('address1');
     }
 
     /**
@@ -134,7 +134,7 @@ class User extends QueryUser implements UserContract
      */
     public function getShippingAddress2(): ?string
     {
-        return $this->getShipping('address_2');
+        return $this->getShipping('address2');
     }
 
     /**

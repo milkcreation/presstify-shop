@@ -6,8 +6,7 @@ use Exception;
 use Illuminate\Support\Collection;
 use tiFy\Contracts\PostType\PostTypeStatus;
 use tiFy\Plugins\Shop\{Shop, ShopAwareTrait};
-use tiFy\Plugins\Shop\Contracts\{
-    Gateway,
+use tiFy\Plugins\Shop\Contracts\{Gateway,
     Order as OrderContract,
     OrderItem,
     OrderItemCoupon,
@@ -22,7 +21,8 @@ use tiFy\Support\DateTime;
 use tiFy\Support\Proxy\{Database, PostType};
 use tiFy\Wordpress\Contracts\Query\QueryPost as QueryPostContract;
 use tiFy\Wordpress\Query\QueryPost;
-use WP_Post, WP_Query;
+use WP_Post;
+use WP_Query;
 
 class Order extends QueryPost implements OrderContract
 {
@@ -269,8 +269,8 @@ class Order extends QueryPost implements OrderContract
                 'first_name' => '',
                 'last_name'  => '',
                 'company'    => '',
-                'address_1'  => '',
-                'address_2'  => '',
+                'address1'   => '',
+                'address2'   => '',
                 'city'       => '',
                 'state'      => '',
                 'postcode'   => '',
@@ -302,8 +302,8 @@ class Order extends QueryPost implements OrderContract
                 'first_name' => '',
                 'last_name'  => '',
                 'company'    => '',
-                'address_1'  => '',
-                'address_2'  => '',
+                'address1'   => '',
+                'address2'   => '',
                 'city'       => '',
                 'state'      => '',
                 'postcode'   => '',

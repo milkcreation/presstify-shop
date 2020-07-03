@@ -30,7 +30,7 @@ use tiFy\Support\ParamsBag;
  * @desc Extension PresstiFy de gestion de boutique en ligne.
  * @author Jordy Manner <jordy@milkcreation.fr>
  * @package tiFy\Plugins\Shop
- * @version 2.0.55
+ * @version 2.0.56
  *
  * Activation :
  * ----------------------------------------------------------------------------------------------------

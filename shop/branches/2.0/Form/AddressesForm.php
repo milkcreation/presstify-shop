@@ -64,7 +64,6 @@ class AddressesForm extends FormFactory implements AddressesFormContract
                 'value'    => $session->get('billing.address1', $user->getBilling('address1')),
             ],
             'billing_address2'   => [
-                'required' => true,
                 'title'    => __('Complément d\'adresse', 'tify'),
                 'type'     => 'text',
                 'value'    => $session->get('billing.address2', $user->getBilling('address2')),

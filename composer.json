@@ -9,20 +9,14 @@
     "e-commerce",
     "woocommerce"
   ],
-  "homepage": "https://svn.milkcreation.fr/presstify-plugins/shop",
-  "time": "2020-06-22",
+  "homepage": "https://github.com/milkcreation/presstify-shop.git",
+  "time": "2021-09-14",
   "license": "proprietary",
   "authors": [
     {
       "name": "Jordy Manner",
       "email": "jordy.manner@milkcreation.fr",
       "role": "Developper"
-    }
-  ],
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "http://composer.tigreblanc.fr/presstify/"
     }
   ],
   "require": {
